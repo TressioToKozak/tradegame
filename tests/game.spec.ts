@@ -411,6 +411,7 @@ test("anti-sniping: dwa przedłużenia, odświeżenie i jedno rozliczenie NPC", 
   await expect(room.locator(".room-timer")).toContainText("Zakończona", {
     timeout: 20000,
   });
+  await expect(page.locator(".save-state")).toContainText("Postęp zapisany");
   const result = await page.evaluate(
     async () =>
       await new Promise<any>((resolve, reject) => {
