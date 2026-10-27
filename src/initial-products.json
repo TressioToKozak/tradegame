@@ -1,12 +1,1 @@
-[
-  "blue",
-  "george",
-  "swing",
-  "black",
-  "double",
-  "platinum",
-  "centenary",
-  "green",
-  "gold",
-  "red"
-]
+{ "common": 3, "moderate": 3, "limited": 2, "scarce": 2 }

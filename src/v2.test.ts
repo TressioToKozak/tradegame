@@ -24,15 +24,16 @@ const drain = (s: State, target: number) => {
   expect(s.now).toBe(target);
 };
 describe("Ciągły rynek 2.0", () => {
-  it("startuje z dziesięcioma sfotografowanymi aukcjami i 35 rywalami", () => {
+  it("startuje z dziesięcioma aukcjami pełnego katalogu i 35 rywalami", () => {
     const s = createGame(now, 42);
     expect(s.auctions).toHaveLength(10);
     expect(s.people.filter((p) => p.role === "bidder")).toHaveLength(35);
     for (const a of s.auctions) {
-      expect(photosFor(a.product).length).toBeGreaterThan(0);
+      expect(catalog.some((w) => w.id === a.product)).toBe(true);
       expect(a.end - now).toBeGreaterThanOrEqual(45000);
     }
     expect(new Set(s.auctions.map((a) => a.end)).size).toBe(10);
+    expect(s.auctions.some((a) => !photosFor(a.product).length)).toBe(true);
   });
   it("przez godzinę regularnie uzupełnia aukcje, bez pustego rynku i bez przekroczenia 15", () => {
     const s = createGame(now, 42);
@@ -55,7 +56,9 @@ describe("Ciągły rynek 2.0", () => {
     ]);
     const s = createGame(now, 12),
       a = s.auctions[1];
-    expect(bid(s, a.id, "player", a.price + 500)).toContain("Minimalne");
+    expect(bid(s, a.id, "player", a.price + bidStep(a.price) - 1)).toContain(
+      "Minimalne",
+    );
     a.playerLimit = a.price + 1000;
     expect(bid(s, a.id, "player", a.price + 2000)).toContain("limit");
     expect(cash(s)).toBe(500000);

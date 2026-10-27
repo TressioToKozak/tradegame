@@ -12,14 +12,25 @@ export default function AuctionMarket({
 }) {
   const [category, setCategory] = useState("Wszystkie"),
     [sort, setSort] = useState("Czas do końca"),
-    [watched, setWatched] = useState(false);
+    [watched, setWatched] = useState(false),
+    [quick, setQuick] = useState("Wszystkie");
   const active = s.auctions.filter((a) => a.status === "active");
   const shown = active
     .filter(
       (a) =>
         (category === "Wszystkie" ||
           categoryLabel(whisky(a.product)) === category) &&
-        (!watched || a.watched),
+        (!watched || a.watched) &&
+        (quick === "Wszystkie" ||
+          (quick === "Kończące się" && a.end - s.now <= 120000) ||
+          (quick === "Obserwowane" && a.watched) ||
+          (quick === "Tanie" && a.price <= 5000) ||
+          (quick === "Rzadkie" && whisky(a.product).market.rarity >= 7) ||
+          (quick === "Vintage" && whisky(a.product).category === "vintage") ||
+          (quick === "Limitowane" &&
+            (categoryLabel(whisky(a.product)) === "Limitowane opakowania" ||
+              whisky(a.product).market.availability === "limited")) ||
+          (quick === "Nowo dodane" && s.now - (a.createdAt ?? 0) <= 120000)),
     )
     .sort((a, b) =>
       sort === "Cena rosnąco"
@@ -34,6 +45,27 @@ export default function AuctionMarket({
     );
   return (
     <section>
+      <div className="market-chips" aria-label="Szybkie filtry">
+        {[
+          "Wszystkie",
+          "Kończące się",
+          "Obserwowane",
+          "Tanie",
+          "Rzadkie",
+          "Vintage",
+          "Limitowane",
+          "Nowo dodane",
+        ].map((label) => (
+          <button
+            key={label}
+            aria-pressed={quick === label}
+            className={quick === label ? "selected" : "outline"}
+            onClick={() => setQuick(label)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       <div className="market-tools">
         <label>
           Kategoria

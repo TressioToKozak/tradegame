@@ -8,13 +8,14 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { euro, whisky } from "../catalog";
+import { euro, whisky, productSpecs, availabilityLabel } from "../catalog";
 import {
   submitBid,
   totalCost,
   bidStep,
   watchAuction,
   setBidLimit,
+  watcherCount,
   type Auction,
   type State,
 } from "../engine";
@@ -35,6 +36,9 @@ export function AuctionCard({
   onOpen: () => void;
 }) {
   const urgent = a.status === "active" && a.end - s.now < 30000;
+  const extension = a.extensions?.at(-1);
+  const recentExtension =
+    extension && s.now >= extension.at && s.now - extension.at < 6000;
   return (
     <motion.article
       layout
@@ -44,6 +48,16 @@ export function AuctionCard({
     >
       <div className="auction-visual">
         <ProductGallery product={a.product} compact />
+        {recentExtension && (
+          <motion.span
+            key={a.end}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="extension-chip"
+          >
+            +15 SEKUND — AUKCJA PRZEDŁUŻONA!
+          </motion.span>
+        )}
         <span className="lot">
           PARTIA {a.id}
           {a.watched ? " · ★" : ""}
@@ -55,7 +69,30 @@ export function AuctionCard({
       </div>
       <div className="auction-info">
         <span className="eyebrow">JOHNNIE WALKER · {a.country}</span>
-        <h3>{whisky(a.product).name.replace("Johnnie Walker ", "")}</h3>
+        <h3>{whisky(a.product).name}</h3>
+        <p className="product-specs">{productSpecs(whisky(a.product))}</p>
+        <div className="auction-facts">
+          <span>
+            Butelka / pudełko{" "}
+            <b>
+              {a.bottleCondition ?? a.condition} /{" "}
+              {a.boxCondition ?? a.condition}
+            </b>
+          </span>
+          <span>
+            Rzadkość <b>{whisky(a.product).market.rarity}/10</b>
+          </span>
+          <span>
+            Referencja gry <b>{euro(whisky(a.product).value)}</b>
+          </span>
+          <span>
+            Obserwuje <b>{watcherCount(s, a)}</b>
+          </span>
+        </div>
+        <small>
+          {availabilityLabel[whisky(a.product).market.availability]} dostępność
+          · ceny są parametrami gry
+        </small>
         <div className="auction-price">
           <div>
             <small>Aktualna oferta</small>
@@ -75,6 +112,14 @@ export function AuctionCard({
             {actor(s, a.leader)}
           </small>
         </div>
+        <div className="card-total">
+          Pełny koszt przy bieżącej cenie <b>{euro(totalCost(a))}</b>
+        </div>
+        {totalCost(a) < whisky(a.product).value * 0.75 && (
+          <p className="opportunity-hint">
+            Koszt poniżej referencji — zysk nie jest gwarantowany.
+          </p>
+        )}
         {a.leader === "player" ? (
           <span className="bid-status leading">Prowadzisz</span>
         ) : a.bids.some((b) => b.actor === "player") ? (
@@ -118,7 +163,7 @@ export function AuctionRoom({
     ...a.bids.map((b) => ({
       key: `bid-${b.at}-${b.actor}-${b.amount}`,
       at: b.at,
-      text: `${actor(s, b.actor)} ${b.actor === "player" ? "— Twoja oferta została przyjęta" : "podnosi ofertę"}`,
+      text: `${actor(s, b.actor)} ${b.actor === "player" ? "— Twoja oferta została przyjęta" : "podnosi ofertę"}${a.extensions?.some((e) => e.at === b.at && e.actor === b.actor) ? " · Aukcja przedłużona o 15 sekund" : ""}`,
       amount: b.amount,
     })),
     ...s.people.flatMap((p) =>
@@ -137,6 +182,9 @@ export function AuctionRoom({
       !e.done && e.type === "bid" && e.actor === "player" && e.ref === a.id,
   );
   const urgent = a.status === "active" && a.end - s.now < 30000;
+  const extension = a.extensions?.at(-1);
+  const recentExtension =
+    extension && s.now >= extension.at && s.now - extension.at < 6000;
   return (
     <Modal
       title={`Aukcja ${a.id}`}
@@ -175,27 +223,120 @@ export function AuctionRoom({
           <p className="product-description">{whisky(a.product).description}</p>
           <div className="condition-strip">
             <span>
-              Butelka i opakowanie <b>{a.condition}/100</b>
+              Butelka / pudełko{" "}
+              <b>
+                {a.bottleCondition ?? a.condition} /{" "}
+                {a.boxCondition ?? a.condition} (na 100)
+              </b>
             </span>
             <span>
               Sprzedawca <b>{a.country}</b>
             </span>
-          </div>
+          </div>{" "}
+          <details className="edition-data">
+            <summary>Dane edycji i rynku</summary>
+            <p>{productSpecs(whisky(a.product))}</p>
+            <dl>
+              <dt>Dostępność</dt>
+              <dd>
+                {availabilityLabel[whisky(a.product).market.availability]}
+              </dd>
+              <dt>Rzadkość kolekcjonerska</dt>
+              <dd>{whisky(a.product).market.rarity}/10</dd>
+              <dt>Popyt / płynność gry</dt>
+              <dd>
+                {whisky(a.product).market.demand} /{" "}
+                {whisky(a.product).market.liquidity} (na 100)
+              </dd>
+              <dt>Produkcja</dt>
+              <dd>
+                {
+                  {
+                    current: "W produkcji",
+                    discontinued: "Wycofana",
+                    unknown: "Niepotwierdzona",
+                  }[whisky(a.product).market.productionStatus]
+                }
+              </dd>
+              <dt>Wprowadzenie</dt>
+              <dd>{whisky(a.product).releaseYear ?? "Niepotwierdzone"}</dd>
+              <dt>Region</dt>
+              <dd>
+                {whisky(a.product)
+                  .market.regions.map(
+                    (r) =>
+                      ({
+                        NL: "Holandia",
+                        EU: "Europa",
+                        US: "USA",
+                        Global: "Globalny",
+                        "Travel Retail": "Rynek podróżny",
+                      })[r] ?? r,
+                  )
+                  .join(", ")}
+              </dd>
+              <dt>Referencja detaliczna gry</dt>
+              <dd>{euro(whisky(a.product).value)}</dd>
+              <dt>Zweryfikowany przedział aukcyjny</dt>
+              <dd>
+                {whisky(a.product).market.auctionMinCents !== null &&
+                whisky(a.product).market.auctionMaxCents !== null
+                  ? `${euro(whisky(a.product).market.auctionMinCents!)} – ${euro(whisky(a.product).market.auctionMaxCents!)}`
+                  : "Brak potwierdzonych danych"}
+              </dd>
+              <dt>Weryfikacja ceny</dt>
+              <dd>
+                {whisky(a.product).market.lastVerified ??
+                  "Niepotwierdzona zewnętrznie"}
+              </dd>
+            </dl>
+            <p>
+              {whisky(a.product).balanceNote ??
+                "Referencja jest parametrem gry, nie aktualną ofertą detaliczną."}
+            </p>
+            {whisky(a.product).market.sources.map((url) => (
+              <p key={url}>
+                <a href={url} target="_blank" rel="noreferrer">
+                  Źródło ceny
+                </a>
+              </p>
+            ))}
+          </details>
         </div>
         <div className="bid-desk">
           <p className="eyebrow">
             {a.status === "closed" ? "WYNIK AUKCJI" : "TRWA LICYTACJA"}
           </p>
-          <div className="room-timer">
+          <motion.div
+            key={a.end}
+            initial={
+              a.extensions?.length
+                ? { backgroundColor: "#b57e3e66", scale: 1.03 }
+                : false
+            }
+            animate={{ backgroundColor: "#b57e3e00", scale: 1 }}
+            className="room-timer"
+          >
             <Clock size={20} />
             <span>
               {a.status === "closed" ? "Zakończona" : countdown(a.end, s.now)}
             </span>
-          </div>
+          </motion.div>
+          {recentExtension && (
+            <motion.p
+              key={a.end}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="extension-banner"
+              role="status"
+            >
+              +15 SEKUND — AUKCJA PRZEDŁUŻONA!
+            </motion.p>
+          )}
           <small>
             {urgent
               ? "Ostatnie sekundy. Liczy się czas rejestracji oferty."
-              : "Termin aukcji jest stały. Każda oferta musi dotrzeć przed końcem."}
+              : "Zmiana lidera w ostatnich 10 sekundach przedłuża aukcję o 15 sekund."}
           </small>
           <div className="room-price">
             <small>Aktualna oferta</small>
@@ -210,6 +351,16 @@ export function AuctionRoom({
               Prowadzi <b>{actor(s, a.leader)}</b>
             </p>
           </div>
+          {a.status === "active" &&
+            (a.leader === "player" ? (
+              <p className="bid-status leading" role="status">
+                Twoja oferta prowadzi
+              </p>
+            ) : a.bids.some((b) => b.actor === "player") ? (
+              <p className="bid-status outbid" role="status">
+                Zostałeś przebity. Prowadzi {actor(s, a.leader)}.
+              </p>
+            ) : null)}
           {a.status === "active" && (
             <form
               onSubmit={(e) => {
@@ -231,10 +382,20 @@ export function AuctionRoom({
                       setValue(String((a.price + bidStep(a.price) * n) / 100));
                     }}
                   >
-                    +{euro(bidStep(a.price) * n)}
+                    {n === 1
+                      ? "Minimalne przebicie"
+                      : `+${n} ${n === 2 ? "kroki" : "kroków"}`}{" "}
+                    · +{euro(bidStep(a.price) * n)}
                   </button>
                 ))}
               </div>
+              <button
+                type="button"
+                className="text-button custom-amount"
+                onClick={() => document.getElementById("bid-amount")?.focus()}
+              >
+                Własna kwota
+              </button>
               <label htmlFor="bid-amount">Twoja oferta (€)</label>
               <div className="bid-amount-row">
                 <input
@@ -296,6 +457,13 @@ export function AuctionRoom({
                 : `Zapisany limit: ${euro(a.playerLimit)}. Prowizja i transport są dodatkowo.`}
             </small>
           </div>
+          {totalCost(a, a.status === "active" && valid ? amount : a.price) >
+            whisky(a.product).value && (
+            <p className="purchase-risk">
+              Uwaga: koszt przekracza referencję gry. Marża po wysyłce i
+              prowizji może być ujemna.
+            </p>
+          )}
           <dl className="cost-breakdown">
             <dt>
               {a.status === "active"
@@ -303,7 +471,7 @@ export function AuctionRoom({
                 : "Cena zwycięska"}
             </dt>
             <dd>{euro(a.status === "active" && valid ? amount : a.price)}</dd>
-            <dt>Prowizja domu aukcyjnego · 12%</dt>
+            <dt>Prowizja domu aukcyjnego · {Math.round(a.fee * 100)}%</dt>
             <dd>
               {euro(
                 Math.round(

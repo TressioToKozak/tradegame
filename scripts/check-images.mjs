@@ -48,40 +48,16 @@ if (!count)
   console.warn(
     "BRAK ZDJĘĆ: manifest jest pusty. Nie oznacza to spełnienia wymagania fotografii.",
   );
-if (process.argv.includes("--strict")) {
-  const initial = JSON.parse(
-    await readFile(
-      new URL("../src/initial-products.json", import.meta.url),
-      "utf8",
-    ),
-  );
-  for (const key of initial)
-    if (!manifest.products[key]?.length)
-      failures.push(`${key}: brak zdjęcia początkowej aukcji`);
-}
+const catalog = JSON.parse(
+  await readFile(new URL("../src/catalog-data.json", import.meta.url), "utf8"),
+);
+for (const id of Object.keys(manifest.products))
+  if (!catalog.some((w) => w.id === id))
+    failures.push(`${id}: zdjęcie nieznanej edycji`);
 if (process.argv.includes("--all"))
-  for (const key of [
-    "black",
-    "double",
-    "green",
-    "gold",
-    "platinum",
-    "18",
-    "blue",
-    "brora",
-    "port",
-    "glenury",
-    "george",
-    "casks",
-    "royal",
-    "spice",
-    "goldroute",
-    "swing",
-    "centenary",
-    "dragon",
-  ])
-    if (!manifest.products[key]?.length)
-      failures.push(`${key}: brak zdjęcia pierwotnej edycji`);
+  for (const w of catalog)
+    if (!manifest.products[w.id]?.length)
+      failures.push(`${w.id}: brak zdjęcia — ${w.name}`);
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exitCode = 1;

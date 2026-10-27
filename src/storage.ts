@@ -105,6 +105,22 @@ function validate(s: State) {
       (a.leader !== null && a.leader !== "player" && !person(a.leader))
     )
       fail();
+  for (const a of s.auctions)
+    if (
+      a.extensions &&
+      (!Array.isArray(a.extensions) ||
+        a.extensions.some(
+          (e) =>
+            !finite(e.at) ||
+            !finite(e.oldEnd) ||
+            !finite(e.newEnd) ||
+            e.newEnd !== e.oldEnd + 15000 ||
+            e.at >= e.oldEnd ||
+            e.oldEnd - e.at > 10000 ||
+            typeof e.actor !== "string",
+        ))
+    )
+      fail();
   for (const i of s.items)
     if (
       !knownProduct(i.product) ||

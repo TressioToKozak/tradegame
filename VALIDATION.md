@@ -1,20 +1,18 @@
-# Weryfikacja wersji 2.0
+# Weryfikacja aktualizacji rynku 2.1
 
-## Zaliczone lokalnie
+## Zaliczone
 
-- **36 testów jednostkowych/komponentowych**: stare finanse, deterministyczne odtwarzanie, transakcje i magazyn; kolejka priorytetowa, migracja 1→2, limity budżetu, zmienne kroki, rekompensata, 35 NPC i 15 równoczesnych aukcji.
-- Godzinna symulacja Dynamiczna: brak pustego rynku, nie więcej niż 15 aktywnych partii, zwykle co najmniej 8.
-- Trzy dni odtworzone w około 0,7–1,2 s w tej maszynie; po odtworzeniu ograniczone archiwum, najwyżej 120 wpisów pamięci na postać i kilkanaście przyszłych zdarzeń. To pomiar tej maszyny, nie gwarancja czasu na każdym urządzeniu.
-- `npm run check:images:strict`: wszystkie początkowe partie mają lokalne pliki i metadane. Łącznie **13 fotografii**.
-- Produkcyjny build Vite i TypeScript.
-- **9 scenariuszy Chromium** na gotowym `dist` pod `/tradegame/`: nowa gra, czas i rzeczywiste oferty NPC, własna oferta i odświeżenie; odroczona odpowiedź; otwarcie i przyjęcie paczki; wygrana i koszty; telefon 390 px i finanse; offline; powiększenie zdjęcia; dekodowanie zdjęć wszystkich 10 początkowych aukcji, filtry, obserwowane i limit; eksport oryginału przed migracją.
-- Zdjęcia są sprawdzane przez `complete` i `naturalWidth`, także po przewinięciu do obrazów ładowanych leniwie. Testy zdjęć nie są już pomijane i nie używają atrap jako fotografii produkcyjnych.
-- Obejrzano nowe menu, pulpit i pokój aukcyjny z rzeczywistymi zdjęciami. Brak przepełnienia dokumentu na telefonie.
+- **50 testów jednostkowych/komponentowych**: dotychczasowe finanse, NPC, zapis i chronologiczne odtwarzanie; siedem edycji i brak duplikatu `rye`; eurocenty, dostępność, częstotliwość, popyt/płynność, opłaty, pełny raport fotografii, anti-sniping i zgodność zapisów 1/2.
+- Anti-sniping w silniku: próg dokładnie 10 sekund, brak przedłużenia przy 11 sekundach, wielokrotne +15 s, odrzucenia, własne podbijanie, oferta w chwili końca, stare `close`, aktualizacja snajperów, wznowienie JSON i jednokrotne rozliczenie.
+- **10 scenariuszy Chromium**, bez pominiętych, na gotowym `dist` pod `/tradegame/`. Dotychczasowe licytacje, komunikator, paczki, finanse, mobile, offline i migracja oraz rzeczywiste zdjęcia i nowy anti-sniping.
+- Scenariusz anti-sniping w przeglądarce korzysta z prawdziwego upływu czasu: koniec za 8 sekund → oferta gracza → +15 sekund → odświeżenie → oferta NPC 5 sekund przed nowym końcem → kolejne +15 sekund → brak zamknięcia przy starym terminie → jedno rozliczenie. Trwa około 39 sekund. Nie zastąpiono go sztucznym odliczaniem.
+- Test zdjęć otwiera wszystkie 12 sfotografowanych produktów i sprawdza `complete`/`naturalWidth`, a następnie dekoduje wszystkie 15 plików, w tym opakowania i kolekcję, przez `Image.decode()` w Chromium. To są fotografie produkcyjne, nie atrapy.
+- Godzinny test rynku: zwykle 8–15 aktywnych, brak pustego rynku. Test 15 aukcji sprawdza wspólne budżety. Trzy dni odtworzone w około 0,4 s w tej maszynie po optymalizacji wag i formatowania czasu; to pomiar środowiska, nie gwarancja czasu na telefonie.
+- `npm run check:images:strict`: 15 istniejących plików i ich metadane. `npm run report:images`: pełna lista 44 braków w 56-pozycyjnym katalogu. Losowanie nie korzysta z manifestu zdjęć.
+- TypeScript i produkcyjny build Vite.
 
-Testy korzystają z kontrolowanych zapisów i terminów; nie odczekiwano pełnych dni transportu. Pierwotne terminy w migrowanych zapisach nie są skracane. Nie zmieniono kwot historycznych transakcji.
+## Nieukończone lub niezweryfikowane
 
-## Zakres nieukończony
-
-`npm run check:images:all` zgłasza **9 braków** pierwotnego katalogu: Aged 18, Brora, Port Ellen, Glenury Royal, The Casks Edition, The Royal Route, The Spice Road, The Gold Route, Year of the Dragon. Nie znaleziono dla nich odpowiednich plików z potwierdzoną licencją; nie podstawiono innych produktów. Dalsze nowe edycje katalogu także nie są w pełni sfotografowane. Szczegóły: `IMAGE_SOURCES.md`.
-
-Dostęp do publicznego GitHub Pages działa (HTTP 200); sprawdzenie nowego opublikowanego buildu jest odrębne od lokalnych testów i opisane w końcowym raporcie. GitHub API do statusu Actions zwraca 403 w tym środowisku, dlatego sam push nie jest traktowany jako dowód publikacji.
+- Fotografie **44 z 56 produktów** nadal nie są dostępne. Pełna lista: [MISSING_IMAGES.md](MISSING_IMAGES.md). `npm run check:images:all` celowo kończy się błędem kompletności; nie jest opisywany jako zaliczony.
+- Nie potwierdzono aktualnych ofert cenowych w dwóch niezależnych źródłach dla siedmiu produktów. Wskazane strony producenta i sklepów zwracają 403 w tym środowisku. Wartości są parametrami z polecenia, a `lastVerified` pozostaje puste. High Rye nie udaje potwierdzonej ceny holenderskiej.
+- Bezpośrednie otwarcie publicznej strony w Chromium ogranicza konfiguracja certyfikatu proxy. Nie zmieniono zaufania certyfikatów ani nie wyłączono weryfikacji TLS. Publiczny build i fotografie można odrębnie zweryfikować przez HTTPS oraz porównać z przetestowanym lokalnie `dist`; wynik wdrożenia jest podany w końcowym raporcie.

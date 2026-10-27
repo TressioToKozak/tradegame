@@ -39,7 +39,7 @@
         "label": "Butelka i oryginalne opakowanie",
         "kind": "bottle",
         "author": "Iceman7840",
-        "source": "https://commons.wikimedia.org/wiki/JW_Double_Black.jpg",
+        "source": "https://commons.wikimedia.org/wiki/File:JW_Double_Black.jpg",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
       }
@@ -123,10 +123,32 @@
         "path": "images/whisky/red.webp",
         "kind": "bottle",
         "label": "Butelka",
-        "source": "https://commons.wikimedia.org/wiki/Johnnie_Walker_Red_Label.jpg",
+        "source": "https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Red_Label.jpg",
         "author": "kallerna",
         "license": "CC BY-SA 3.0",
         "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ],
+    "rye": [
+      {
+        "path": "images/whisky/rye.webp",
+        "kind": "bottle",
+        "label": "Butelka",
+        "author": "JIP",
+        "source": "https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Blenders'_Batch_Red_Rye_Finish.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      }
+    ],
+    "white": [
+      {
+        "path": "images/whisky/white.webp",
+        "kind": "bottle",
+        "label": "White Walker — fotografia pustej butelki",
+        "author": "Gråbergs Gråa Sång",
+        "source": "https://commons.wikimedia.org/wiki/File:Johnnie_Walker_-_White_Walker.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
       }
     ]
   },

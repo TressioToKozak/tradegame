@@ -1,5 +1,5 @@
 import initialProducts from "./initial-products.json" with { type: "json" };
-import { catalog, whisky } from "./catalog";
+import { catalog, whisky, type MarketData } from "./catalog";
 import { EventQueue } from "./scheduler";
 import { paceFactor, type Pace } from "./pace";
 export type { Pace } from "./pace";
@@ -46,6 +46,8 @@ export interface Auction {
   country: string;
   limits: Record<string, number>;
   bids: { at: number; actor: string; amount: number }[];
+  watchers?: string[];
+  extensions?: { at: number; actor: string; oldEnd: number; newEnd: number }[];
 }
 export interface Item {
   id: string;
@@ -258,10 +260,16 @@ export function createGame(
   );
   post(s, "opening", 500000, "Kapitał początkowy", "company");
   addBidders(s);
-  for (const key of initialProducts) {
-    const index = catalog.findIndex((w) => w.id === key);
-    makeAuction(s, index, now + auctionDuration(s, index));
+  for (const [availability, count] of Object.entries(initialProducts)) {
+    for (let i = 0; i < count; i++) {
+      const index = chooseMarketProduct(
+        s,
+        availability as MarketData["availability"],
+      );
+      makeAuction(s, index, now + auctionDuration(s, index));
+    }
   }
+
   s.people
     .filter((p) => p.role === "customer")
     .forEach((p) => schedule(s, p.nextVisit, "visit", p.id));
@@ -271,20 +279,35 @@ export function createGame(
 }
 export function makeAuction(s: State, index: number, end: number) {
   const w = catalog[index];
+  const country = ["Holandia", "Belgia", "Niemcy"][Math.floor(random(s) * 3)];
+  const bottleCondition = random(s) < 0.9 ? 100 : 95;
+  const boxCondition = [75, 85, 95, 100, 100, 100, 100][
+    Math.floor(random(s) * 7)
+  ];
+  const condition = Math.min(bottleCondition, boxCondition);
+  const fee = [0.1, 0.12, 0.15][Math.floor(random(s) * 3)];
+  const shipping =
+    country === "Holandia"
+      ? 500 + Math.floor(random(s) * 6) * 100
+      : 1200 + Math.floor(random(s) * 10) * 100;
   const a: Auction = {
     id: id(s, "A"),
     product: w.id,
     end: Math.max(end, s.now + 45000),
     createdAt: s.now,
-    bottleCondition: 100,
-    boxCondition: 100,
-    price: Math.round((w.value * 0.45) / 100) * 100,
+    bottleCondition,
+    boxCondition,
+    price: Math.max(
+      500,
+      Math.round((w.value * (0.45 + random(s) * 0.2) * condition) / 100 / 100) *
+        100,
+    ),
     leader: null,
     status: "active",
-    fee: 0.12,
-    shipping: 1500,
-    condition: 100,
-    country: ["Holandia", "Belgia", "Niemcy"][index % 3],
+    fee,
+    shipping,
+    condition,
+    country,
     limits: {},
     bids: [],
   };
@@ -293,7 +316,9 @@ export function makeAuction(s: State, index: number, end: number) {
     (p) => p.role === "bidder" && p.budget - p.reserved > totalCost(a),
   );
   const participants = candidates.filter(
-    (p) => p.favorites.includes(w.category) && random(s) < 0.28,
+    (p) =>
+      p.favorites.includes(w.category) &&
+      random(s) < 0.08 + (w.market.demand / 100) * 0.4,
   );
   for (const p of participants.slice(0, 8)) {
     const interest = p.favorites.includes(w.category) ? 1 : 0.55;
@@ -304,22 +329,38 @@ export function makeAuction(s: State, index: number, end: number) {
     const difficulty = ["Łatwa", "Normalna", "Realistyczna", "Ekspert"].indexOf(
       s.difficulty,
     );
-    a.limits[p.id] = Math.floor(
-      w.value *
+    const preference = p.favoriteEditions?.includes(w.id) ? 1.12 : 1;
+    const modeled =
+      (1.24 - p.sensitivity * 0.4 + Math.min(losses, 3) * 0.03) *
+      (0.9 + difficulty * 0.05) *
+      preference;
+    const ceiling =
+      w.market.availability === "common"
+        ? 1.06
+        : p.sensitivity >= 0.8
+          ? 0.9
+          : 1.4;
+    const allIn =
+      (w.value *
         interest *
-        (p.favoriteEditions?.includes(w.id) ? 1.12 : 1) *
         duplicate *
-        (1.24 - p.sensitivity * 0.4 + Math.min(losses, 3) * 0.03) *
-        (0.9 + difficulty * 0.05),
+        Math.min(ceiling, modeled) *
+        a.condition) /
+      100;
+    const tradeCosts =
+      p.sensitivity >= 0.8 ? 950 + Math.round(w.value * 0.025) : 0;
+    a.limits[p.id] = Math.max(
+      0,
+      Math.floor((allIn - tradeCosts - a.shipping) / (1 + a.fee)),
     );
     const at =
       p.strategy === "snipe"
-        ? end - 2000 - Math.floor(random(s) * 14000)
+        ? a.end - 2000 - Math.floor(random(s) * 14000)
         : s.now +
-          Math.floor((end - s.now) * (p.strategy === "early" ? 0.08 : 0.45));
+          Math.floor((a.end - s.now) * (p.strategy === "early" ? 0.08 : 0.45));
     schedule(s, at, "think", a.id, p.id);
   }
-  schedule(s, end, "close", a.id);
+  schedule(s, a.end, "close", a.id);
 }
 export function bid(
   s: State,
@@ -353,6 +394,7 @@ export function bid(
   a.price = amount;
   a.leader = actor;
   a.bids.push({ at: s.now, actor, amount });
+  if (a.end - s.now <= 10000) extendAuction(s, a, actor);
   if (p) remember(s, p, "bid", a.id, String(amount));
   if (wasPlayer && actor !== "player")
     log(s, `Zostałeś przebity w aukcji ${a.id} przez ${p?.name}.`);
@@ -432,13 +474,7 @@ function close(s: State, a: Auction) {
   }
 }
 function visit(s: State, p: Person) {
-  const hour = Number(
-    new Intl.DateTimeFormat("en-GB", {
-      hour: "2-digit",
-      hourCycle: "h23",
-      timeZone: "Europe/Amsterdam",
-    }).format(s.now),
-  );
+  const hour = amsterdamHour(s.now);
   if (
     hour >= 8 &&
     hour < 22 &&
@@ -459,19 +495,18 @@ function visit(s: State, p: Person) {
     if (i) {
       i.views++;
       const w = whisky(i.product);
-      const tolerance =
-        1.35 -
-        p.sensitivity * 0.35 +
-        (p.trust - 0.5) * 0.2 +
-        (s.reputation - 50) / 500;
       const max = Math.min(
         available(p),
-        Math.floor((w.value * tolerance * i.condition) / 100),
+        customerCeiling(p, w, i.condition, s.reputation),
       );
       const rejected = p.memory.some(
         (m) => m.kind === "rejected" && m.ref === i.id && s.now - m.at < DAY,
       );
-      if (!rejected && i.price <= max * 1.2) {
+      if (
+        !rejected &&
+        i.price <= max * 1.2 &&
+        random(s) < (w.market.demand * w.market.liquidity) / 10000
+      ) {
         i.interested.push(p.id);
         const offer = Math.min(
           max,
@@ -536,6 +571,7 @@ export function advance(s: State, target: number) {
         !p.memory.some((m) => m.kind === "watch" && m.ref === a.id) &&
         p.favorites.includes(whisky(a.product).category)
       ) {
+        if (!(a.watchers ??= []).includes(p.id)) a.watchers.push(p.id);
         remember(s, p, "watch", a.id, a.product);
         log(s, `${p.name} obserwuje ${whisky(a.product).name}.`);
       }
@@ -583,8 +619,20 @@ export function advance(s: State, target: number) {
         log(s, `${s.people.find((p) => p.id === t.customer)?.name}: ${result}`);
       }
     } else if (e.type === "bid") log(s, bid(s, e.ref, e.actor!, e.amount!));
-    else if (e.type === "close" && a) close(s, a);
-    else if (e.type === "arrival") {
+    else if (e.type === "close" && a) {
+      if (a.status === "active" && s.now < a.end) {
+        if (
+          !s.events.some(
+            (event) =>
+              !event.done &&
+              event.type === "close" &&
+              event.ref === a.id &&
+              event.at === a.end,
+          )
+        )
+          schedule(s, a.end, "close", a.id);
+      } else close(s, a);
+    } else if (e.type === "arrival") {
       const i = s.items.find((i) => i.id === e.ref);
       if (i?.status === "incoming") {
         i.status = "inspect";
@@ -641,11 +689,8 @@ export function advance(s: State, target: number) {
     } else if (e.type === "market") {
       const active = s.auctions.filter((a) => a.status === "active").length;
       if (active < 15) {
-        makeAuction(
-          s,
-          Math.floor(random(s) * catalog.length),
-          s.now + auctionDuration(s),
-        );
+        const index = chooseMarketProduct(s);
+        makeAuction(s, index, s.now + auctionDuration(s, index));
         log(s, "Nowa aukcja na rynku kolekcjonerskim.");
       }
       // Top up gradually; no instantaneous wall of identical auctions.
@@ -780,15 +825,7 @@ export function respond(
   const amount = intent === "accept" ? t.offer : price!;
   const willingness = Math.min(
     c.budget,
-    Math.floor(
-      (whisky(i.product).value *
-        (1.35 -
-          c.sensitivity * 0.35 +
-          (c.trust - 0.5) * 0.2 +
-          (s.reputation - 50) / 500) *
-        i.condition) /
-        100,
-    ),
+    customerCeiling(c, whisky(i.product), i.condition, s.reputation),
   );
   if (amount > willingness) {
     remember(s, c, "counter-rejected", i.id, String(amount));
@@ -909,14 +946,13 @@ export function financials(s: State) {
   };
 }
 
+const hourFormatter = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Europe/Amsterdam",
+  hour: "2-digit",
+  hourCycle: "h23",
+});
 function amsterdamHour(at: number) {
-  return Number(
-    new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Europe/Amsterdam",
-      hour: "2-digit",
-      hourCycle: "h23",
-    }).format(at),
-  );
+  return Number(hourFormatter.format(at));
 }
 
 /** Public UI command: customer decisions are queued, serialized and replayable. */
@@ -1152,4 +1188,108 @@ export function migrateGame(input: unknown): State {
   s.events = s.events.filter((e) => !e.done && e.type !== "market");
   schedule(s as State, s.now + 30000, "market", "world");
   return s as State;
+}
+
+function customerCeiling(
+  p: Person,
+  w: (typeof catalog)[number],
+  condition: number,
+  reputation: number,
+) {
+  const raw =
+    1.35 -
+    p.sensitivity * 0.35 +
+    (p.trust - 0.5) * 0.2 +
+    (reputation - 50) / 500;
+  const cap = w.market.availability === "common" ? 1.06 : 1.4;
+  return Math.floor((w.value * Math.min(raw, cap) * condition) / 100);
+}
+/** Availability controls frequency; demand and liquidity affect people, not rarity. */
+export function chooseMarketProduct(
+  s: State,
+  availability?: MarketData["availability"],
+) {
+  const active = s.auctions.filter((a) => a.status === "active");
+  const ids = new Map<string, number>(),
+    categories = new Map<string, number>();
+  for (const a of active) {
+    ids.set(a.product, (ids.get(a.product) ?? 0) + 1);
+    const category = whisky(a.product).category;
+    categories.set(category, (categories.get(category) ?? 0) + 1);
+  }
+  const weights = catalog.map((w) => {
+    if (availability && w.market.availability !== availability) return 0;
+    const base = { common: 8, moderate: 5, limited: 3, scarce: 1.3 }[
+      w.market.availability
+    ];
+    const duplicates = ids.get(w.id) ?? 0;
+    const categoryLoad = categories.get(w.category) ?? 0;
+    const regional =
+      w.market.regions.includes("US") && !w.market.regions.includes("NL")
+        ? 0.45
+        : 1;
+    return (
+      ((base * regional) / (1 + duplicates * 4)) * (categoryLoad >= 5 ? 0.3 : 1)
+    );
+  });
+  let draw = random(s) * weights.reduce((n, v) => n + v, 0);
+  for (let i = 0; i < weights.length; i++) {
+    draw -= weights[i];
+    if (draw < 0) return i;
+  }
+  return weights.findIndex((v) => v > 0);
+}
+function extendAuction(s: State, a: Auction, actor: string) {
+  const oldEnd = a.end;
+  a.end += 15000;
+  (a.extensions ??= []).push({ at: s.now, actor, oldEnd, newEnd: a.end });
+  // Invalidate all old deadlines; the close handler also guards against stale imported events.
+  for (const event of s.events)
+    if (!event.done && event.type === "close" && event.ref === a.id)
+      event.done = true;
+  schedule(s, a.end, "close", a.id);
+  log(s, `+15 SEKUND — AUKCJA ${a.id} PRZEDŁUŻONA!`);
+  // People who had no remaining decision before the old deadline may now reconsider.
+  for (const actorId of Object.keys(a.limits)) {
+    const p = s.people.find((p) => p.id === actorId);
+    if (!p) continue;
+    if (p.strategy === "snipe")
+      for (const event of s.events)
+        if (
+          !event.done &&
+          event.type === "think" &&
+          event.ref === a.id &&
+          event.actor === actorId
+        )
+          event.done = true;
+    if (
+      actorId === a.leader ||
+      s.events.some(
+        (e) =>
+          !e.done &&
+          e.type === "think" &&
+          e.ref === a.id &&
+          e.actor === actorId,
+      )
+    )
+      continue;
+    if (
+      a.price + bidStep(a.price) > a.limits[actorId] ||
+      totalCost(a, a.price + bidStep(a.price)) > available(p)
+    )
+      continue;
+    const at =
+      p.strategy === "snipe"
+        ? a.end - 2000 - Math.floor(random(s) * 4000)
+        : s.now + 1000 + Math.round(p.patience * 3000);
+    schedule(s, at, "think", a.id, p.id);
+  }
+}
+
+export function watcherCount(s: State, a: Auction) {
+  return new Set([
+    ...(a.watchers ?? []),
+    ...a.bids.map((b) => b.actor),
+    ...(a.watched ? ["player"] : []),
+  ]).size;
 }

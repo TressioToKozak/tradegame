@@ -167,6 +167,8 @@ test("wygrana aukcja pokazuje prawdziwy wynik i pełny koszt", async ({
   const a = s.auctions[0];
   a.leader = "player";
   a.price = 10000;
+  a.fee = 0.12;
+  a.shipping = 1500;
   s.events = s.events.filter((e) => e.type !== "think");
   await importState(page, s);
   await expect(
@@ -218,6 +220,8 @@ test("przypisane fotografie ładują się z /tradegame/ i można je powiększyć
   page,
 }) => {
   const s = createGame(Date.now(), 42);
+  s.auctions[0].product = "blue";
+  s.auctions[0].end = s.now + 60000;
   await importState(page, s);
   const photo = page
     .locator(".auction-card")
@@ -246,19 +250,30 @@ test("przypisane fotografie ładują się z /tradegame/ i można je powiększyć
     )
     .toBe(true);
 });
-test("wszystkie 10 początkowych aukcji ma fotografie, filtry działają, limit jest zapisywany", async ({
+test("wszystkie przypisane fotografie się ładują, filtry działają, limit jest zapisywany", async ({
   page,
 }) => {
-  await page.goto("./");
-  await page.getByRole("button", { name: "NOWA GRA", exact: true }).click();
-  await page.getByRole("button", { name: "Pomiń wprowadzenie" }).click();
+  const state = createGame(Date.now(), 42);
+  const template = state.auctions[0];
+  state.auctions = Object.keys(productMedia.products).map((id, i) => ({
+    ...structuredClone(template),
+    id: `photo-${i}`,
+    product: id,
+    end: state.now + (i + 5) * MINUTE,
+    limits: {},
+    bids: [],
+  }));
+  state.events = [];
+  await importState(page, state);
   await page
     .getByRole("button", { name: "Aukcje na żywo", exact: true })
     .click();
-  await expect(page.locator(".auction-card")).toHaveCount(10);
+  await expect(page.locator(".auction-card")).toHaveCount(
+    state.auctions.length,
+  );
   const images = page.locator(".auction-card .photo-stage img");
-  await expect(images).toHaveCount(10);
-  for (let i = 0; i < 10; i++) {
+  await expect(images).toHaveCount(state.auctions.length);
+  for (let i = 0; i < state.auctions.length; i++) {
     const img = images.nth(i);
     await img.scrollIntoViewIfNeeded();
     await expect
@@ -268,6 +283,18 @@ test("wszystkie 10 początkowych aukcji ma fotografie, filtry działają, limit 
         ),
       )
       .toBe(true);
+  }
+  for (const photo of [
+    ...Object.values(productMedia.products).flat(),
+    ...productMedia.collection,
+  ]) {
+    const decoded = await page.evaluate(async (path) => {
+      const image = new Image();
+      image.src = "./" + path;
+      await image.decode();
+      return image.naturalWidth > 0;
+    }, photo.path);
+    expect(decoded).toBe(true);
   }
   await page.getByLabel("Kategoria", { exact: true }).selectOption("Vintage");
   await expect(page.locator(".auction-card")).toHaveCount(1);
@@ -325,4 +352,85 @@ test("oryginalny zapis wersji 1 można wyeksportować przed migracją", async ({
   await expect(
     page.getByText("5000,00", { exact: false }).first(),
   ).toBeVisible();
+});
+
+test("anti-sniping: dwa przedłużenia, odświeżenie i jedno rozliczenie NPC", async ({
+  page,
+}) => {
+  test.setTimeout(65000);
+  const now = Date.now(),
+    state = createGame(now, 42),
+    a = state.auctions[0];
+  a.product = "blue";
+  a.price = 19000;
+  a.fee = 0.12;
+  a.shipping = 1500;
+  a.end = now + 8000;
+  a.leader = null;
+  a.limits = { p0: 21000 };
+  a.bids = [];
+  state.auctions = [a];
+  state.people.find((p) => p.id === "p0")!.budget = 65000;
+  state.events = [
+    { id: ++state.serial, type: "close", at: a.end, ref: a.id, done: false },
+    {
+      id: ++state.serial,
+      type: "think",
+      at: now + 18000,
+      ref: a.id,
+      actor: "p0",
+      done: false,
+    },
+  ];
+  await importState(page, state);
+  await page
+    .getByRole("button", { name: "Wejdź do licytacji" })
+    .first()
+    .click();
+  let room = page.getByRole("dialog", { name: /Aukcja/ });
+  await room.getByLabel("Twoja oferta (€)").fill("200");
+  await room.getByRole("button", { name: "LICYTUJ", exact: true }).click();
+  await expect(room.locator(".extension-banner")).toContainText("+15 SEKUND");
+  await expect(page.locator(".save-state")).toContainText("Postęp zapisany");
+  await page.reload();
+  await page.getByRole("button", { name: "KONTYNUUJ" }).click();
+  await page
+    .getByRole("button", { name: "Wejdź do licytacji" })
+    .first()
+    .click();
+  room = page.getByRole("dialog", { name: /Aukcja/ });
+  await page.waitForTimeout(Math.max(0, now + 9000 - Date.now()));
+  await expect(room.locator(".room-timer")).not.toContainText("Zakończona");
+  await expect(
+    room
+      .locator(".live-history")
+      .getByText(/Collector1978 podnosi ofertę.*przedłużona/),
+  ).toBeVisible({ timeout: 15000 });
+  await page.waitForTimeout(Math.max(0, now + 24000 - Date.now()));
+  await expect(room.locator(".room-timer")).not.toContainText("Zakończona");
+  await expect(room.locator(".room-timer")).toContainText("Zakończona", {
+    timeout: 20000,
+  });
+  const result = await page.evaluate(
+    async () =>
+      await new Promise<any>((resolve, reject) => {
+        const r = indexedDB.open("jw-collection-store");
+        r.onsuccess = () => {
+          const db = r.result;
+          const tx = db.transaction("games", "readonly");
+          const req = tx.objectStore("games").get("main");
+          req.onsuccess = () => resolve(req.result.state);
+          req.onerror = () => reject(req.error);
+          tx.oncomplete = () => db.close();
+        };
+      }),
+  );
+  expect(result.auctions[0].extensions).toHaveLength(2);
+  expect(result.people.find((p: any) => p.id === "p0").budget).toBe(39980);
+  expect(
+    result.people
+      .find((p: any) => p.id === "p0")
+      .memory.filter((m: any) => m.kind === "won"),
+  ).toHaveLength(1);
+  expect(result.ledger).toHaveLength(1);
 });

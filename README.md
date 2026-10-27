@@ -1,4 +1,4 @@
-# JW Collection Store 2.0
+# JW Collection Store 2.1
 
 Polski symulator sklepu z kolekcjonerskimi whisky Johnnie Walker. React, TypeScript, Vite, Tailwind, Dexie/IndexedDB. Statyczna aplikacja bez serwera aplikacji, kont, API i kluczy. Kapitał początkowy: 5 000 €. Kwoty w eurocentach. Ceny referencyjne są balansem gry, nie bieżącymi notowaniami.
 
@@ -16,9 +16,9 @@ npm run dev
 ## Rozgrywka
 
 1. Wybierz trudność i tempo (domyślnie **Dynamiczne**). Opcjonalne sześć krótkich kroków wprowadzenia można pominąć.
-2. Nowa gra otwiera **10 aukcji**, wszystkie z rzeczywistymi fotografiami właściwych edycji. Rynek regularnie się uzupełnia; docelowo zwykle 8–15 aktywnych partii.
+2. Nowa gra otwiera **10 aukcji**, losowanych z całego katalogu według dostępności, także pozycji bez zdjęcia. Rynek regularnie się uzupełnia; docelowo zwykle 8–15 aktywnych partii.
 3. W Aukcjach filtruj kategorię, cenę, rzadkość, czas, nowość i obserwowane. W pokoju aukcyjnym szybkie przyciski tylko wybierają kwotę; **LICYTUJ** ją zatwierdza. Krok zależy od ceny: 5 / 10 / 20 / 50 €. Opcjonalny zapisany limit ogranicza cenę młotkową, nie licytuje automatycznie.
-4. Oferta wymaga wolnej gotówki na pełny koszt: cena + 12% prowizji + 15 € transportu. Rejestracja trwa 100–900 ms, a kolejność rozstrzyga termin i numer zdarzenia. Przegrana nic nie kosztuje.
+4. Oferta wymaga wolnej gotówki na pełny koszt: cena + prowizja danej aukcji (10–15%) + jej koszt transportu. Rejestracja trwa 100–900 ms, a kolejność rozstrzyga termin i numer zdarzenia. Przegrana nic nie kosztuje. Ważna zmiana lidera w ostatnich 10 sekundach dodaje 15 sekund do terminu; mechanizm może zadziałać wielokrotnie.
 5. Odbierz przesyłkę w Magazynie. Dostawy to **skompresowane czasy gry**: krajowe zwykle 5–12 minut, zagraniczne 10–25 minut, czasem dłużej. To nie są terminy rzeczywistego kuriera.
 6. Otwórz paczkę, porównaj stan butelki i pudełka z opisem. Niezgodność można zgłosić sprzedawcy; rekompensata jest księgowana raz i koryguje koszt zapasu.
 7. Sam ustal cenę sprzedaży. Wystawioną cenę można zmienić. Klienci w godzinach 8–22 Amsterdam wybierają według budżetu, zainteresowań, stanu, zaufania i historii. Nie ma gwarancji zakupu.
@@ -30,7 +30,7 @@ Finanse, zamówienia, podgląd NPC i pomoc są w dodatkowym menu. Gotówka i rep
 ## Świat i wydajność
 
 - 35 licytantów ze wspólnym dla ich aukcji budżetem, rezerwacjami, krajem, preferencjami, cierpliwością, ryzykiem, strategią i pamięcią. Każda aukcja przyciąga wybranych uczestników; nie wszyscy licytują wszystko.
-- 52 rzeczywiste edycje: standardowe, wycofane, historyczne, vintage, Blue Label, Ghost & Rare, Travel Retail i wydania noworoczne. Nie dopisano niezweryfikowanych pojemności ani parametrów butelkowania.
+- 56 rzeczywistych edycji: standardowe, wycofane, historyczne, vintage, Blue Label, Ghost & Rare, Travel Retail i wydania noworoczne. Nie dopisano niezweryfikowanych pojemności ani parametrów butelkowania.
 - Zwykłe aukcje trwają 3–7 min, rzadkie 5–10 min, wyjątkowe 8–12 min. Zakończenia są zróżnicowane; nowa aukcja daje co najmniej 45 sekund na reakcję.
 - W Dynamicznym nowa partia zwykle co 60–120 s. Gdy brakuje aktywnych aukcji, uzupełnianie przyspiesza stopniowo. Maksimum 15 aktywnych. Spokojne i Intensywne zmieniają częstotliwość oraz nową logistykę/reakcje, bez zmiany wartości whisky i budżetów NPC.
 - `EventQueue` to kopiec binarny uporządkowany według `(at, id)`. Silnik nie sortuje całej historii dla każdego zdarzenia. Zakończone zdarzenia są usuwane; pamięć każdej postaci mieści 120 wpisów. Archiwum zwykłych zakończonych aukcji jest ograniczone; transakcje, przedmioty i aukcje z udziałem gracza są zachowane.
@@ -48,11 +48,15 @@ Service worker zachowuje aplikację i przypisane zdjęcia offline po pierwszym o
 
 ## Fotografie
 
-W projekcie są **13 fotografii**: 10 sfotografowanych edycji, dodatkowe pudełka i kolekcja na menu. Wszystkie początkowe aukcje pokazują prawdziwe whisky. Źródła i oznaczenia CC BY-SA: [IMAGE_SOURCES.md](IMAGE_SOURCES.md).
+W projekcie jest **15 fotografii**, obejmujących **12/56 produktów**. Dodano Red Rye Finish i White Walker. Pełna lista 44 brakujących edycji: [MISSING_IMAGES.md](MISSING_IMAGES.md); autorzy i licencje: [IMAGE_SOURCES.md](IMAGE_SOURCES.md). Nie podstawiamy innych wariantów whisky.
 
-**Brakuje jeszcze zdjęć dziewięciu z pierwotnych 18 produktów**, w tym Ghost & Rare i Travel Retail. Nie podstawiono innych edycji. Dokładna lista jest w pliku źródeł. Rozszerzone pozycje katalogu poza Red Label również czekają na fotografie. Nie jest to komplet zdjęć całego katalogu.
+Rynek nie filtruje produktów według posiadania fotografii. Wszystkie edycje mogą się pojawiać, a brak obrazu jest widoczny. `public/images/whisky/` zawiera pliki; `src/product-media.json` przypisania. `assetUrl` uwzględnia bazę Vite. `npm run report:images` odtwarza raport kompletności.
 
-`public/images/whisky/` zawiera pliki; `src/product-media.json` przypisania. Galeria ma butelkę/opakowanie, powiększenie, prawidłowe proporcje i obsługę błędu. `assetUrl` uwzględnia `import.meta.env.BASE_URL`. Dodawaj wyłącznie zdjęcia właściwej edycji z prawem redystrybucji.
+## Aktualizacja rynku
+
+Siedem produktów, ceny gry i rzadkości, ograniczenia weryfikacji zewnętrznej, nowy model i anti-sniping opisano w [MARKET_UPDATE.md](MARKET_UPDATE.md). Ceny w centach i rzadkość mają aliasy zgodne ze starym silnikiem, ale dostępność, popyt i płynność są oddzielne. Dane źródłowe są w `src/catalog-data.json`; nieznane parametry i zweryfikowane przedziały cen pozostają nieuzupełnione zamiast zgadywania.
+
+Początkowy rynek to 3 partie powszechne, 3 o średniej dostępności, 2 ograniczone i 2 trudno dostępne. `src/initial-products.json` opisuje te proporcje, nie listę zdjęć. Filtry obejmują kończące się, obserwowane, tanie, rzadkie, vintage, limitowane i nowe partie.
 
 ## Testy i GitHub Pages
 
@@ -66,6 +70,6 @@ npm run test:e2e
 
 Przy systemowym Chromium: `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e`. Testy przeglądarkowe działają na gotowym `dist` pod `/tradegame/`, bez fallbacku HTML dla brakujących plików. Sprawdzają rzeczywiste dekodowanie zdjęć, licytację, reakcje NPC, komunikator, zapis, migrację, magazyn, mobilność i offline.
 
-`npm run check:images:all` dodatkowo wymaga zdjęć wszystkich pierwotnych 18 produktów — obecnie zgłasza dziewięć braków. Produkcyjny build wymaga wszystkich zdjęć początkowych partii.
+`npm run check:images:all` wymaga zdjęć całego katalogu — obecnie zgłasza 44 braki. Build sprawdza istnienie przypisanych plików; sam w sobie nie potwierdza kompletności zdjęć.
 
-W GitHub ustaw **Settings → Pages → Source → GitHub Actions**. Push na `main` uruchamia testy, build, Chromium oraz publikację `dist`. Nie trzeba zmieniać bazy Vite dla nazwy repozytorium. Dane katalogu są w `src/catalog.ts`; stabilnych identyfikatorów istniejących edycji nie zmieniaj.
+W GitHub ustaw **Settings → Pages → Source → GitHub Actions**. Push na `main` uruchamia testy, build, Chromium oraz publikację `dist`. Nie trzeba zmieniać bazy Vite dla nazwy repozytorium. Dane katalogu są w `src/catalog-data.json`, typy i helpery w `src/catalog.ts`; stabilnych identyfikatorów istniejących edycji nie zmieniaj.
