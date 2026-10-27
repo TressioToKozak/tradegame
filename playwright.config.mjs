@@ -16,5 +16,5 @@ export default defineConfig({
     port: 4180,
     reuseExistingServer: !process.env.CI,
   },
-  reporter: "list",
+  reporter: process.env.CI ? [["list"],["github"]] : "list",
 });
