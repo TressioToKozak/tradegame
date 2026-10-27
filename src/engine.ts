@@ -1,4 +1,8 @@
+import initialProducts from "./initial-products.json" with { type: "json" };
 import { catalog, whisky } from "./catalog";
+import { EventQueue } from "./scheduler";
+import { paceFactor, type Pace } from "./pace";
+export type { Pace } from "./pace";
 export const MINUTE = 60_000,
   DAY = 86_400_000;
 type Memory = { at: number; kind: string; ref: string; detail: string };
@@ -19,11 +23,20 @@ export interface Person {
   owned: string[];
   nextVisit: number;
   preferredCondition: number;
+  country?: string;
+  favoriteEditions?: string[];
+  risk?: number;
+  responseStyle?: "fast" | "typical" | "slow" | "silent";
 }
 export interface Auction {
   id: string;
   product: string;
   end: number;
+  createdAt?: number;
+  watched?: boolean;
+  playerLimit?: number;
+  bottleCondition?: number;
+  boxCondition?: number;
   price: number;
   leader: string | null;
   status: "active" | "closed";
@@ -43,6 +56,11 @@ export interface Item {
   price: number;
   views: number;
   interested: string[];
+  bottleCondition?: number;
+  boxCondition?: number;
+  expectedCondition?: number;
+  supplierClaim?: "open" | "resolved";
+  due?: number;
 }
 export interface Thread {
   id: string;
@@ -93,7 +111,9 @@ export interface Event {
   done: boolean;
 }
 export interface State {
-  version: 1;
+  version: 2;
+  pace: Pace;
+  tutorialDone?: boolean;
   seed: number;
   serial: number;
   now: number;
@@ -127,6 +147,7 @@ export function random(s: State) {
   return s.seed / 4294967296;
 }
 const id = (s: State, p: string) => p + ++s.serial;
+const queues = new WeakMap<State, EventQueue>();
 const schedule = (
   s: State,
   at: number,
@@ -134,8 +155,19 @@ const schedule = (
   ref: string,
   actor?: string,
   amount?: number,
-) =>
-  s.events.push({ id: ++s.serial, at, type, ref, actor, amount, done: false });
+) => {
+  const e: Event = {
+    id: ++s.serial,
+    at,
+    type,
+    ref,
+    actor,
+    amount,
+    done: false,
+  };
+  s.events.push(e);
+  queues.get(s)?.push(e);
+};
 const log = (s: State, text: string) => {
   s.feed.unshift({ at: s.now, text });
   s.feed = s.feed.slice(0, 200);
@@ -148,6 +180,7 @@ const remember = (
   detail: string,
 ) => {
   p.memory.push({ at: s.now, kind, ref, detail });
+  if (p.memory.length > 120) p.memory.splice(0, p.memory.length - 120);
 };
 const post = (
   s: State,
@@ -173,9 +206,11 @@ export function createGame(
   now = Date.now(),
   seed = 123456,
   difficulty = "Realistyczna",
+  pace: Pace = "Dynamiczne",
 ): State {
   const s: State = {
-    version: 1,
+    version: 2,
+    pace,
     seed,
     serial: 0,
     now,
@@ -217,25 +252,32 @@ export function createGame(
       strategy: i % 3 === 0 ? "early" : i % 3 === 1 ? "measured" : "snipe",
       memory: [],
       owned: [],
-      nextVisit: now + (i - 4) * 15 * MINUTE,
+      nextVisit: now + (i - 4) * 60_000,
       preferredCondition: i % 3 === 0 ? 100 : 80,
     }),
   );
   post(s, "opening", 500000, "Kapitał początkowy", "company");
-  [6, 10, 15].forEach((p, i) => makeAuction(s, p, now + (6 + i * 3) * MINUTE));
+  addBidders(s);
+  for (const key of initialProducts) {
+    const index = catalog.findIndex((w) => w.id === key);
+    makeAuction(s, index, now + auctionDuration(s, index));
+  }
   s.people
     .filter((p) => p.role === "customer")
     .forEach((p) => schedule(s, p.nextVisit, "visit", p.id));
-  schedule(s, now + 6 * 60 * MINUTE, "market", "world");
+  schedule(s, now + marketInterval(s), "market", "world");
   log(s, "Sklep otwarty. Kapitał początkowy: 5 000 €.");
   return s;
 }
-function makeAuction(s: State, index: number, end: number) {
+export function makeAuction(s: State, index: number, end: number) {
   const w = catalog[index];
   const a: Auction = {
     id: id(s, "A"),
     product: w.id,
-    end,
+    end: Math.max(end, s.now + 45000),
+    createdAt: s.now,
+    bottleCondition: 100,
+    boxCondition: 100,
     price: Math.round((w.value * 0.45) / 100) * 100,
     leader: null,
     status: "active",
@@ -247,7 +289,13 @@ function makeAuction(s: State, index: number, end: number) {
     bids: [],
   };
   s.auctions.push(a);
-  for (const p of s.people.filter((p) => p.role === "bidder")) {
+  const candidates = s.people.filter(
+    (p) => p.role === "bidder" && p.budget - p.reserved > totalCost(a),
+  );
+  const participants = candidates.filter(
+    (p) => p.favorites.includes(w.category) && random(s) < 0.28,
+  );
+  for (const p of participants.slice(0, 8)) {
     const interest = p.favorites.includes(w.category) ? 1 : 0.55;
     const duplicate = p.owned.includes(w.id) ? 0.65 : 1;
     const losses = p.memory.filter(
@@ -259,6 +307,7 @@ function makeAuction(s: State, index: number, end: number) {
     a.limits[p.id] = Math.floor(
       w.value *
         interest *
+        (p.favoriteEditions?.includes(w.id) ? 1.12 : 1) *
         duplicate *
         (1.24 - p.sensitivity * 0.4 + Math.min(losses, 3) * 0.03) *
         (0.9 + difficulty * 0.05),
@@ -280,8 +329,14 @@ export function bid(
 ) {
   const a = s.auctions.find((a) => a.id === auctionId);
   if (!a || a.status !== "active" || s.now >= a.end) return "Oferta spóźniona.";
-  if (!Number.isSafeInteger(amount) || amount < a.price + 500)
-    return "Minimalne przebicie wynosi 5 €.";
+  if (!Number.isSafeInteger(amount) || amount < a.price + bidStep(a.price))
+    return `Minimalne przebicie wynosi ${bidStep(a.price) / 100} €.`;
+  if (
+    actor === "player" &&
+    a.playerLimit !== undefined &&
+    amount > a.playerLimit
+  )
+    return "Oferta przekracza Twój zapisany limit licytacji.";
   if (a.leader === actor) return "Już prowadzisz w tej aukcji.";
   const p = s.people.find((p) => p.id === actor);
   const cost = totalCost(a, amount);
@@ -326,7 +381,7 @@ function close(s: State, a: Auction) {
   if (winner) {
     winner.reserved -= cost;
     winner.budget -= cost;
-    winner.owned.push(a.product);
+    if (!winner.owned.includes(a.product)) winner.owned.push(a.product);
     remember(s, winner, "won", a.id, a.product);
   }
   for (const p of s.people.filter(
@@ -355,14 +410,26 @@ function close(s: State, a: Auction) {
       price: 0,
       views: 0,
       interested: [],
+      bottleCondition: a.bottleCondition ?? a.condition,
+      boxCondition: a.boxCondition ?? a.condition,
+      expectedCondition: a.condition,
     };
     s.items.push(item);
-    schedule(s, s.now + DAY, "arrival", item.id);
+    const domestic = a.country === "Holandia";
+    item.due = s.now + deliveryDuration(s, domestic);
+    schedule(s, item.due, "arrival", item.id);
   }
   log(
     s,
     `Aukcja ${a.id} zakończona. ${a.leader === "player" ? "Wygrywasz" : winner ? `Wygrywa ${winner.name}` : "Brak ofert"}${a.leader ? ` za ${(a.price / 100).toFixed(2)} €` : ""}.`,
   );
+  if (s.auctions.filter((a) => a.status === "active").length < 9) {
+    const pending = s.events.find((e) => !e.done && e.type === "market");
+    if (pending && pending.at > s.now + 12000) {
+      pending.done = true;
+      schedule(s, s.now + 12000, "market", "world");
+    }
+  }
 }
 function visit(s: State, p: Person) {
   const hour = Number(
@@ -432,7 +499,9 @@ function visit(s: State, p: Person) {
       } else remember(s, p, "passed", i.id, "Cena lub historia odmowy");
     }
   }
-  p.nextVisit = s.now + (6 + (1 - p.patience) * 18) * 60 * MINUTE;
+  p.nextVisit =
+    s.now +
+    (2 + (1 - p.patience) * 6 + random(s) * 3) * MINUTE * paceFactor(s.pace);
   schedule(s, p.nextVisit, "visit", p.id);
 }
 export function advance(s: State, target: number) {
@@ -442,15 +511,17 @@ export function advance(s: State, target: number) {
   }
   // Ograniczona porcja chronologicznego odtwarzania; reszta zostaje w kolejce.
   let steps = 0;
-  while (steps++ < 20000) {
-    const e = s.events
-      .filter((e) => !e.done && e.at <= target)
-      .sort((a, b) => a.at - b.at || a.id - b.id)[0];
+  const queue = new EventQueue(s.events);
+  queues.set(s, queue);
+  while (steps++ < 50000) {
+    const e = queue.first?.at <= target ? queue.pop() : undefined;
     if (!e) {
       s.now = target;
       break;
     }
+    if (e.done) continue;
     e.done = true;
+    if (steps % 1000 === 0) s.events = s.events.filter((event) => !event.done);
     s.now = e.at;
     const a = s.auctions.find((a) => a.id === e.ref);
     const p = s.people.find((p) => p.id === e.actor);
@@ -469,7 +540,9 @@ export function advance(s: State, target: number) {
         log(s, `${p.name} obserwuje ${whisky(a.product).name}.`);
       }
       if (a.leader !== p.id) {
-        const amount = a.price + 500;
+        const step = bidStep(a.price);
+        const jump = (p.risk ?? 0.3) > 0.75 && p.strategy !== "snipe" ? 2 : 1;
+        const amount = a.price + step * jump;
         if (amount <= a.limits[p.id] && totalCost(a, amount) <= available(p))
           bid(s, a.id, p.id, amount);
         else if (
@@ -515,6 +588,16 @@ export function advance(s: State, target: number) {
       const i = s.items.find((i) => i.id === e.ref);
       if (i?.status === "incoming") {
         i.status = "inspect";
+        if (i.expectedCondition !== undefined) {
+          const damaged = random(s) < 0.12;
+          i.boxCondition = damaged
+            ? Math.max(50, (i.boxCondition ?? 100) - 20)
+            : i.boxCondition;
+          i.condition = Math.min(
+            i.bottleCondition ?? i.condition,
+            i.boxCondition ?? i.condition,
+          );
+        }
         log(s, "Dostawa dotarła. Sprawdź butelkę w magazynie.");
       }
     } else if (e.type === "visit") {
@@ -556,15 +639,33 @@ export function advance(s: State, target: number) {
         );
       }
     } else if (e.type === "market") {
-      makeAuction(
-        s,
-        Math.floor(random(s) * catalog.length),
-        s.now + 8 * MINUTE,
+      const active = s.auctions.filter((a) => a.status === "active").length;
+      if (active < 15) {
+        makeAuction(
+          s,
+          Math.floor(random(s) * catalog.length),
+          s.now + auctionDuration(s),
+        );
+        log(s, "Nowa aukcja na rynku kolekcjonerskim.");
+      }
+      // Top up gradually; no instantaneous wall of identical auctions.
+      schedule(s, s.now + marketInterval(s), "market", "world");
+      const closed = s.auctions.filter(
+        (a) =>
+          a.status === "closed" &&
+          a.leader !== "player" &&
+          !a.watched &&
+          !a.bids.some((b) => b.actor === "player"),
       );
-      schedule(s, s.now + 6 * 60 * MINUTE, "market", "world");
-      log(s, "Nowa aukcja na rynku kolekcjonerskim.");
+      const remove = new Set(
+        closed.slice(0, Math.max(0, closed.length - 60)).map((a) => a.id),
+      );
+      s.auctions = s.auctions.filter((a) => !remove.has(a.id));
     }
   }
+  queues.delete(s);
+  s.events = s.events.filter((e) => !e.done);
+
   return s;
 }
 export function inspect(s: State, itemId: string) {
@@ -748,7 +849,7 @@ export function ship(s: State, orderId: string) {
   post(s, o.id + "shipping", -950, "Wysyłka do klienta", o.id);
   o.quality -= o.packed ? 0 : 25;
   o.status = "shipping";
-  o.due = s.now + 2 * DAY;
+  o.due = s.now + deliveryDuration(s, true);
   schedule(s, o.due, "delivery", o.id);
   return "Nadano przesyłkę w lokalnym symulatorze.";
 }
@@ -774,7 +875,8 @@ export function refund(s: State, orderId: string, amount: number) {
     const i = s.items.find((i) => i.id === o.item)!;
     i.status = "incoming";
     c.owned = c.owned.filter((p) => p !== i.product);
-    schedule(s, s.now + 2 * DAY, "arrival", i.id);
+    i.due = s.now + deliveryDuration(s, true);
+    schedule(s, i.due, "arrival", i.id);
   }
   return "Zwrot zaksięgowany. Częściowa ugoda nie usuwa prawa odstąpienia.";
 }
@@ -852,7 +954,24 @@ export function sendResponse(
     from: "Ty",
     text: text || descriptions[intent],
   });
-  const delay = Math.round((45 + c.patience * 120 + random(s) * 75) * 1000);
+  const style = c.responseStyle ?? "typical";
+  if (style === "silent" && c.trust < 0.6) {
+    remember(
+      s,
+      c,
+      "silent",
+      t.id,
+      "Brak odpowiedzi: niskie zaufanie i wycofany styl",
+    );
+    return "Wiadomość wysłana. Klient może nie odpowiedzieć.";
+  }
+  const seconds =
+    style === "fast"
+      ? 20 + random(s) * 40
+      : style === "slow"
+        ? 300 + random(s) * 600
+        : 60 + random(s) * 180;
+  const delay = Math.round(seconds * 1000 * paceFactor(s.pace));
   t.pendingReply = { intent, price, at: s.now + delay };
   schedule(s, t.pendingReply.at, "reply", t.id);
   return "Wiadomość wysłana. Klient odpowie po zapoznaniu się z propozycją.";
@@ -864,4 +983,173 @@ export function markRead(s: State, threadId: string) {
 export function unreadCount(t: Thread) {
   return t.messages.filter((m) => m.from !== "Ty" && m.at > (t.readAt ?? 0))
     .length;
+}
+
+export function bidStep(price: number) {
+  return price < 10000
+    ? 500
+    : price < 30000
+      ? 1000
+      : price < 100000
+        ? 2000
+        : 5000;
+}
+export function auctionDuration(
+  s: State,
+  index = Math.floor(random(s) * catalog.length),
+) {
+  const rarity = catalog[index].rarity;
+  const [min, max] = rarity >= 8 ? [8, 12] : rarity >= 5 ? [5, 10] : [3, 7];
+  return Math.round((min + random(s) * (max - min)) * MINUTE);
+}
+function marketInterval(s: State) {
+  const active = s.auctions.filter((a) => a.status === "active").length;
+  const factor = paceFactor(s.pace);
+  return Math.round(
+    (active < 6
+      ? 5 + random(s) * 7
+      : active < 9
+        ? 15 + random(s) * 15
+        : 60 + random(s) * 60) *
+      1000 *
+      factor,
+  );
+}
+export function deliveryDuration(s: State, domestic: boolean) {
+  const base = domestic ? 5 + random(s) * 7 : 10 + random(s) * 15;
+  const delay = random(s) < 0.08 ? 5 + random(s) * 10 : 0;
+  return Math.round((base + delay) * MINUTE * paceFactor(s.pace));
+}
+export function setPace(s: State, pace: Pace) {
+  if (!["Spokojne", "Dynamiczne", "Intensywne"].includes(pace)) return;
+  s.pace = pace;
+  s.events = s.events.filter((e) => e.type !== "market");
+  schedule(s, s.now + marketInterval(s), "market", "world");
+  return `Tempo: ${pace}. Wpływa na nowe wydarzenia, nie ceny ani trwające terminy.`;
+}
+export function watchAuction(s: State, id: string) {
+  const a = s.auctions.find((a) => a.id === id);
+  if (a) a.watched = !a.watched;
+}
+export function setBidLimit(s: State, id: string, limit: number | undefined) {
+  const a = s.auctions.find((a) => a.id === id);
+  if (!a) return;
+  if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 0))
+    return "Nieprawidłowy limit.";
+  a.playerLimit = limit;
+  return limit === undefined ? "Limit usunięty." : "Limit licytacji zapisany.";
+}
+export function supplierClaim(s: State, id: string) {
+  const i = s.items.find((i) => i.id === id);
+  if (
+    !i ||
+    i.supplierClaim ||
+    i.expectedCondition === undefined ||
+    i.condition >= i.expectedCondition
+  )
+    return "Brak niezgodności do zgłoszenia.";
+  i.supplierClaim = "resolved";
+  const amount = Math.round(
+    (i.cost * (i.expectedCondition - i.condition)) / 200,
+  );
+  post(s, "supplier-" + i.id, amount, "Ugoda ze sprzedawcą aukcyjnym", i.id);
+  i.cost -= amount;
+  return "Niezgodność potwierdzona. Zaksięgowano rekompensatę za obniżony stan.";
+}
+const extraNames = [
+  "AmberArchivist",
+  "RotterdamMalt",
+  "RareDramFR",
+  "IslayMarek",
+  "OsloCollector",
+  "BerlinBlend",
+  "OldLabelFan",
+  "LisbonCasks",
+  "HighlandAnna",
+  "ParisReserve",
+  "DublinBottle",
+  "MilanMalt",
+  "NordicWalker",
+  "PragueDram",
+  "ViennaVintage",
+  "MadridGold",
+  "BaselBlue",
+  "BrusselsBarrel",
+  "PortoLabel",
+  "HelsinkiMalt",
+  "EdinburghVault",
+  "GdanskCollector",
+  "CopenhagenCask",
+  "LyonVintage",
+  "RomeReserve",
+  "StockholmBlue",
+  "WarsawWalker",
+  "ZagrebDram",
+  "TallinnMalt",
+  "RigaCollector",
+];
+export function addBidders(s: State) {
+  extraNames.forEach((name, i) => {
+    const id = "bidder-" + i;
+    if (s.people.some((p) => p.id === id)) return;
+    const country = [
+      "Holandia",
+      "Belgia",
+      "Niemcy",
+      "Francja",
+      "Polska",
+      "Włochy",
+    ][i % 6];
+    s.people.push({
+      id,
+      name,
+      city: country,
+      country,
+      role: "bidder",
+      budget: 60000 + i * 9000,
+      reserved: 0,
+      favorites: [["standard", "blue", "vintage", "travel"][i % 4]],
+      patience: 0.2 + random(s) * 0.75,
+      sensitivity: 0.25 + random(s) * 0.65,
+      negotiation: random(s),
+      trust: 0.5,
+      strategy: i % 3 === 0 ? "early" : i % 3 === 1 ? "measured" : "snipe",
+      memory: [],
+      owned: [],
+      nextVisit: s.now,
+      preferredCondition: 80,
+      risk: random(s),
+    });
+  });
+  s.people
+    .filter((p) => p.role === "bidder")
+    .forEach((p, i) => {
+      p.country ??= ["Holandia", "Holandia", "Belgia", "Niemcy", "Belgia"][
+        i % 5
+      ];
+      p.risk ??= 0.3;
+    });
+  s.people.forEach((p, i) => {
+    const matching = catalog.filter((w) => p.favorites.includes(w.category));
+    p.favoriteEditions ??= [matching[i % matching.length].id];
+  });
+  s.people
+    .filter((p) => p.role === "customer")
+    .forEach((p, i) => {
+      p.responseStyle ??= (
+        ["fast", "typical", "slow", "silent", "typical"] as const
+      )[i % 5];
+    });
+}
+export function migrateGame(input: unknown): State {
+  const s = input as Omit<State, "version"> & { version: number };
+  if (s.version === 2) return s as State;
+  if (s.version !== 1) throw Error("Nieobsługiwana wersja zapisu.");
+  s.version = 2;
+  s.pace = "Dynamiczne";
+  addBidders(s as State);
+  // Existing bids, money, ledger and delivery deadlines are preserved.
+  s.events = s.events.filter((e) => !e.done && e.type !== "market");
+  schedule(s as State, s.now + 30000, "market", "world");
+  return s as State;
 }

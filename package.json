@@ -1,16 +1,17 @@
 {
   "name": "jw-collection-store",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "npm run check:images && tsc -b && vite build",
+    "build": "npm run check:images:strict && tsc -b && vite build",
     "test": "vitest run src",
     "preview": "vite preview --host 0.0.0.0",
     "check:images": "node scripts/check-images.mjs",
     "check:images:strict": "node scripts/check-images.mjs --strict",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "check:images:all": "node scripts/check-images.mjs --all"
   },
   "dependencies": {
     "dexie": "^4.0.11",

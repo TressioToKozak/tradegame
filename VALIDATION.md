@@ -1,22 +1,20 @@
-# Weryfikacja przebudowy
+# Weryfikacja wersji 2.0
 
-## Zaliczone
+## Zaliczone lokalnie
 
-- `npm test`: **26 testów**, 3 pliki. Dotychczasowe scenariusze finansów i chronologicznego odtwarzania nadal przechodzą. Nowe testy sprawdzają kolejkę odpowiedzi, zgodność zapisów wersji 1, nieprzeczytane wiadomości, brak podwójnej sprzedaży podczas oczekiwania oraz resolver ścieżek i galerię.
-- Testy komponentu galerii używają kontrolowanych nazw plików w JSDOM: wybór opakowania, wymiary obrazu, powiększenie, Escape i fokus, błąd pliku oraz zmiana edycji. Te testy **nie są weryfikacją autentycznych fotografii**.
-- `npm run build`: TypeScript i produkcyjna kompilacja Vite.
-- `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e`: **6 zaliczonych, 1 pominięty**. Testy działają na gotowym `dist` pod rzeczywistym prefiksem `/tradegame/`; brakujące pliki zwracają 404, a nie stronę HTML.
-- Chromium: nowa gra, odliczanie czasu, prawdziwe oferty NPC, oferta gracza i odświeżenie; komunikator i zachowanie przyszłej odpowiedzi po odczycie IndexedDB; sekwencja otwierania paczki i osobna decyzja o przyjęciu; ekran wygranej i pełny koszt; finanse i viewport 390 px; ponowne otwarcie produkcyjnej aplikacji bez sieci.
-- Obejrzano zrzuty menu startowego, pulpitu i aukcji. Zweryfikowano brak poziomego przepełnienia na telefonie.
-- Workflow Pages uruchamia teraz także testy Chromium przed publikacją.
+- **36 testów jednostkowych/komponentowych**: stare finanse, deterministyczne odtwarzanie, transakcje i magazyn; kolejka priorytetowa, migracja 1→2, limity budżetu, zmienne kroki, rekompensata, 35 NPC i 15 równoczesnych aukcji.
+- Godzinna symulacja Dynamiczna: brak pustego rynku, nie więcej niż 15 aktywnych partii, zwykle co najmniej 8.
+- Trzy dni odtworzone w około 0,7–1,2 s w tej maszynie; po odtworzeniu ograniczone archiwum, najwyżej 120 wpisów pamięci na postać i kilkanaście przyszłych zdarzeń. To pomiar tej maszyny, nie gwarancja czasu na każdym urządzeniu.
+- `npm run check:images:strict`: wszystkie początkowe partie mają lokalne pliki i metadane. Łącznie **13 fotografii**.
+- Produkcyjny build Vite i TypeScript.
+- **9 scenariuszy Chromium** na gotowym `dist` pod `/tradegame/`: nowa gra, czas i rzeczywiste oferty NPC, własna oferta i odświeżenie; odroczona odpowiedź; otwarcie i przyjęcie paczki; wygrana i koszty; telefon 390 px i finanse; offline; powiększenie zdjęcia; dekodowanie zdjęć wszystkich 10 początkowych aukcji, filtry, obserwowane i limit; eksport oryginału przed migracją.
+- Zdjęcia są sprawdzane przez `complete` i `naturalWidth`, także po przewinięciu do obrazów ładowanych leniwie. Testy zdjęć nie są już pomijane i nie używają atrap jako fotografii produkcyjnych.
+- Obejrzano nowe menu, pulpit i pokój aukcyjny z rzeczywistymi zdjęciami. Brak przepełnienia dokumentu na telefonie.
 
-Testy wykorzystują kontrolowane zapisy i czas. Nie odczekiwano dobowych transportów w czasie rzeczywistym. Testy finansów rozliczają je poprzez ten sam silnik odtwarzania, który działa przy powrocie użytkownika.
+Testy korzystają z kontrolowanych zapisów i terminów; nie odczekiwano pełnych dni transportu. Pierwotne terminy w migrowanych zapisach nie są skracane. Nie zmieniono kwot historycznych transakcji.
 
-## Niespełnione / zablokowane
+## Zakres nieukończony
 
-- `npm run check:images:strict`: **nie przechodzi** — brak fotografii Blue Label, King George V i Swing. Zwykły weryfikator nie znalazł przypisanych plików i ostrzega, że manifest jest pusty.
-- Test rzeczywistych fotografii w Chromium: **pominięty**, dopóki nie ma legalnych plików w manifeście. Nie zastąpiono go testem obrazów AI ani innych produktów.
-- Pozyskanie i sprawdzenie licencji z Wikimedia Commons: zablokowane przez politykę sieciową środowiska, `CONNECT 403`.
-- Odczyt `https://tressiotokozak.github.io/tradegame/`: również zablokowany przez `CONNECT 403`. Zaliczone testy pod `/tradegame/` są lokalnymi testami gotowego buildu, **nie potwierdzeniem udanego wdrożenia na publicznym GitHub Pages**.
+`npm run check:images:all` zgłasza **9 braków** pierwotnego katalogu: Aged 18, Brora, Port Ellen, Glenury Royal, The Casks Edition, The Royal Route, The Spice Road, The Gold Route, Year of the Dragon. Nie znaleziono dla nich odpowiednich plików z potwierdzoną licencją; nie podstawiono innych produktów. Dalsze nowe edycje katalogu także nie są w pełni sfotografowane. Szczegóły: `IMAGE_SOURCES.md`.
 
-W konfiguracji środowiska zapisano wymagane domeny `commons.wikimedia.org`, `upload.wikimedia.org` i `tressiotokozak.github.io`. Sam zapis draftu nie stosuje ani nie publikuje konfiguracji. Stan tego ograniczenia jest opisany w `IMAGE_SOURCES.md`.
+Dostęp do publicznego GitHub Pages działa (HTTP 200); sprawdzenie nowego opublikowanego buildu jest odrębne od lokalnych testów i opisane w końcowym raporcie. GitHub API do statusu Actions zwraca 403 w tym środowisku, dlatego sam push nie jest traktowany jako dowód publikacji.

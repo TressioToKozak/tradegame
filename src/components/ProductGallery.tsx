@@ -9,11 +9,13 @@ export function Modal({
   onClose,
   children,
   className = "",
+  dismissible = true,
 }: {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
   className?: string;
+  dismissible?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -24,7 +26,7 @@ export function Modal({
     const key = (e: KeyboardEvent) => {
       const dialogs = document.querySelectorAll('[aria-modal="true"]');
       if (dialogs[dialogs.length - 1] !== ref.current) return;
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && dismissible) onClose();
       if (e.key === "Tab") {
         const nodes = ref.current?.querySelectorAll<HTMLElement>(
           'button:not(:disabled),input,textarea,select,a[href],[tabindex="0"]',
@@ -56,7 +58,7 @@ export function Modal({
     <div
       className="modal-backdrop"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget && dismissible) onClose();
       }}
     >
       <div
@@ -67,13 +69,15 @@ export function Modal({
         ref={ref}
         tabIndex={-1}
       >
-        <button
-          className="modal-close icon-button"
-          onClick={onClose}
-          aria-label="Zamknij okno"
-        >
-          <X size={20} />
-        </button>
+        {dismissible && (
+          <button
+            className="modal-close icon-button"
+            onClick={onClose}
+            aria-label="Zamknij okno"
+          >
+            <X size={20} />
+          </button>
+        )}
         {children}
       </div>
     </div>,

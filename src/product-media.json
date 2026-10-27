@@ -1,4 +1,144 @@
 {
-  "products": {},
-  "collection": []
+  "products": {
+    "blue": [
+      {
+        "path": "images/whisky/blue.webp",
+        "label": "Butelka i oryginalne opakowanie",
+        "kind": "bottle",
+        "author": "User:Mattes",
+        "source": "https://commons.wikimedia.org/wiki/File:Johnnie_Walker_-_Blue_label.JPG",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
+      }
+    ],
+    "george": [
+      {
+        "path": "images/whisky/george.webp",
+        "label": "Butelka i oryginalne opakowanie",
+        "kind": "bottle",
+        "author": "UFu",
+        "source": "https://commons.wikimedia.org/wiki/File:Johnnie_Walker_King_George_V_1.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ],
+    "swing": [
+      {
+        "path": "images/whisky/swing.webp",
+        "label": "Butelka i oryginalne opakowanie",
+        "kind": "bottle",
+        "author": "Iceman7840",
+        "source": "https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Swing.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ],
+    "double": [
+      {
+        "path": "images/whisky/double.webp",
+        "label": "Butelka i oryginalne opakowanie",
+        "kind": "bottle",
+        "author": "Iceman7840",
+        "source": "https://commons.wikimedia.org/wiki/JW_Double_Black.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ],
+    "black": [
+      {
+        "path": "images/whisky/black.webp",
+        "label": "Butelka i oryginalne opakowanie",
+        "kind": "bottle",
+        "author": "Iceman7840",
+        "source": "https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Black_Label.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ],
+    "platinum": [
+      {
+        "path": "images/whisky/platinum.webp",
+        "label": "Butelka i oryginalne opakowanie",
+        "kind": "bottle",
+        "author": "Webysther",
+        "source": "https://commons.wikimedia.org/wiki/File:Webysther_201503211457450661_-_Johnnie_Walker_Platinum_Label,_garrafa_e_Caixa.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      {
+        "path": "images/whisky/platinum-box.webp",
+        "label": "Opakowanie",
+        "kind": "box",
+        "author": "Webysther",
+        "source": "https://commons.wikimedia.org/wiki/File:Webysther_201503211456530660_-_Johnnie_Walker_Platinum_Label,_caixa.jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      }
+    ],
+    "centenary": [
+      {
+        "path": "images/whisky/centenary.webp",
+        "label": "Butelka i oryginalne opakowanie",
+        "kind": "bottle",
+        "author": "SkankinHank",
+        "source": "https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Gold_Label_\"The_Centenary_Blend\"_(Pre-2013_with_18-Year_Age_Statement).jpg",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      }
+    ],
+    "green": [
+      {
+        "path": "images/whisky/green-bottle.webp",
+        "label": "Green Label 15 — butelka (kadr)",
+        "kind": "bottle",
+        "author": "Iceman7840",
+        "source": "https://commons.wikimedia.org/wiki/File:JW_Greens.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "modifications": "Kadr: wyłącznie Green Label 15 po lewej; usunięto sąsiednią butelkę 180 Cask. Zmniejszenie i WebP."
+      },
+      {
+        "path": "images/whisky/green-box.webp",
+        "label": "Opakowanie",
+        "kind": "box",
+        "author": "Rachmaninoff",
+        "source": "https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Green_Label_box.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ],
+    "gold": [
+      {
+        "path": "images/whisky/gold-bottle.webp",
+        "label": "Butelka",
+        "kind": "bottle",
+        "author": "Iceman7840",
+        "source": "https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Gold_Label_Reserve.jpg",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ],
+    "red": [
+      {
+        "path": "images/whisky/red.webp",
+        "kind": "bottle",
+        "label": "Butelka",
+        "source": "https://commons.wikimedia.org/wiki/Johnnie_Walker_Red_Label.jpg",
+        "author": "kallerna",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ]
+  },
+  "collection": [
+    {
+      "path": "images/whisky/collection.webp",
+      "label": "Kolekcja",
+      "kind": "collection",
+      "author": "Aneil Lutchman",
+      "source": "https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Blends_Lineup.jpg",
+      "license": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0"
+    }
+  ]
 }

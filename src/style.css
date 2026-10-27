@@ -3253,3 +3253,240 @@ details > div {
   font-size: 7px;
   z-index: 2;
 }
+.market-tools {
+  display: flex;
+  align-items: end;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 20px;
+  background: #28271e;
+  border: 1px solid #c7a76c40;
+  margin-bottom: 25px;
+}
+.market-tools label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 11px;
+  color: #cdbb99;
+}
+.market-tools select {
+  font-size: 12px;
+}
+.market-tools .watch-filter {
+  flex-direction: row;
+  align-items: center;
+  padding-bottom: 12px;
+}
+.market-tools > span {
+  margin-left: auto;
+  color: #c7ae7d;
+  font-size: 12px;
+  padding-bottom: 12px;
+}
+.room-actions,
+.quick-bids {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin: 14px 0;
+}
+.quick-bids button {
+  font-size: 13px;
+  min-width: 70px;
+  padding: 12px;
+}
+.room-actions button {
+  padding: 9px 12px;
+}
+.bid-limit {
+  margin: 20px 0;
+}
+.bid-limit label {
+  font-size: 10px;
+  color: #baa98c;
+}
+.bid-limit > div {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+}
+.bid-limit input {
+  width: 120px;
+  flex: 1;
+  min-width: 0;
+}
+.bid-limit button {
+  padding: 10px;
+  font-size: 10px;
+}
+.bid-limit small {
+  font-size: 9px;
+}
+.bid-status {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 11px;
+  padding: 5px 9px;
+  border-radius: 3px;
+}
+.leading {
+  background: #41543660;
+  color: #d0dfb4;
+}
+.outbid {
+  background: #74432e60;
+  color: #eab88f;
+}
+.extra-navigation {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.extra-navigation button {
+  justify-content: flex-start;
+  padding: 20px;
+  font-size: 13px;
+}
+.tutorial-dialog {
+  max-width: 560px;
+}
+.tutorial-dialog h2 {
+  font-size: 30px;
+}
+.tutorial-dialog p {
+  font-size: 15px;
+}
+.live-shortcut {
+  padding: 9px 12px;
+  font-size: 11px;
+}
+.negotiation-economy {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 14px 26px;
+  border-bottom: 1px solid #c9a66830;
+  font-size: 10px;
+  color: #a99e89;
+}
+.negotiation-economy span {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.negotiation-economy b {
+  color: #e1c797;
+  font-weight: 450;
+}
+.new-opportunities {
+  margin-bottom: 40px;
+}
+.condition-claim p {
+  font-size: 10px;
+  color: #e3b289;
+}
+.game-menu .menu-options {
+  flex-wrap: wrap;
+}
+.game-content button {
+  min-height: 36px;
+}
+.product-gallery .photo-stage {
+  background: #e8dfcf0a;
+}
+.photo-stage img {
+  border-radius: 3px;
+}
+@media (max-width: 600px) {
+  .live-shortcut {
+    display: none;
+  }
+  .market-tools {
+    gap: 12px;
+    padding: 15px;
+  }
+  .market-tools label {
+    width: calc(50% - 6px);
+    font-size: 9px;
+  }
+  .market-tools select {
+    max-width: 100%;
+    font-size: 10px;
+    padding: 9px;
+  }
+  .market-tools .watch-filter {
+    width: auto;
+    font-size: 10px;
+  }
+  .market-tools > span {
+    font-size: 9px;
+  }
+  .extra-navigation {
+    grid-template-columns: 1fr;
+  }
+  .extra-navigation button {
+    padding: 16px;
+  }
+  .room-actions button {
+    font-size: 10px;
+  }
+  .quick-bids {
+    gap: 7px;
+  }
+  .quick-bids button {
+    font-size: 12px;
+    padding: 11px;
+  }
+  .negotiation-economy {
+    padding: 15px 16px;
+    grid-template-columns: 1fr;
+    font-size: 10px;
+  }
+  .store-nav button {
+    min-height: 44px;
+  }
+  .game-content .auction-info .full {
+    min-height: 44px;
+    font-size: 12px;
+  }
+  .menu-options {
+    max-width: 270px;
+  }
+}
+.store-header {
+  position: sticky;
+  top: 0;
+  z-index: 35;
+  background: #1c1c17ed;
+  backdrop-filter: blur(14px);
+}
+.store-nav {
+  position: sticky;
+  top: 94px;
+  z-index: 34;
+  background: #161812f5;
+}
+.negotiation-economy b {
+  white-space: nowrap;
+}
+@media (max-width: 850px) {
+  .store-nav {
+    top: 82px;
+  }
+}
+@media (max-width: 600px) {
+  .store-nav {
+    top: 78px;
+  }
+  .menu-options {
+    gap: 12px;
+  }
+  .photo-stage img {
+    object-fit: contain;
+  }
+  .auction-visual {
+    background:
+      radial-gradient(ellipse at 50% 60%, #9b7e4c29, transparent 70%), #25251e;
+  }
+}

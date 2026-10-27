@@ -134,6 +134,21 @@ function Conversation({
           </p>
         </div>
       </div>
+      <div className="negotiation-economy">
+        <span>
+          Nasza cena <b>{euro(item.price)}</b>
+        </span>
+        <span>
+          Koszt nabycia <b>{euro(item.cost)}</b>
+        </span>
+        <span>
+          Wysyłka <b>{euro(950)}</b>
+        </span>
+        <span>
+          Marża przy ofercie klienta{" "}
+          <b>{euro(t.offer - item.cost - 950 - Math.round(t.offer * 0.025))}</b>
+        </span>
+      </div>
       <div className="chat-history" ref={scroll}>
         {t.messages.map((m, i) => (
           <motion.div

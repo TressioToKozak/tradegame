@@ -1,48 +1,45 @@
-# Fotografie: status, źródła i dodawanie
+# Fotografie whisky
 
-## Diagnoza obecnej wersji
+W repozytorium znajdują się **13 rzeczywistych fotografii** z Wikimedia Commons: 10 edycji (9 z pierwotnego katalogu oraz Red Label), dodatkowe zdjęcia pudełek i kolekcja na ekranie startowym. Wszystkie 10 początkowych aukcji ma przypisane zdjęcie właściwej edycji.
 
-Przyczyną braku zdjęć był **pusty `whiskyImages` i brak jakichkolwiek plików w `public/images/whisky/`**. Nie istniały fotografie, które mogłyby się wyświetlić. Ponadto stary komponent nie dodawał bazy repozytorium do ścieżek `/images/...`.
+Zdjęcia zmniejszono do maksymalnie 1400 px i przekonwertowano do WebP. Green Label 15 wykadrowano z lewej części oryginalnego zdjęcia; sąsiednia butelka 180 Cask nie jest pokazywana jako Green Label 15. Pozostałe fotografie zachowują pełny kadr. Licencje CC BY-SA dotyczą także tych adaptacji. Źródła i autorzy są dostępni w galerii i poniżej.
 
-Nowy `ProductGallery` korzysta z `src/product-media.json` i `assetUrl()` w `src/media.ts`, który dodaje bazę Vite. Obsługuje galerię butelki i opakowania, podpis, autora i licencję, powiększenie w modalu, stały wymiar sceny oraz powrót do czytelnej informacji przy błędzie obrazu.
+| Produkt / zdjęcie                           | Autor          | Źródło                                                                                                                                                   | Licencja                                                               |
+| ------------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| blue — Butelka i oryginalne opakowanie      | User:Mattes    | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Johnnie_Walker_-_Blue_label.JPG)                                                             | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.en) |
+| george — Butelka i oryginalne opakowanie    | UFu            | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Johnnie_Walker_King_George_V_1.jpg)                                                          | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0)         |
+| swing — Butelka i oryginalne opakowanie     | Iceman7840     | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Swing.jpg)                                                                    | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0)         |
+| double — Butelka i oryginalne opakowanie    | Iceman7840     | [Wikimedia Commons](https://commons.wikimedia.org/wiki/JW_Double_Black.jpg)                                                                              | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0)         |
+| black — Butelka i oryginalne opakowanie     | Iceman7840     | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Black_Label.jpg)                                                              | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0)         |
+| platinum — Butelka i oryginalne opakowanie  | Webysther      | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Webysther_201503211457450661_-_Johnnie_Walker_Platinum_Label,_garrafa_e_Caixa.jpg)           | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0)         |
+| platinum — Opakowanie                       | Webysther      | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Webysther_201503211456530660_-_Johnnie_Walker_Platinum_Label,_caixa.jpg)                     | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0)         |
+| centenary — Butelka i oryginalne opakowanie | SkankinHank    | [Wikimedia Commons](<https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Gold_Label_"The_Centenary_Blend"_(Pre-2013_with_18-Year_Age_Statement).jpg>) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0)         |
+| green — Green Label 15 — butelka (kadr)     | Iceman7840     | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:JW_Greens.jpg)                                                                               | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0)         |
+| green — Opakowanie                          | Rachmaninoff   | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Green_Label_box.jpg)                                                          | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0)         |
+| gold — Butelka                              | Iceman7840     | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Gold_Label_Reserve.jpg)                                                       | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0)         |
+| red — Butelka                               | kallerna       | [Wikimedia Commons](https://commons.wikimedia.org/wiki/Johnnie_Walker_Red_Label.jpg)                                                                     | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0)         |
+| kolekcja — Kolekcja                         | Aneil Lutchman | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Johnnie_Walker_Blends_Lineup.jpg)                                                            | [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0)         |
 
-## Bieżący blocker: brak legalnych plików
+## Czego nadal brakuje
 
-**Nie dołączono jeszcze fotografii. Warunek akceptacji zdjęć nie jest spełniony.** Nie wolno traktować działającej galerii ani kompilacji jako potwierdzenia dostępności fotografii.
+Nie udało się znaleźć potwierdzonych, odpowiednio licencjonowanych fotografii tych dziewięciu pierwotnych edycji:
 
-Próba odczytania metadanych Wikimedia Commons zakończyła się `Tunnel connection failed: 403 Forbidden`. Polityka sieciowa środowiska nie pozwala obecnie sprawdzić licencji ani pobrać tych plików. W projekcie nie użyto zdjęć skopiowanych bez uprawnień, obrazów AI ani fotografii innej edycji. W konfiguracji środowiska zapisano propozycję dodania `commons.wikimedia.org` oraz `upload.wikimedia.org`; zapis draftu nie stosuje automatycznie zmian w działającym środowisku.
+- Aged 18 Years (`18`)
+- Ghost & Rare Brora (`brora`)
+- Ghost & Rare Port Ellen (`port`)
+- Ghost & Rare Glenury Royal (`glenury`)
+- Blue Label The Casks Edition (`casks`)
+- Explorers’ Club The Royal Route (`royal`)
+- Explorers’ Club The Spice Road (`spice`)
+- Explorers’ Club The Gold Route (`goldroute`)
+- Blue Label Year of the Dragon (`dragon`)
 
-| Plik | Produkt | Autor / źródło | Licencja | Modyfikacje |
-| ---- | ------- | -------------- | -------- | ----------- |
-| —    | —       | —              | —        | —           |
+Nie podmieniono ich na zdjęcia innych whisky. Nowo dodane edycje katalogu, z wyjątkiem Red Label, również nie mają jeszcze fotografii. `npm run check:images:all` celowo zgłasza brak dziewięciu zdjęć pierwotnego katalogu. Kryterium fotografii wszystkich pierwotnych 18 produktów nie jest jeszcze spełnione.
 
-## Jak podłączyć fotografie
+## Dodawanie i kontrola
 
-1. Potwierdź, że zdjęcie przedstawia konkretną edycję. Sprawdź prawo do redystrybucji oraz wymagania oznaczenia autorstwa.
-2. Umieść własny lub odpowiednio licencjonowany JPEG, PNG albo WebP w `public/images/whisky/`.
-3. Uzupełnij manifest. Poniższe pola są wzorem struktury, **nie deklaracją istniejącego pliku ani licencji**:
+Pliki: `public/images/whisky/`. Przypisania: `src/product-media.json` — identyfikator produktu, ścieżka, podpis, rodzaj `bottle`/`box`, autor, źródło i licencja. Galerie obsługują wiele zdjęć, powiększenie, oryginalne proporcje i fallback błędu. Nie używaj fotografii innej edycji. `assetUrl` uwzględnia bazę Vite; fotografie są zapisywane także w cache offline.
 
-```json
-{
-  "products": {
-    "blue": [
-      {
-        "path": "images/whisky/blue-label-bottle.webp",
-        "label": "Butelka",
-        "kind": "bottle",
-        "author": "Autor zgodnie z licencją",
-        "source": "https://adres-oryginalnej-strony-pliku",
-        "license": "Dokładna nazwa potwierdzonej licencji",
-        "licenseUrl": "https://adres-licencji"
-      }
-    ]
-  },
-  "collection": []
-}
-```
-
-4. Drugie zdjęcie tej samej edycji z `kind: "box"` i etykietą „Opakowanie” tworzy kolejną miniaturę galerii. `collection` przyjmuje legalną fotografię kolekcji/salonu na menu startowe. Nie umieszczaj tam zdjęcia udającego inną edycję.
-5. Wpisz plik, autora, źródło, licencję, datę sprawdzenia i modyfikacje do tabeli powyżej. Dołącz tekst licencji, jeśli tego wymaga.
-6. Uruchom `npm run check:images`, `npm run check:images:strict`, `npm run build` oraz `npm run test:e2e`.
-
-Weryfikator sprawdza istnienie i nagłówki plików oraz obecność metadanych; **nie potwierdza praw autorskich**. Prawa trzeba sprawdzić u źródła. Tryb strict wymaga fotografii Blue Label (`blue`), King George V (`george`) i Swing (`swing`). Test przeglądarkowy weryfikuje rzeczywiste dekodowanie obrazów z `/tradegame/` i powiększenie; gdy nie ma zdjęć, test jest jawnie pominięty.
+- `npm run check:images:strict`: pliki i metadane oraz wszystkie pozycje z `src/initial-products.json`.
+- `npm run check:images:all`: dodatkowo wszystkie pierwotne 18 edycji; obecnie nie przechodzi.
+- `npm run test:e2e`: sprawdza rzeczywiste dekodowanie zdjęć początkowych aukcji i powiększenie pod `/tradegame/`.

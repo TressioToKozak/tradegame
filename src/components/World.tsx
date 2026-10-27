@@ -78,8 +78,8 @@ export function NowBoard({
             <span className="eyebrow">CHWILA NA DOBRĄ DECYZJĘ</span>
             <h3>Salon czeka na nowe okazje</h3>
             <p>
-              Kolejne aukcje pojawiają się co 6 godzin. Sprawdź w tym czasie
-              sklep i wiadomości.
+              Nowe aukcje pojawiają się regularnie, zwykle co 1–2 minuty.
+              Sprawdź w tym czasie sklep i wiadomości.
             </p>
           </div>
         )}
@@ -191,7 +191,8 @@ export function WinScreen({
         </span>
       </div>
       <p>
-        Butelka jest już w drodze do Twojego sklepu. Dostawa potrwa 24 godziny.
+        Butelka jest już w drodze do Twojego sklepu. Czasy dostaw są
+        skompresowane: zwykle 5–12 minut w kraju, 10–25 minut zza granicy.
       </p>
       <button onClick={onClose}>
         Wspaniale. Wracam do sklepu <ArrowUpRight size={17} />
@@ -261,7 +262,11 @@ export function Unboxing({
             <Check size={20} />
             <div>
               <strong>Kontrola zakończona · stan {i.condition}/100</strong>
-              <p>Butelka i opakowanie zgodne z opisem aukcji.</p>
+              <p>
+                Butelka {i.bottleCondition ?? i.condition}/100 · pudełko{" "}
+                {i.boxCondition ?? i.condition}/100. Opis aukcji:{" "}
+                {i.expectedCondition ?? i.condition}/100.
+              </p>
             </div>
           </div>
           <button

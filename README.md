@@ -1,90 +1,71 @@
-# JW Collection Store
+# JW Collection Store 2.0
 
-Polska, lokalna gra ekonomiczna React + TypeScript. Nie wymaga serwera aplikacji, API, kont ani kluczy. Pieniądze przechowywane są w eurocentach. Start: 5 000 €. MVP zawiera 18 rzeczywistych nazw edycji Johnnie Walker; dane cenowe są wyłącznie balansem gry, bez deklarowania aktualnych cen rynkowych. Nie podajemy niezweryfikowanych parametrów butelkowania.
+Polski symulator sklepu z kolekcjonerskimi whisky Johnnie Walker. React, TypeScript, Vite, Tailwind, Dexie/IndexedDB. Statyczna aplikacja bez serwera aplikacji, kont, API i kluczy. Kapitał początkowy: 5 000 €. Kwoty w eurocentach. Ceny referencyjne są balansem gry, nie bieżącymi notowaniami.
 
 ## Uruchomienie
 
-Node.js 24, npm:
+Node.js 24 i npm:
 
 ```sh
 npm ci
-npm test
 npm run dev
 ```
 
-Produkcja: `npm run build`, podgląd: `npm run preview`. Domyślnie Vite używa portu 5173, podgląd 4173. Testy silnika nie potrzebują przeglądarki ani usług. Testy interfejsu opisano niżej.
+`npm run build` tworzy `dist`; `npm run preview` uruchamia podgląd. Vite używa względnej bazy `./`, więc aplikacja działa też pod `/tradegame/`.
 
-## Jak grać
+## Rozgrywka
 
-1. W menu wybierz poziom trudności (domyślnie Realistyczna) i NOWA GRA. Przy zapisanej rozgrywce użyj KONTYNUUJ.
-2. Na aukcji złóż ofertę. Minimalne przebicie 5 €, potwierdzenie po 100–900 ms. Gotówka jest blokowana z uwzględnieniem 12% prowizji i 15 € dostawy. Płacisz tylko za zwycięstwo.
-3. Po 24 rzeczywistych godzinach skontroluj dostawę w magazynie. Sam wpisz cenę i wystaw produkt.
-4. Klienci odwiedzają sklep w godzinach 8–22 Amsterdam. Nie każdy produkt pasuje do ich zainteresowań, opakowania i możliwości finansowych. Wiadomość może nie nadejść tego samego dnia.
-5. W komunikatorze odpowiedz własnym tekstem lub rozwiń konkretne działania. Kontrpropozycja zawiera dostawę. Klient podejmuje decyzję po 45–240 sekundach, według cierpliwości i zapisanego generatora. Oczekująca odpowiedź jest zachowana po odświeżeniu. Niejasny tekst nie zawiera ukrytej decyzji.
-6. Zapakuj zamówienie, kup etykietę i nadaj. Niezabezpieczona paczka obniża stan i może wywołać reklamację. Doręczenie po 2 dniach.
-7. Zwroty obsłuż w zamówieniu. Pełny zwrot uruchamia fizyczny powrót egzemplarza po 2 dniach. Częściowy zwrot nie usuwa praw konsumenta. Model gry nie stanowi porady prawnej.
+1. Wybierz trudność i tempo (domyślnie **Dynamiczne**). Opcjonalne sześć krótkich kroków wprowadzenia można pominąć.
+2. Nowa gra otwiera **10 aukcji**, wszystkie z rzeczywistymi fotografiami właściwych edycji. Rynek regularnie się uzupełnia; docelowo zwykle 8–15 aktywnych partii.
+3. W Aukcjach filtruj kategorię, cenę, rzadkość, czas, nowość i obserwowane. W pokoju aukcyjnym szybkie przyciski tylko wybierają kwotę; **LICYTUJ** ją zatwierdza. Krok zależy od ceny: 5 / 10 / 20 / 50 €. Opcjonalny zapisany limit ogranicza cenę młotkową, nie licytuje automatycznie.
+4. Oferta wymaga wolnej gotówki na pełny koszt: cena + 12% prowizji + 15 € transportu. Rejestracja trwa 100–900 ms, a kolejność rozstrzyga termin i numer zdarzenia. Przegrana nic nie kosztuje.
+5. Odbierz przesyłkę w Magazynie. Dostawy to **skompresowane czasy gry**: krajowe zwykle 5–12 minut, zagraniczne 10–25 minut, czasem dłużej. To nie są terminy rzeczywistego kuriera.
+6. Otwórz paczkę, porównaj stan butelki i pudełka z opisem. Niezgodność można zgłosić sprzedawcy; rekompensata jest księgowana raz i koryguje koszt zapasu.
+7. Sam ustal cenę sprzedaży. Wystawioną cenę można zmienić. Klienci w godzinach 8–22 Amsterdam wybierają według budżetu, zainteresowań, stanu, zaufania i historii. Nie ma gwarancji zakupu.
+8. W komunikatorze odpowiedz tekstem lub wybierz działanie. Widzisz własną cenę, ofertę, koszt nabycia, wysyłkę i przewidywaną marżę po prowizji. Klienci odpowiadają zależnie od profilu: 20–60 s, 1–4 min, 5–15 min; wycofani mogą nie odpowiedzieć. Zmiana ceny wymaga Twojej decyzji.
+9. Po sprzedaży egzemplarz jest zarezerwowany. W **Więcej → Zamówienia** zapakuj i nadaj za 9,50 €. Niezabezpieczona paczka może wywołać reklamację. Pełny zwrot uruchamia fizyczny powrót towaru.
 
-## Rzeczywisty silnik
+Finanse, zamówienia, podgląd NPC i pomoc są w dodatkowym menu. Gotówka i reputacja pozostają na górnym pasku. Tempo można zmienić w Pomocy: dotyczy nowych wydarzeń, nie cen, budżetów ani istniejących zobowiązań i terminów. Zmiana trudności wymaga nowej gry.
 
-`src/engine.ts` nie zależy od React ani zegara przeglądarki. `advance(state, timestamp)` przetwarza kolejkę po terminie i numerze rejestracji. Zapis obejmuje generator pseudolosowy, osoby, pieniądze, pamięć, limity każdej aukcji i przyszłe decyzje. Wynik po powrocie jest taki sam jak wynik ciągłego przetwarzania tych samych zdarzeń.
+## Świat i wydajność
 
-- 5 stałych rywali: budżet wspólny dla aukcji, rezerwacje, zainteresowania, kolekcja, wrażliwość na cenę, cierpliwość, strategia, pamięć przegranych. Maksimum ustalane przed aukcją. Zakup obniża budżet; przegrana nic nie kosztuje.
-- 5 stałych klientów: osobne budżety, godziny wizyt, preferowany stan, ulubione kategorie, zaufanie, negocjacje, historia odmów i zakupów. Brak anonimowego generatora komunikatów.
-- Ekran Uczestnicy pokazuje stan i przyczyny decyzji. Jest to diagnostyczny podgląd, ujawniający także prywatne limity rywali.
-- Jedna butelka zostaje zarezerwowana atomowo w stanie gry. Pozostałe negocjacje dotyczące tego egzemplarza są zamykane.
-- Dziennik finansowy ma identyfikatory operacji; ponowne przetworzenie tego samego czasu nie księguje ponownie zakupów.
-- Co 6 godzin pojawia się kolejna aukcja. Nie ma nieskończonego dochodu NPC: gdy skończą się ich budżety, ograniczają aktywność.
-- Trudność wpływa na prywatne limity licytantów, nie wymusza przegranej gracza.
+- 35 licytantów ze wspólnym dla ich aukcji budżetem, rezerwacjami, krajem, preferencjami, cierpliwością, ryzykiem, strategią i pamięcią. Każda aukcja przyciąga wybranych uczestników; nie wszyscy licytują wszystko.
+- 52 rzeczywiste edycje: standardowe, wycofane, historyczne, vintage, Blue Label, Ghost & Rare, Travel Retail i wydania noworoczne. Nie dopisano niezweryfikowanych pojemności ani parametrów butelkowania.
+- Zwykłe aukcje trwają 3–7 min, rzadkie 5–10 min, wyjątkowe 8–12 min. Zakończenia są zróżnicowane; nowa aukcja daje co najmniej 45 sekund na reakcję.
+- W Dynamicznym nowa partia zwykle co 60–120 s. Gdy brakuje aktywnych aukcji, uzupełnianie przyspiesza stopniowo. Maksimum 15 aktywnych. Spokojne i Intensywne zmieniają częstotliwość oraz nową logistykę/reakcje, bez zmiany wartości whisky i budżetów NPC.
+- `EventQueue` to kopiec binarny uporządkowany według `(at, id)`. Silnik nie sortuje całej historii dla każdego zdarzenia. Zakończone zdarzenia są usuwane; pamięć każdej postaci mieści 120 wpisów. Archiwum zwykłych zakończonych aukcji jest ograniczone; transakcje, przedmioty i aukcje z udziałem gracza są zachowane.
+- `advance(state, time)` jest niezależne od React. Zapisany seed i terminy pozwalają odtworzyć świat po powrocie. Porcja ma limit 50 000 zdarzeń; reszta jest kontynuowana przed kolejnymi działaniami gracza.
 
-Przy zamkniętej przeglądarce nic się nie wykonuje; zdarzenia są rekonstruowane po powrocie. Cofnięcie zegara zatrzymuje postęp do ostatniego zapisanego czasu. Zmiana czasu do przodu i edycja pliku nadal pozwalają manipulować lokalną grą. Porcja odtwarzania ma limit 20 000 zdarzeń; dłuższa kolejka jest kontynuowana w kolejnych cyklach. IndexedDB zapisuje rozgrywkę co sekundę i po działaniu. Nie otwieraj dwóch aktywnych kart tej samej rozgrywki — synchronizacja między kartami i urządzeniami nie jest obsługiwana.
+Przy zamkniętej przeglądarce nic się nie wykonuje w tle. Zdarzenia są rekonstruowane po powrocie. Cofnięcie zegara nie cofa transakcji. Gra lokalna nie jest odporna na edytowanie zapisu i zegara. Nie otwieraj tej samej rozgrywki w wielu kartach — nie ma synchronizacji kart ani urządzeń.
 
-## Zapis, eksport, offline
+## Zapisy i migracja
 
-Eksport/import znajdziesz w Pomoc → Pomoc i zapisy. Import jest też w dyskretnym menu „Twoje zapisy” na ekranie startowym. Eksport pobiera JSON zawierający wszystkie osoby i kolejkę zdarzeń. Import sprawdza wersję, strukturę i podstawowe referencje. Format nadal ma wersję 1. Stare zapisy działają bez resetu: pola `readAt` i `pendingReply` są opcjonalne. Zapis zachowuje też nowe zdarzenie `reply`; starsza wersja aplikacji nie powinna odczytywać nowszych zapisów. Obce wersje są odrzucane.
+Automatyczny zapis w IndexedDB działa co sekundę i po decyzjach. Eksport/import: Pomoc i ustawienia; import także w dyskretnym menu startowym „Twoje zapisy”.
 
-Service worker produkcyjny zachowuje pliki aplikacji po pierwszym otwarciu online. Następne otwarcie może działać offline; stan pochodzi z IndexedDB tej samej przeglądarki i domeny. Czyszczenie danych witryny usuwa postęp. Regularnie eksportuj zapis. Przy błędzie IndexedDB interfejs ostrzega o konieczności eksportu.
+Format 2 obsługuje dawne zapisy formatu 1. Przy otwarciu starej rozgrywki pojawia się ekran **eksportu oryginału przed migracją**. Przeniesienie zachowuje gotówkę, księgę, przedmioty, aukcje i istniejące terminy. Oryginał jest dodatkowo zachowywany w rekordzie IndexedDB `pre-v2`. Dopiero potwierdzenie uruchamia migrację i nowy rynek. Import starego JSON również jest obsługiwany; plik źródłowy pozostaje u użytkownika. Nie wczytuj nowego zapisu w starej wersji gry.
 
-## GitHub i Pages
+Service worker zachowuje aplikację i przypisane zdjęcia offline po pierwszym otwarciu online. Czyszczenie danych witryny usuwa postęp; regularnie eksportuj grę.
 
-Projekt ma względną bazę Vite (`./`), więc działa pod `/tradegame/` i inną nazwą repozytorium bez zmiany kodu. Nie ma routingu wymagającego przekierowań serwera.
+## Fotografie
 
-```sh
-git add .
-git commit -m "Add JW Collection Store simulation"
-git push origin HEAD:main
-```
+W projekcie są **13 fotografii**: 10 sfotografowanych edycji, dodatkowe pudełka i kolekcja na menu. Wszystkie początkowe aukcje pokazują prawdziwe whisky. Źródła i oznaczenia CC BY-SA: [IMAGE_SOURCES.md](IMAGE_SOURCES.md).
 
-W GitHub: **Settings → Pages → Source → GitHub Actions**. Workflow `.github/workflows/pages.yml` uruchomi testy i build, a następnie opublikuje `dist`. Publikacja wymaga uprawnień repozytorium i nie została wykonana przez samo utworzenie plików.
+**Brakuje jeszcze zdjęć dziewięciu z pierwotnych 18 produktów**, w tym Ghost & Rare i Travel Retail. Nie podstawiono innych edycji. Dokładna lista jest w pliku źródeł. Rozszerzone pozycje katalogu poza Red Label również czekają na fotografie. Nie jest to komplet zdjęć całego katalogu.
 
-## Rozszerzanie katalogu i zdjęć
+`public/images/whisky/` zawiera pliki; `src/product-media.json` przypisania. Galeria ma butelkę/opakowanie, powiększenie, prawidłowe proporcje i obsługę błędu. `assetUrl` uwzględnia `import.meta.env.BASE_URL`. Dodawaj wyłącznie zdjęcia właściwej edycji z prawem redystrybucji.
 
-Dane są w `src/catalog.ts`. Dodaj stabilny identyfikator, potwierdzoną nazwę edycji, kategorię, referencyjną cenę w centach i rzadkość. Sprawdź istnienie edycji i parametry w wiarygodnym źródle przed ich dopisaniem; nie zgaduj roczników ani pojemności.
-
-Licencjonowane zdjęcia umieść w `public/images/whisky/`, a ich przypisanie i metadane w `src/product-media.json`. Instrukcja i status źródeł: `IMAGE_SOURCES.md`. `ProductGallery` obsługuje osobne fotografie butelki i opakowania, miniatury, powiększanie oraz błąd ładowania. Helper `assetUrl` dodaje `import.meta.env.BASE_URL`; nie używaj ścieżki `/images/...` bez resolvera. Produkcyjny service worker zachowuje także przypisane fotografie offline.
-
-`npm run check:images` sprawdza istnienie i format przypisanych plików oraz metadane. `npm run check:images:strict` dodatkowo wymaga zdjęć trzech głównych aukcji: Blue Label, King George V i Swing. Obecnie strict kończy się błędem, ponieważ brak legalnych plików. Weryfikacja licencji Wikimedia jest zablokowana przez sieć środowiska (403). Nie zastąpiono tego fotografiami innych butelek ani obrazami AI.
-
-## Zakres MVP
-
-Działają aukcje, magazyn, ręczne ceny, klienci i tekstowe negocjacje, realizacja, reklamacje, finanse, trwały zapis i odtwarzanie. Katalog 40–60 edycji, pozyskanie udokumentowanych zdjęć, różne warianty butelkowania, losowe szkody transportu przychodzącego, rozbudowana obsługa niezgodności opisu oraz synchronizacja wielu kart pozostają poza tą pierwszą wersją. Placeholdery nie są fotografiami produktów.
-
-## Przebudowa interfejsu
-
-- Menu gry z nową grą, kontynuacją, dyskretnym wyborem trudności i zapisów.
-- Kompaktowy pasek gotówki i reputacji; pełne statystyki tylko w Finansach.
-- „Dzieje się teraz” wynika z aktywnych aukcji, zapytań, dostaw i zamówień.
-- Pokój aukcyjny ma własną kwotę, pełny koszt, zegar, prawdziwą historię ofert/obserwacji/wycofań i wyróżnienie ostatnich 30 sekund. Powiadomienia o przebiciu pochodzą z silnika.
-- Komunikator: lista osób, miasta, ostatnie wiadomości, nieprzeczytane, historia i odroczone odpowiedzi.
-- Wygrana aukcja i animowane otwieranie paczki; przyjęcie do magazynu wymaga osobnej decyzji.
-- Informacje techniczne i eksport przeniesiono do Pomocy. Żadne finanse nie są dekoracyjnymi licznikami.
-
-## Testy interfejsu pod ścieżką Pages
+## Testy i GitHub Pages
 
 ```sh
+npm test
+npm run check:images:strict
 npm run build
 npx playwright install chromium
 npm run test:e2e
 ```
 
-Na maszynie z systemowym Chromium: `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e`.
-Testy startują serwer gotowego `dist` pod `/tradegame/`, bez fallbacku dla brakujących plików. Obejmują licytację, czas, reakcje NPC, zapis, komunikator, odroczoną odpowiedź, wygraną, otwieranie paczki, widok 390 px i offline. Test prawdziwych zdjęć jest oznaczony jako pominięty, dopóki manifest nie zawiera plików. Nie oznacza to spełnienia warunku akceptacji fotografii. Testy używają kontrolowanych zapisów i czasu; nie odczekują doby na dostawę.
+Przy systemowym Chromium: `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e`. Testy przeglądarkowe działają na gotowym `dist` pod `/tradegame/`, bez fallbacku HTML dla brakujących plików. Sprawdzają rzeczywiste dekodowanie zdjęć, licytację, reakcje NPC, komunikator, zapis, migrację, magazyn, mobilność i offline.
+
+`npm run check:images:all` dodatkowo wymaga zdjęć wszystkich pierwotnych 18 produktów — obecnie zgłasza dziewięć braków. Produkcyjny build wymaga wszystkich zdjęć początkowych partii.
+
+W GitHub ustaw **Settings → Pages → Source → GitHub Actions**. Push na `main` uruchamia testy, build, Chromium oraz publikację `dist`. Nie trzeba zmieniać bazy Vite dla nazwy repozytorium. Dane katalogu są w `src/catalog.ts`; stabilnych identyfikatorów istniejących edycji nie zmieniaj.

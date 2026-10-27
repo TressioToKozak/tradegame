@@ -2,6 +2,7 @@ import { ArrowUpRight, ChevronDown, Play } from "lucide-react";
 import { useState } from "react";
 import ProductGallery from "./ProductGallery";
 import { date } from "../ui";
+import { pacing, type Pace } from "../pace";
 import type { State } from "../engine";
 export default function GameMenu({
   state: s,
@@ -11,19 +12,20 @@ export default function GameMenu({
   onHelp,
 }: {
   state: State | null;
-  onStart: (difficulty: string) => void;
+  onStart: (difficulty: string, pace: Pace) => void;
   onContinue: () => void;
   onImport: () => void;
   onHelp: () => void;
 }) {
   const [difficulty, setDifficulty] = useState("Realistyczna");
+  const [pace, setPace] = useState<Pace>("Dynamiczne");
   return (
     <main className="game-menu">
       <div className="menu-top">
         <a className="brand" href="#" onClick={(e) => e.preventDefault()}>
           <span className="brand-seal">JW</span>
           <span>
-            COLLECTION STORE<small>AMSTERDAM · THE NETHERLANDS</small>
+            COLLECTION STORE<small>AMSTERDAM · HOLANDIA</small>
           </span>
         </a>
         <button className="text-button" onClick={onHelp}>
@@ -48,7 +50,10 @@ export default function GameMenu({
             do kolekcjonerskiego imperium.
           </p>
           <div className="menu-actions">
-            <button className="menu-new" onClick={() => onStart(difficulty)}>
+            <button
+              className="menu-new"
+              onClick={() => onStart(difficulty, pace)}
+            >
               NOWA GRA <ArrowUpRight size={19} />
             </button>
             {s && (
@@ -71,6 +76,18 @@ export default function GameMenu({
                 ))}
               </select>
             </label>
+            <label>
+              Tempo
+              <select
+                aria-label="Tempo gry"
+                value={pace}
+                onChange={(e) => setPace(e.target.value as Pace)}
+              >
+                {Object.keys(pacing).map((p) => (
+                  <option key={p}>{p}</option>
+                ))}
+              </select>
+            </label>
             <details>
               <summary>
                 Twoje zapisy <ChevronDown size={12} />
@@ -86,7 +103,7 @@ export default function GameMenu({
           <span className="scene-arch" />
           <ProductGallery collection />
           <div className="collection-caption">
-            <span>THE ART OF COLLECTING</span>
+            <span>SZTUKA KOLEKCJONOWANIA</span>
             <p>
               Niektóre historie
               <br />

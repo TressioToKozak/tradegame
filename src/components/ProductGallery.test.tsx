@@ -29,9 +29,7 @@ describe("Galeria produktu — kontrolowane zasoby testowe, nie fotografie do pu
     );
     expect(image.getAttribute("width")).toBe("700");
     expect(image.getAttribute("height")).toBe("900");
-    fireEvent.click(
-      screen.getByRole("button", { name: "Opakowanie" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Opakowanie" }));
     expect(
       screen
         .getByAltText("Johnnie Walker Blue Label — Opakowanie")
@@ -62,9 +60,9 @@ describe("Galeria produktu — kontrolowane zasoby testowe, nie fotografie do pu
   });
   it("zmiana produktu resetuje błąd i nie zachowuje zdjęcia innej whisky", () => {
     const { rerender } = render(<ProductGallery product="blue" />);
-    rerender(<ProductGallery product="swing" />);
+    rerender(<ProductGallery product="brora" />);
     expect(screen.queryByRole("img")).toBeNull();
-    expect(screen.getByText("Swing")).toBeTruthy();
+    expect(screen.getByText("Blue Label Ghost & Rare Brora")).toBeTruthy();
   });
   it("Escape zamyka tylko wierzchnie powiększenie, zachowując pokój aukcyjny", () => {
     render(

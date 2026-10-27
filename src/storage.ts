@@ -1,5 +1,5 @@
 import Dexie, { type Table } from "dexie";
-import type { State } from "./engine";
+import { migrateGame, type State } from "./engine";
 class Saves extends Dexie {
   games!: Table<{ id: string; state: State }>;
   constructor() {
@@ -9,13 +9,15 @@ class Saves extends Dexie {
 }
 const db = new Saves();
 export const load = async () => (await db.games.get("main"))?.state;
+export const backupLegacy = (state: State) =>
+  db.games.put({ id: "pre-v2", state: structuredClone(state) });
 export const save = (state: State) =>
   db.games.put({ id: "main", state: structuredClone(state) });
 // Import jest lokalny; odrzucamy obce wersje i niepoprawne struktury przed wykonaniem silnika.
 export function parseSave(text: string): State {
   const s = JSON.parse(text);
-  if (!s || s.version !== 1)
-    throw Error("Nieobsługiwana wersja zapisu. Obsługiwana: 1.");
+  if (!s || ![1, 2].includes(s.version))
+    throw Error("Nieobsługiwana wersja zapisu. Obsługiwane: 1 i 2.");
   for (const k of ["seed", "serial", "now", "started", "reputation"])
     if (!Number.isFinite(s[k])) throw Error("Nieprawidłowe dane liczbowe.");
   for (const k of [
@@ -29,9 +31,14 @@ export function parseSave(text: string): State {
     "feed",
   ])
     if (!Array.isArray(s[k])) throw Error("Niekompletny zapis.");
+  if (
+    s.version === 2 &&
+    !["Spokojne", "Dynamiczne", "Intensywne"].includes(s.pace)
+  )
+    throw Error("Nieprawidłowe tempo gry.");
   // Zgodność struktury i integralność referencji sprawdza walidator.
   validate(s);
-  return s as State;
+  return migrateGame(s);
 }
 function validate(s: State) {
   const finite = (n: unknown) => typeof n === "number" && Number.isFinite(n);

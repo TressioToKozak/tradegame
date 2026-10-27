@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { advance, createGame, type State } from "./engine";
-import { load, save, parseSave } from "./storage";
+import { advance, createGame, type State, type Pace } from "./engine";
+import { load, save, parseSave, backupLegacy } from "./storage";
 import { date } from "./ui";
 export type Mutate = (fn: (g: State) => unknown) => void;
 export function useGame() {
@@ -9,7 +9,9 @@ export function useGame() {
     [notice, setNotice] = useState(""),
     [error, setError] = useState(""),
     [saved, setSaved] = useState(false),
-    [wins, setWins] = useState<string[]>([]);
+    [wins, setWins] = useState<string[]>([]),
+    [needsMigration, setNeedsMigration] = useState(false);
+  const legacy = useRef<State | null>(null);
   const current = useRef<State | null>(null),
     busy = useRef(false),
     seenWins = useRef(new Set<string>());
@@ -40,8 +42,12 @@ export function useGame() {
       if (!current.current || busy.current) return;
       const previous = current.current;
       const g = structuredClone(previous);
-      advance(g, Date.now());
-      const result = fn(g);
+      const target = Date.now();
+      advance(g, target);
+      const result =
+        g.now < target
+          ? "Odtwarzanie zaległych zdarzeń. Poczekaj chwilę przed kolejną decyzją."
+          : fn(g);
       if (typeof result === "string") setNotice(result);
       else {
         const fresh = g.feed.filter(
@@ -68,6 +74,12 @@ export function useGame() {
     load()
       .then((s) => {
         if (!active) return;
+        if (s && Number(s.version) === 1) {
+          legacy.current = structuredClone(s);
+          setNeedsMigration(true);
+          setReady(true);
+          return;
+        }
         if (s) {
           s.auctions
             .filter((a) => a.status === "closed")
@@ -97,27 +109,51 @@ export function useGame() {
     const timer = setInterval(() => mutate(() => {}), 1000);
     return () => clearInterval(timer);
   }, [mutate]);
-  const start = (difficulty: string) => {
+  const start = (difficulty: string, pace: Pace = "Dynamiczne") => {
     seenWins.current.clear();
     setWins([]);
     const g = createGame(
       Date.now(),
       crypto.getRandomValues(new Uint32Array(1))[0],
       difficulty,
+      pace,
     );
     update(g);
     persist(g);
   };
-  const exportGame = () => {
-    if (!current.current) return;
+  const download = (data: State, name = "jw-collection-zapis.json") => {
     const url = URL.createObjectURL(
-      new Blob([JSON.stringify(current.current)], { type: "application/json" }),
+      new Blob([JSON.stringify(data)], { type: "application/json" }),
     );
     const a = document.createElement("a");
     a.href = url;
-    a.download = "jw-collection-zapis.json";
+    a.download = name;
     a.click();
     URL.revokeObjectURL(url);
+  };
+  const exportGame = () => {
+    const data = current.current ?? legacy.current;
+    if (data) download(data);
+  };
+  const exportLegacy = () => {
+    if (legacy.current)
+      download(legacy.current, "jw-collection-przed-migracja.json");
+  };
+  const migrate = async () => {
+    if (!legacy.current) return;
+    try {
+      await backupLegacy(legacy.current);
+      const g = parseSave(JSON.stringify(legacy.current));
+      advance(g, Date.now());
+      update(g);
+      await save(g);
+      setNeedsMigration(false);
+      setSaved(true);
+    } catch (e) {
+      setError(
+        "Migracja nie powiodła się. Oryginalny zapis nie został usunięty.",
+      );
+    }
   };
   const importGame = async (file: File) => {
     busy.current = true;
@@ -148,6 +184,9 @@ export function useGame() {
   };
   return {
     state,
+    needsMigration,
+    exportLegacy,
+    migrate,
     ready,
     notice,
     setNotice,
