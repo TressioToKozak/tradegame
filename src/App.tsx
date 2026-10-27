@@ -1,47 +1,517 @@
-import {useEffect,useRef,useState} from 'react';
-import {LayoutDashboard,Gavel,Store,Package,MessagesSquare,Truck,ChartNoAxesCombined,Users,ArrowUpRight,Download,Upload,Plus,Clock,Check,Menu} from 'lucide-react';
-import {motion} from 'motion/react';
-import {AreaChart,Area,ResponsiveContainer,Tooltip,XAxis} from 'recharts';
-import {catalog,euro,whisky,whiskyImages} from './catalog';
-import {advance,createGame,cash,held,totalCost,submitBid,inspect,list,respond,interpret,pack,ship,refund,financials,type State,type Item,type Thread} from './engine';
-import {load,save,parseSave} from './storage';
-const time=(n:number)=>new Intl.DateTimeFormat('pl-PL',{timeZone:'Europe/Amsterdam',hour:'2-digit',minute:'2-digit'}).format(n);
-const date=(n:number)=>new Intl.DateTimeFormat('pl-PL',{timeZone:'Europe/Amsterdam',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(n);
-const tabs=[['Pulpit',LayoutDashboard],['Aukcje na żywo',Gavel],['Mój sklep',Store],['Magazyn',Package],['Wiadomości',MessagesSquare],['Zamówienia',Truck],['Finanse',ChartNoAxesCombined],['Uczestnicy',Users]] as const;
-const labels:Record<string,string>={incoming:'W drodze',inspect:'Do kontroli',stock:'W magazynie',listed:'W sklepie',reserved:'Zarezerwowane',sold:'Sprzedane',packing:'Do spakowania',shipping:'W drodze',delivered:'Doręczone',complaint:'Reklamacja',returned:'Zwrócone',open:'Oczekuje',accepted:'Kupiono',declined:'Zamknięte',expired:'Wygasło'};
-function Product({product,small=false}:{product:string;small?:boolean}){const w=whisky(product);const [failed,setFailed]=useState(false);if(whiskyImages[product]&&!failed)return <div className={'product-art '+(small?'small':'')}><a href={whiskyImages[product]} target="_blank" rel="noreferrer"><img src={whiskyImages[product]} alt={w.name} onError={()=>setFailed(true)}/></a><small>{w.name}</small></div>;return <div className={'product-art '+(small?'small':'')}><div className="edition-mark">JW<span>COLLECTION</span></div><span className="art-label">{w.name.replace('Johnnie Walker ','')}</span><small>Zdjęcie niedostępne</small></div>}
-function PriceInput({initial=0,onSubmit,label='Zapisz cenę'}:{initial?:number;onSubmit:(n:number)=>void;label?:string}){const [value,set]=useState(initial?String(initial/100):'');return <form className="price-form" onSubmit={e=>{e.preventDefault();onSubmit(Math.round(Number(value.replace(',','.'))*100))}}><label className="sr-only">Kwota w euro</label><input aria-label="Kwota w euro" inputMode="decimal" placeholder="Kwota w €" value={value} onChange={e=>set(e.target.value)}/><button>{label}</button></form>}
-export default function App(){
- const [s,setS]=useState<State|null>(null),[tab,setTab]=useState('Pulpit'),[notice,setNotice]=useState(''),[error,setError]=useState(''),[saved,setSaved]=useState(false),[difficulty,setDifficulty]=useState('Realistyczna'),[ready,setReady]=useState(false);const current=useRef<State|null>(null),input=useRef<HTMLInputElement>(null),busy=useRef(false);
- useEffect(()=>{let active=true;load().then(state=>{if(!active)return;if(state){const previous=state.now;advance(state,Date.now());current.current=state;setS(structuredClone(state));if(Date.now()-previous>60000)setNotice(`Odtworzono wydarzenia od ${date(previous)}. Szczegóły w dzienniku.`);}setReady(true)}).catch(()=>{setError('Nie można odczytać IndexedDB. Sprawdź uprawnienia przeglądarki.');setReady(true)});return()=>{active=false}},[]);
- const persist=(next:State)=>{setSaved(false);save(next).then(()=>setSaved(true)).catch(()=>setError('Zapis nie powiódł się. Wyeksportuj postęp przed zamknięciem gry.'));};
- const mutate=(fn:(g:State)=>unknown)=>{if(!current.current)return;const g=structuredClone(current.current);advance(g,Date.now());const result=fn(g);if(typeof result==='string')setNotice(result);current.current=g;setS(structuredClone(g));persist(g)};
- useEffect(()=>{const timer=setInterval(()=>{if(current.current&&!busy.current)mutate(()=>{});},1000);return()=>clearInterval(timer)},[]);
- const start=()=>{const g=createGame(Date.now(),crypto.getRandomValues(new Uint32Array(1))[0],difficulty);current.current=g;setS(g);persist(g)};
- const exportGame=()=>{if(!current.current)return;const url=URL.createObjectURL(new Blob([JSON.stringify(current.current)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='jw-collection-zapis.json';a.click();URL.revokeObjectURL(url)};
- const importGame=async(file:File)=>{busy.current=true;try{if(file.size>10_000_000)throw Error('Plik jest za duży.');const g=parseSave(await file.text());if(current.current&&!confirm('Zastąpić bieżącą rozgrywkę importowanym zapisem?'))return;advance(g,Date.now());await save(g);current.current=g;setS(g);setSaved(true);setNotice('Zapis zaimportowany.')}catch(e){setError(e instanceof Error?e.message:'Błąd importu.')}finally{busy.current=false}};
- if(!ready)return <div className="loading">Wczytywanie kolekcji…</div>;
- const importControl=<><input ref={input} type="file" accept="application/json" hidden onChange={e=>{const f=e.target.files?.[0];if(f)void importGame(f);e.target.value=''}}/><button className="subtle" onClick={()=>input.current?.click()}><Upload size={15}/> Import zapisu</button></>;
- if(!s)return <main className="welcome"><div className="brand-mark">JW</div><p className="eyebrow">TWÓJ SKLEP. TWOJA KOLEKCJA. TWOJE DECYZJE.</p><h1>Wielkie kolekcje<br/>zaczynają się od jednej butelki.</h1><p>Prowadź JW Collection Store w Holandii. Licytuj, negocjuj i buduj reputację — w prawdziwym czasie.</p><label>Poziom trudności <select value={difficulty} onChange={e=>setDifficulty(e.target.value)}>{['Łatwa','Normalna','Realistyczna','Ekspert'].map(x=><option key={x}>{x}</option>)}</select></label><button onClick={start}>Otwórz sklep · 5 000 € <ArrowUpRight size={18}/></button>{importControl}<small>Lokalna symulacja • Bez konta i bez backendu • Zapis w tej przeglądarce</small>{error&&<p role="alert">{error}</p>}</main>;
- const fin=financials(s),active=s.auctions.filter(a=>a.status==='active'),open=s.threads.filter(t=>t.status==='open');
- const person=(id:string)=>s.people.find(p=>p.id===id)?.name??'Ty';
- const itemCard=(i:Item)=><article className="card inventory" key={i.id}><Product product={i.product} small/><div><span className="badge">{labels[i.status]}</span><h3>{whisky(i.product).name}</h3><p>Koszt nabycia {euro(i.cost)} · Stan {i.condition}/100</p>{i.status==='inspect'&&<button onClick={()=>mutate(g=>inspect(g,i.id))}>Otwórz i sprawdź paczkę</button>}{['stock','listed'].includes(i.status)&&<PriceInput initial={i.price} onSubmit={n=>mutate(g=>list(g,i.id,n))}/>}<small>{i.views} wyświetleń · {new Set(i.interested).size} zainteresowanych</small></div></article>;
- return <div className="app"><aside><a className="brand" href="#" onClick={e=>{e.preventDefault();setTab('Pulpit')}}><div className="brand-mark">JW</div><div>COLLECTION<span>STORE / AMSTERDAM</span></div></a><div className="sidebar-caption">TWOJE CENTRUM DOWODZENIA</div><nav>{tabs.map(([name,Icon])=><button key={name} className={tab===name?'active':''} onClick={()=>setTab(name)}><Icon size={18}/>{name}{name==='Wiadomości'&&open.length>0&&<b>{open.length}</b>}{name==='Aukcje na żywo'&&<i className="dot"/>}</button>)}</nav><div className="sidebar-bottom"><span className="badge">{s.difficulty}</span><p>Mały sklep. Wielkie ambicje.</p><small>Symulacja lokalna · v1.0</small><button className="subtle" onClick={()=>{if(confirm('Usunąć postęp i rozpocząć nową grę? Wyeksportuj wcześniej zapis.'))start()}}>Nowa rozgrywka</button></div></aside>
- <div className="workspace"><header><div className="breadcrumbs"><Menu size={17}/> Twój sklep <span>/</span><strong>{tab}</strong></div><div className="header-right"><span className="save-indicator"><i className="dot"/>{saved?'Zapisano':'Zapisywanie…'}</span><span>{date(s.now)} · Amsterdam</span><div className="avatar">JW</div></div></header>
- <main><div className="page-heading"><div><p className="eyebrow">JW COLLECTION STORE</p><h1>{tab==='Pulpit'?'Dobry dzień na dobrą inwestycję.':tab}</h1><p>{tab==='Pulpit'?'Twój kolekcjonerski biznes, w jednym miejscu. Oto co dzieje się w sklepie.':'Każda decyzja ma znaczenie. Zarządzaj swoim kolekcjonerskim biznesem.'}</p></div><button onClick={()=>setTab('Aukcje na żywo')}><Gavel size={16}/> Przeglądaj aukcje <ArrowUpRight size={16}/></button></div>
- {error&&<div className="alert" role="alert">{error}<button onClick={()=>setError('')}>Zamknij</button></div>}{notice&&<div className="notice" role="status">{notice}<button onClick={()=>setNotice('')}>×</button></div>}{s.clockWarning&&<div className="alert">Wykryto cofnięty zegar. Symulacja czeka, aż czas dogoni ostatni zapis. Gra lokalna nie jest odporna na manipulację czasem.</div>}
- {(tab==='Pulpit'||tab==='Finanse')&&<div className="stats">{[['Dostępna gotówka',euro(cash(s)-held(s)),`Łącznie ${euro(cash(s))} · blokady ${euro(held(s))}`],['Wartość magazynu',euro(fin.stock),`${s.items.filter(i=>['stock','listed'].includes(i.status)).length} butelek gotowych do sprzedaży`],['Zrealizowany zysk',euro(fin.profit),'Po kosztach nabycia i realizacji'],['Reputacja sklepu',`${s.reputation} / 100`,'Zaufanie budowane każdą transakcją']].map(([name,value,detail],i)=><div className="stat" key={name}><div>{name}{i===3?<Users size={17}/>:<ChartNoAxesCombined size={17}/>}</div><strong>{value}</strong>{i===3&&<div className="progress"><i style={{width:s.reputation+'%'}}/></div>}<small>{detail}</small></div>)}</div>}
- {(tab==='Pulpit'||tab==='Aukcje na żywo')&&<section><div className="section-heading"><h2>Aukcje na żywo <span className="live"><i className="dot"/>{active.length} AKTYWNE</span></h2>{tab==='Pulpit'&&<button className="text-button" onClick={()=>setTab('Aukcje na żywo')}>Wszystkie aukcje <ArrowUpRight size={15}/></button>}</div><div className="auction-grid">{(tab==='Pulpit'?active.slice(0,3):s.auctions.slice().reverse()).map(a=>{const left=Math.max(0,Math.ceil((a.end-s.now)/1000));return <motion.article initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} className="auction card" key={a.id}><div className="auction-image"><Product product={a.product}/><span className="lot">PARTIA {a.id}</span><span className={'countdown '+(left<60?'urgent':'')}><Clock size={13}/>{a.status==='closed'?'Zakończona':`${String(Math.floor(left/60)).padStart(2,'0')}:${String(left%60).padStart(2,'0')}`}</span></div><div className="auction-body"><p className="eyebrow">{whisky(a.product).category==='blue'?'BLUE LABEL · KOLEKCJONERSKA':'EDYCJA KOLEKCJONERSKA'}</p><h3>{whisky(a.product).name.replace('Johnnie Walker ','')}</h3><p className="meta">Johnnie Walker · {a.country} · Stan {a.condition}/100</p><div className="bid-price"><div><small>Aktualna oferta</small><strong>{euro(a.price)}</strong></div><span>{a.bids.length} ofert</span></div><p className="leader">{a.leader?`Prowadzi: ${person(a.leader)}`:'Czeka na pierwszą ofertę'}</p><small>Łącznie: {euro(totalCost(a))} · prowizja 12% + transport 15 €</small>{a.status==='active'&&<button className="full" onClick={()=>mutate(g=>submitBid(g,a.id,a.price+500))}><Gavel size={15}/> Licytuj {euro(a.price+500)} <ArrowUpRight size={15}/></button>}<details><summary>Historia i zasady aukcji</summary><p>Rejestracja: 100–900 ms. Przebicie: 5 €. Przyjęta oferta blokuje pełny koszt. Brak przedłużania końcówki.</p>{a.bids.length?a.bids.map((b,i)=><p key={i}>{time(b.at)} · {person(b.actor)} · {euro(b.amount)}</p>):<p>Brak ofert.</p>}</details></div></motion.article>})}</div></section>}
- {tab==='Pulpit'&&<div className="bottom-grid"><section className="card panel"><div className="section-heading"><h2>Dziennik sklepu</h2><span className="muted">NA ŻYWO</span></div><Feed state={s}/></section><section className="card panel"><div className="section-heading"><h2>Twój następny krok</h2><Package size={19}/></div><div className="next-step"><span className="step-number">01</span><div><h3>Zbuduj swoją kolekcję</h3><p>Sprawdź pełny koszt aukcji przed złożeniem oferty. Marża zaczyna się od dobrego zakupu.</p></div></div><button className="outline full" onClick={()=>setTab('Magazyn')}>Przejdź do magazynu <ArrowUpRight size={15}/></button><div className="footnote"><Clock size={15}/> Gra działa w czasie rzeczywistym. Zdarzenia z nieobecności odtwarzamy po powrocie.</div></section></div>}
- {tab==='Magazyn'&&<section><h2>Dostawy i kontrola towaru</h2><p className="muted">Transport z aukcji trwa 24 godziny. Po dostawie sprawdź paczkę i sam ustal cenę sprzedaży.</p><div className="inventory-grid">{s.items.map(itemCard)}</div>{!s.items.length&&<Empty text="Magazyn czeka na pierwszy zakup. Wygraj aukcję, aby rozpocząć."/>}</section>}
- {tab==='Mój sklep'&&<section><h2>Witryna sklepu</h2><p className="muted">Ceny ustalasz sam. Klienci odwiedzają sklep zgodnie ze swoim rytmem i zainteresowaniami.</p><div className="inventory-grid">{s.items.filter(i=>i.status==='listed').map(itemCard)}</div>{!s.items.some(i=>i.status==='listed')&&<Empty text="Brak wystawionych butelek. Dodaj ofertę z magazynu."/>}<details><summary>Katalog · {catalog.length} autentycznych edycji</summary><div className="catalog">{catalog.map(w=><div key={w.id}><h3>{w.name}</h3><p>{w.description}</p><span>Wartość w grze: {euro(w.value)} · Rzadkość {w.rarity}/10</span></div>)}</div></details></section>}
- {tab==='Wiadomości'&&<section><h2>Rozmowy z klientami</h2>{!s.threads.length&&<Empty text="Nowe wiadomości pojawią się, gdy klienci znajdą interesującą ofertę. Mały sklep ma kilka wizyt dziennie."/>}{s.threads.slice().reverse().map(t=><Conversation key={t.id} thread={t} state={s} act={(intent,text,price)=>mutate(g=>respond(g,t.id,intent,text,price))}/>)}</section>}
- {tab==='Zamówienia'&&<section><h2>Realizacja i obsługa posprzedażowa</h2><p className="muted">Symulowane przesyłki, bez połączenia z kurierem. Odstąpienie: 14 dni od doręczenia. Częściowa ugoda nie znosi praw klienta.</p>{!s.orders.length&&<Empty text="Pierwsze zamówienie pojawi się po zaakceptowaniu oferty klienta."/>}{s.orders.map(o=><article className="card panel" key={o.id}><span className="badge">{labels[o.status]}</span><h3>{o.id} · {person(o.customer)}</h3><p>{whisky(s.items.find(i=>i.id===o.item)!.product).name} · {euro(o.total)} · Zwrócono: {euro(o.refund)}</p>{o.status==='packing'&&<div className="actions"><button className="outline" onClick={()=>mutate(g=>pack(g,o.id))}>{o.packed?<Check size={15}/>:<Package size={15}/>} {o.packed?'Zapakowano bezpiecznie':'Zapakuj bezpiecznie'}</button><button onClick={()=>mutate(g=>ship(g,o.id))}>Kup etykietę i nadaj · 9,50 €</button></div>}{o.status==='shipping'&&<p>Numer fikcyjny: JW-NL-{o.id} · Doręczenie {date(o.due)}</p>}{['delivered','complaint'].includes(o.status)&&<><p>Prawo odstąpienia do {date(o.returnUntil)}. {o.status==='complaint'?'Klient zgłosił problem z zabezpieczeniem paczki.':''}</p><PriceInput label="Zwróć środki" initial={o.total-o.refund} onSubmit={n=>mutate(g=>refund(g,o.id,n))}/><details><summary>Dowody reklamacji</summary><p>Protokół pakowania: {o.packed?'zabezpieczono':'brak zabezpieczenia'}. Stan przy doręczeniu: {o.quality}/100. Wymaganie klienta: {s.people.find(p=>p.id===o.customer)!.preferredCondition}/100.</p></details></>}</article>)}</section>}
- {tab==='Finanse'&&<section className="card panel"><h2>Przepływy pieniężne</h2><p>Wpłaty za niewysłane zamówienia: {euro(fin.liabilities)} · Towar w drodze: {euro(fin.incoming)}</p><div style={{height:220}}><ResponsiveContainer><AreaChart data={s.ledger.map((l,i)=>({name:time(l.at),saldo:s.ledger.slice(0,i+1).reduce((n,x)=>n+x.amount,0)/100}))}><defs><linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#c5a66d" stopOpacity={0.4}/><stop offset="1" stopColor="#c5a66d" stopOpacity={0}/></linearGradient></defs><XAxis dataKey="name" stroke="#718085"/><Tooltip/><Area type="stepAfter" dataKey="saldo" name="Saldo €" stroke="#c5a66d" fill="url(#gold)"/></AreaChart></ResponsiveContainer></div><div className="table-wrap"><table><thead><tr><th>Data</th><th>Operacja</th><th>Referencja</th><th>Kwota</th></tr></thead><tbody>{s.ledger.slice().reverse().map(l=><tr key={l.id}><td>{date(l.at)}</td><td>{l.type}</td><td>{l.ref}</td><td className={l.amount<0?'loss':'gain'}>{euro(l.amount)}</td></tr>)}</tbody></table></div></section>}
- {tab==='Uczestnicy'&&<section><h2>Ludzie, nie losowe komunikaty</h2><p className="muted">Podgląd diagnostyczny silnika. Prywatne limity są widoczne tutaj, aby można było sprawdzić przyczyny decyzji.</p><div className="people-grid">{s.people.map(p=><article className="card panel" key={p.id}><div className="person-head"><div className="avatar">{p.name.slice(0,2).toUpperCase()}</div><div><h3>{p.name}</h3><small>{p.city} · {p.role==='bidder'?'Licytant':'Klient'}</small></div></div><dl><dt>Budżet / blokady</dt><dd>{euro(p.budget)} / {euro(p.reserved)}</dd><dt>Strategia</dt><dd>{{early:'Wczesne oferty',measured:'Rozważny',snipe:'Ostatnie sekundy'}[p.strategy]}</dd><dt>Zainteresowania</dt><dd>{p.favorites.join(', ')}</dd><dt>Cierpliwość / wrażliwość cenowa</dt><dd>{Math.round(p.patience*100)} / {Math.round(p.sensitivity*100)}</dd><dt>Zaufanie / negocjacje</dt><dd>{Math.round(p.trust*100)} / {Math.round(p.negotiation*100)}</dd><dt>Kolekcja</dt><dd>{p.owned.length} butelek</dd></dl><details><summary>Pamięć · {p.memory.length} zdarzeń</summary>{p.memory.slice(-15).reverse().map((m,i)=><p key={i}>{date(m.at)} · {memoryLabel(m.kind)} · {m.ref} · {m.detail}</p>)}{p.role==='bidder'&&active.map(a=><p key={a.id}>Limit {a.id}: {euro(a.limits[p.id])}</p>)}</details></article>)}</div></section>}
- <footer><span>JW COLLECTION STORE <b>•</b> Niezależna gra ekonomiczna. Bez powiązania z marką Johnnie Walker.</span><div><button className="subtle" onClick={exportGame}><Download size={14}/> Eksport zapisu</button>{importControl}</div></footer></main></div></div>;
+import { useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import {
+  ArrowUpRight,
+  Bell,
+  BookOpen,
+  ChartNoAxesCombined,
+  Check,
+  Download,
+  Gavel,
+  LayoutDashboard,
+  LogOut,
+  MessageCircle,
+  Package,
+  Store,
+  Truck,
+  Upload,
+  Users,
+} from "lucide-react";
+import { catalog, euro, whisky } from "./catalog";
+import { cash, held, list, unreadCount, type Item } from "./engine";
+import { date, Empty, labels, PriceInput } from "./ui";
+import { useGame } from "./useGame";
+import ProductGallery, { Modal } from "./components/ProductGallery";
+import GameMenu from "./components/GameMenu";
+import { AuctionCard, AuctionRoom } from "./components/Auctions";
+import { NowBoard, Feed, Unboxing, WinScreen } from "./components/World";
+import Messenger from "./components/Messenger";
+import BusinessPanels from "./components/BusinessPanels";
+const tabs = [
+  ["Pulpit", LayoutDashboard],
+  ["Aukcje na żywo", Gavel],
+  ["Mój sklep", Store],
+  ["Magazyn", Package],
+  ["Wiadomości", MessageCircle],
+  ["Zamówienia", Truck],
+  ["Finanse", ChartNoAxesCombined],
+  ["Uczestnicy", Users],
+] as const;
+export default function App() {
+  const game = useGame(),
+    s = game.state;
+  const [menu, setMenu] = useState(true),
+    [tab, setTab] = useState("Pulpit"),
+    [auctionId, setAuctionId] = useState<string | null>(null),
+    [parcelId, setParcelId] = useState<string | null>(null),
+    [help, setHelp] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
+  const go = (target: string) => {
+    setTab(target);
+    setMenu(false);
+  };
+  const start = (difficulty: string) => {
+    if (
+      s &&
+      !confirm(
+        "Rozpocząć nową grę? Obecny postęp zostanie zastąpiony. Możesz najpierw wyeksportować zapis.",
+      )
+    )
+      return;
+    game.start(difficulty);
+    setMenu(false);
+    setTab("Pulpit");
+  };
+  const importInput = (
+    <input
+      ref={input}
+      type="file"
+      accept="application/json"
+      hidden
+      onChange={async (e) => {
+        const file = e.target.files?.[0];
+        if (file && (await game.importGame(file))) setMenu(false);
+        e.target.value = "";
+      }}
+    />
+  );
+  if (!game.ready)
+    return (
+      <div className="loading">
+        <span className="brand-seal">JW</span>
+        <p>Twój salon za chwilę otworzy drzwi…</p>
+      </div>
+    );
+  const active = s?.auctions.filter((a) => a.status === "active") ?? [],
+    unread = s?.threads.reduce((n, t) => n + unreadCount(t), 0) ?? 0;
+  const selectedAuction = s?.auctions.find((a) => a.id === auctionId),
+    selectedParcel = s?.items.find((i) => i.id === parcelId);
+  const won = s?.auctions.find((a) => a.id === game.wins[0]);
+  const itemCard = (i: Item) => (
+    <article className="inventory-card" key={i.id}>
+      <ProductGallery product={i.product} compact />
+      <div>
+        <span className="badge">{labels[i.status]}</span>
+        <h3>{whisky(i.product).name}</h3>
+        <p>
+          Koszt nabycia {euro(i.cost)} · Stan {i.condition}/100
+        </p>
+        {i.status === "inspect" && (
+          <button onClick={() => setParcelId(i.id)}>
+            Otwórz paczkę <Package size={16} />
+          </button>
+        )}
+        {["stock", "listed"].includes(i.status) && (
+          <PriceInput
+            initial={i.price}
+            onSubmit={(n) => game.mutate((g) => list(g, i.id, n))}
+          />
+        )}
+        <small>
+          {i.views} wyświetleń · {new Set(i.interested).size} zainteresowanych
+        </small>
+      </div>
+    </article>
+  );
+  return (
+    <>
+      {importInput}
+      {menu || !s ? (
+        <GameMenu
+          state={s}
+          onStart={start}
+          onContinue={() => setMenu(false)}
+          onImport={() => input.current?.click()}
+          onHelp={() => setHelp(true)}
+        />
+      ) : (
+        <div className="game-shell">
+          <header className="store-header">
+            <button
+              className="brand brand-button"
+              onClick={() => setMenu(true)}
+              aria-label="Menu główne"
+            >
+              <span className="brand-seal">JW</span>
+              <span>
+                COLLECTION STORE<small>TWÓJ SALON KOLEKCJONERSKI</small>
+              </span>
+            </button>
+            <div className="store-status">
+              <span className="header-cash">
+                <small>Wolna gotówka</small>
+                <b>{euro(cash(s) - held(s))}</b>
+              </span>
+              <span className="header-reputation">
+                <small>Reputacja</small>
+                <b>
+                  {s.reputation}
+                  <i>/100</i>
+                </b>
+              </span>
+              <span className="header-time">
+                {date(s.now)}
+                <small>Amsterdam</small>
+              </span>
+              <button
+                className="notification-button"
+                aria-label={`Powiadomienia: ${unread} nieprzeczytanych wiadomości`}
+                onClick={() => go("Wiadomości")}
+              >
+                <Bell size={19} />
+                {unread > 0 && <b>{unread}</b>}
+              </button>
+            </div>
+          </header>
+          <nav className="store-nav">
+            {tabs.map(([name, Icon]) => (
+              <button
+                className={tab === name ? "selected" : ""}
+                key={name}
+                onClick={() => go(name)}
+              >
+                <Icon size={16} />
+                {name}
+                {name === "Wiadomości" && unread > 0 && <b>{unread}</b>}
+              </button>
+            ))}
+            <button className="help-nav" onClick={() => setHelp(true)}>
+              <BookOpen size={16} /> Pomoc
+            </button>
+          </nav>
+          <main className="game-content">
+            <div className="page-title">
+              <div>
+                <p className="eyebrow">
+                  {tab === "Pulpit"
+                    ? "WITAJ W SWOIM SALONIE"
+                    : "JW COLLECTION STORE"}
+                </p>
+                <h1>
+                  {tab === "Pulpit" ? (
+                    <>
+                      Dobre historie.
+                      <br />
+                      <em>Jeszcze lepsze kolekcje.</em>
+                    </>
+                  ) : (
+                    tab
+                  )}
+                </h1>
+                {tab === "Pulpit" && (
+                  <p>Otwórz drzwi. Zobacz, co dziś czeka na Twoją decyzję.</p>
+                )}
+              </div>
+              <div className="page-side">
+                <span className="badge">{s.difficulty}</span>
+                <span className="save-state">
+                  <Check size={12} />
+                  {game.saved ? "Postęp zapisany" : "Zapisywanie…"}
+                </span>
+              </div>
+            </div>
+            {s.clockWarning && (
+              <div className="alert">
+                Wykryto cofnięcie zegara. Gra poczeka na ostatni zapisany czas;
+                rozgrywka lokalna nie jest odporna na zmianę zegara.
+              </div>
+            )}
+            {tab === "Pulpit" && (
+              <NowBoard
+                state={s}
+                go={go}
+                openAuction={setAuctionId}
+                openParcel={setParcelId}
+              />
+            )}
+            {(tab === "Pulpit" || tab === "Aukcje na żywo") && (
+              <section className="auctions-section">
+                <div className="section-heading">
+                  <h2>
+                    Aukcje na żywo{" "}
+                    <span className="live-tag">
+                      <i className="live-dot" />
+                      {active.length} AKTYWNE
+                    </span>
+                  </h2>
+                  {tab === "Pulpit" && (
+                    <button
+                      className="text-button"
+                      onClick={() => go("Aukcje na żywo")}
+                    >
+                      Wejdź do salonu <ArrowUpRight size={16} />
+                    </button>
+                  )}
+                </div>
+                <div className="auction-grid">
+                  {(tab === "Pulpit" ? active.slice(0, 3) : active).map((a) => (
+                    <AuctionCard
+                      key={a.id}
+                      auction={a}
+                      state={s}
+                      onOpen={() => setAuctionId(a.id)}
+                    />
+                  ))}
+                </div>
+                {!active.length && (
+                  <Empty text="Nowe aukcje pojawią się zgodnie z harmonogramem świata. Do tego czasu możesz zająć się własną kolekcją." />
+                )}
+                {tab === "Aukcje na żywo" &&
+                  s.auctions.some((a) => a.status === "closed") && (
+                    <details className="auction-archive">
+                      <summary>
+                        Zakończone aukcje ·{" "}
+                        {s.auctions.filter((a) => a.status === "closed").length}
+                      </summary>
+                      <div className="auction-grid">
+                        {s.auctions
+                          .filter((a) => a.status === "closed")
+                          .slice()
+                          .reverse()
+                          .map((a) => (
+                            <AuctionCard
+                              key={a.id}
+                              auction={a}
+                              state={s}
+                              onOpen={() => setAuctionId(a.id)}
+                            />
+                          ))}
+                      </div>
+                    </details>
+                  )}
+              </section>
+            )}
+            {tab === "Pulpit" && (
+              <>
+                <section className="shop-preview">
+                  <div>
+                    <p className="eyebrow">TWOJA WŁASNA KOLEKCJA</p>
+                    <h2>
+                      Każda butelka
+                      <br />
+                      <em>ma swoją historię.</em>
+                    </h2>
+                    <p>
+                      {s.items.filter((i) => i.status === "listed").length}{" "}
+                      ofert w witrynie ·{" "}
+                      {s.orders.filter((o) => o.status === "packing").length}{" "}
+                      zamówień czeka na wysyłkę
+                    </p>
+                    <button className="outline" onClick={() => go("Mój sklep")}>
+                      Otwórz swój sklep <ArrowUpRight size={16} />
+                    </button>
+                  </div>
+                  <div className="shop-shelf">
+                    {s.items
+                      .filter((i) =>
+                        ["listed", "stock", "inspect"].includes(i.status),
+                      )
+                      .slice(0, 3)
+                      .map((i) => (
+                        <div key={i.id} className="shelf-item">
+                          <ProductGallery product={i.product} compact />
+                          <button
+                            className="text-button"
+                            onClick={() =>
+                              go(
+                                i.status === "listed" ? "Mój sklep" : "Magazyn",
+                              )
+                            }
+                          >
+                            {whisky(i.product).name.replace(
+                              "Johnnie Walker ",
+                              "",
+                            )}
+                          </button>
+                        </div>
+                      ))}
+                    {!s.items.some((i) =>
+                      ["listed", "stock", "inspect"].includes(i.status),
+                    ) && (
+                      <div className="shelf-empty">
+                        <Package size={45} strokeWidth={0.7} />
+                        <p>Miejsce na Twoją pierwszą zdobycz.</p>
+                        <span>
+                          Wygraj aukcję, odbierz przesyłkę i nadaj jej własną
+                          cenę.
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </section>
+                <section className="journal-section">
+                  <div className="section-heading">
+                    <h2>Dziennik Twojego świata</h2>
+                    <span className="live-tag">
+                      <i className="live-dot" /> ZDARZENIA NA ŻYWO
+                    </span>
+                  </div>
+                  <Feed state={s} />
+                </section>
+              </>
+            )}
+            {tab === "Magazyn" && (
+              <section>
+                <div className="section-heading">
+                  <h2>Twoje butelki i dostawy</h2>
+                  <span className="muted">Transport z aukcji · 24 godziny</span>
+                </div>
+                <div className="inventory-grid">{s.items.map(itemCard)}</div>
+                {!s.items.length && (
+                  <Empty text="Pierwsza wygrana aukcja zapoczątkuje Twoją kolekcję. Tutaj odbierzesz i otworzysz przesyłkę." />
+                )}
+              </section>
+            )}
+            {tab === "Mój sklep" && (
+              <section>
+                <div className="section-heading">
+                  <h2>Witryna JW Collection Store</h2>
+                  <button className="text-button" onClick={() => go("Magazyn")}>
+                    Wystaw z magazynu <ArrowUpRight size={16} />
+                  </button>
+                </div>
+                <div className="inventory-grid">
+                  {s.items.filter((i) => i.status === "listed").map(itemCard)}
+                </div>
+                {!s.items.some((i) => i.status === "listed") && (
+                  <Empty text="Twoja witryna czeka na pierwszą butelkę. Ustal cenę w magazynie — Ty decydujesz o marży." />
+                )}
+                <details className="catalog-section">
+                  <summary>
+                    Poznaj edycje · katalog {catalog.length} whisky
+                  </summary>
+                  <div className="catalog-grid">
+                    {catalog.map((w) => (
+                      <article key={w.id}>
+                        <ProductGallery product={w.id} compact />
+                        <h3>{w.name}</h3>
+                        <p>{w.description}</p>
+                        <small>
+                          Referencja gry {euro(w.value)} · Rzadkość {w.rarity}
+                          /10
+                        </small>
+                      </article>
+                    ))}
+                  </div>
+                </details>
+              </section>
+            )}
+            {tab === "Wiadomości" && (
+              <Messenger state={s} mutate={game.mutate} />
+            )}
+            <BusinessPanels tab={tab} state={s} mutate={game.mutate} />
+            <footer className="game-footer">
+              <span>
+                JW COLLECTION STORE <b>·</b> Niezależna gra kolekcjonerska. Bez
+                powiązania z marką.
+              </span>
+              <button className="text-button" onClick={() => setMenu(true)}>
+                <LogOut size={14} /> Menu gry
+              </button>
+            </footer>
+          </main>
+        </div>
+      )}
+      <AnimatePresence>
+        {game.notice && (
+          <motion.div
+            role="status"
+            className="toast"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 15 }}
+          >
+            <Bell size={18} />
+            <p>{game.notice}</p>
+            <button
+              className="icon-button"
+              aria-label="Zamknij powiadomienie"
+              onClick={() => game.setNotice("")}
+            >
+              ×
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {game.error && (
+        <div role="alert" className="global-error">
+          {game.error}
+          <button onClick={() => game.setError("")}>Zamknij</button>
+        </div>
+      )}
+      {selectedAuction && s && (
+        <AuctionRoom
+          auction={selectedAuction}
+          state={s}
+          mutate={game.mutate}
+          onClose={() => setAuctionId(null)}
+        />
+      )}
+      {selectedParcel?.status === "inspect" && (
+        <Unboxing
+          item={selectedParcel}
+          mutate={game.mutate}
+          onClose={() => setParcelId(null)}
+        />
+      )}
+      {won && !menu && !selectedAuction && !selectedParcel && (
+        <WinScreen auction={won} onClose={game.dismissWin} />
+      )}
+      {help && (
+        <Modal
+          title="Pomoc i ustawienia"
+          onClose={() => setHelp(false)}
+          className="help-dialog"
+        >
+          <p className="eyebrow">TWOJA ROZGRYWKA</p>
+          <h2>Pomoc i zapisy</h2>
+          <div className="help-actions">
+            <button onClick={game.exportGame} disabled={!s}>
+              <Download size={17} /> Eksportuj zapis
+            </button>
+            <button
+              className="outline"
+              onClick={() => {
+                setHelp(false);
+                input.current?.click();
+              }}
+            >
+              <Upload size={17} /> Importuj zapis
+            </button>
+          </div>
+          <h3>Od aukcji do własnego sklepu</h3>
+          <p>
+            Licytuj whisky, uwzględniając prowizję i transport. Dostawa trwa 24
+            godziny. Otwórz paczkę w magazynie, skontroluj stan i sam ustal
+            cenę. Klienci odwiedzają witrynę w godzinach 8–22 Amsterdam i
+            oceniają ją według swoich preferencji.
+          </p>
+          <h3>Czas i zapis</h3>
+          <p>
+            To lokalna symulacja, bez konta i backendu. Postęp jest
+            automatycznie zapisywany w IndexedDB tej przeglądarki. Po powrocie
+            gra odtwarza zaległe wydarzenia. Przy zamkniętej przeglądarce nic
+            nie wykonuje się w tle.
+          </p>
+          <p>
+            Nie otwieraj jednej rozgrywki w kilku kartach. Nie ma synchronizacji
+            urządzeń. Zmiana zegara i edycja zapisu pozwalają manipulować grą.
+            Regularnie eksportuj postęp.
+          </p>
+          <h3>Fotografie</h3>
+          <p>
+            Galerie pokazują wyłącznie zdjęcia przypisane do konkretnej edycji.
+            Autor i licencja są pod fotografią w szczegółach. Jeśli zdjęcie nie
+            ma potwierdzonych praw, edycja czeka na jego dodanie.
+          </p>
+          <h3>Prawa klientów</h3>
+          <p>
+            Gra przewiduje 14 dni na odstąpienie od doręczenia. Częściowa ugoda
+            nie znosi uprawnień klienta. Przesyłki są symulowane, bez połączenia
+            z kurierem.
+          </p>
+        </Modal>
+      )}
+    </>
+  );
 }
-const memoryLabel=(kind:string)=>({bid:'Oferta',won:'Wygrana',lost:'Przegrana',withdraw:'Rezygnacja',inquiry:'Zapytanie',passed:'Pominięcie',ignored:'Brak odpowiedzi',rejected:'Odmowa',purchase:'Zakup',refund:'Zwrot',delivered:'Doręczenie',complaint:'Reklamacja',wait:'Oczekiwanie','counter-rejected':'Odrzucona cena'}[kind]??kind);
-function Empty({text}:{text:string}){return <div className="empty"><Package size={32}/><h3>Tu zaczyna się kolejny rozdział</h3><p>{text}</p></div>}
-function Feed({state}:{state:State}){return <div className="feed">{state.feed.slice(0,6).map((f,i)=><motion.div initial={{opacity:0}} animate={{opacity:1}} key={f.at+f.text+i}><span className="feed-icon"><Plus size={14}/></span><div><p>{f.text}</p><small>{date(f.at)}</small></div></motion.div>)}</div>}
-function Conversation({thread:t,state:s,act}:{thread:Thread;state:State;act:(intent:Parameters<typeof respond>[2],text?:string,price?:number)=>void}){const [text,setText]=useState('');return <article className="card panel conversation"><div className="section-heading"><h3>{s.people.find(p=>p.id===t.customer)!.name} · {whisky(s.items.find(i=>i.id===t.item)!.product).name}</h3><span className="badge">{labels[t.status]}</span></div>{t.messages.map((m,i)=><div key={i} className={'message '+(m.from==='Ty'?'own':'')}><small>{m.from} · {time(m.at)}</small><p>{m.text}</p></div>)}{t.status==='open'&&<><p className="muted">Odpowiedź do {date(t.expires)} · oferta {euro(t.offer)} z dostawą</p><form onSubmit={e=>{e.preventDefault();const parsed=interpret(text);act(parsed.intent,text,parsed.price);if(parsed.intent!=='unclear')setText('')}}><textarea aria-label="Wiadomość do klienta" placeholder="Napisz np. „Proponuję 220 €” albo „Akceptuję ofertę”…" value={text} onChange={e=>setText(e.target.value)}/><button>Wyślij wiadomość <ArrowUpRight size={15}/></button></form><div className="actions"><button className="outline" onClick={()=>act('accept')}>Akceptuj {euro(t.offer)}</button><button className="outline" onClick={()=>act('reject')}>Odmów</button><button className="outline" onClick={()=>act('wait')}>Poproś o cierpliwość</button><button className="outline" onClick={()=>act('photos')}>Potwierdź stan</button><button className="outline" onClick={()=>act('shipping')}>Informacja o dostawie</button></div><PriceInput label="Kontrpropozycja z dostawą" onSubmit={n=>act('counter','',n)}/><small>Interpreter lokalny rozpoznaje proste intencje. Niejednoznaczne wiadomości wymagają wyboru działania.</small></>}</article>}

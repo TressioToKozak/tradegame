@@ -1,8 +1,43 @@
 // Wartości w centach to balans gry, nie bieżące notowania rynku.
-export interface Whisky {id:string; name:string; category:'standard'|'blue'|'vintage'|'travel'; value:number; rarity:number; description:string}
-export const catalog:Whisky[] = [
- ['black','Black Label 12','standard',3500,1],['double','Double Black','standard',4500,2],['green','Green Label 15','standard',6000,2],['gold','Gold Label Reserve','standard',6500,2],['platinum','Platinum Label 18','standard',11000,4],['18','Aged 18 Years','standard',9500,3],['blue','Blue Label','blue',19000,3],['brora','Blue Label Ghost & Rare Brora','blue',48000,8],['port','Blue Label Ghost & Rare Port Ellen','blue',52000,9],['glenury','Blue Label Ghost & Rare Glenury Royal','blue',39000,8],['george','King George V','blue',49000,7],['casks','Blue Label The Casks Edition','blue',35000,7],['royal','Explorers’ Club The Royal Route','travel',16000,6],['spice','Explorers’ Club The Spice Road','travel',6500,4],['goldroute','Explorers’ Club The Gold Route','travel',11000,5],['swing','Swing','vintage',7000,4],['centenary','Gold Label 18 The Centenary Blend','vintage',17000,7],['dragon','Blue Label Year of the Dragon','blue',26000,6]
-].map(([id,name,category,value,rarity])=>({id:String(id),name:'Johnnie Walker '+name,category:category as Whisky['category'],value:Number(value),rarity:Number(rarity),description:'Autentyczna edycja. Cena referencyjna jest parametrem symulacji, nie ofertą handlową.'}));
-export const whisky=(id:string)=>catalog.find(w=>w.id===id)!;
-export const whiskyImages:Record<string,string>={};
-export const euro=(n:number)=>new Intl.NumberFormat('pl-PL',{style:'currency',currency:'EUR'}).format(n/100);
+export interface Whisky {
+  id: string;
+  name: string;
+  category: "standard" | "blue" | "vintage" | "travel";
+  value: number;
+  rarity: number;
+  description: string;
+}
+export const catalog: Whisky[] = [
+  ["black", "Black Label 12", "standard", 3500, 1],
+  ["double", "Double Black", "standard", 4500, 2],
+  ["green", "Green Label 15", "standard", 6000, 2],
+  ["gold", "Gold Label Reserve", "standard", 6500, 2],
+  ["platinum", "Platinum Label 18", "standard", 11000, 4],
+  ["18", "Aged 18 Years", "standard", 9500, 3],
+  ["blue", "Blue Label", "blue", 19000, 3],
+  ["brora", "Blue Label Ghost & Rare Brora", "blue", 48000, 8],
+  ["port", "Blue Label Ghost & Rare Port Ellen", "blue", 52000, 9],
+  ["glenury", "Blue Label Ghost & Rare Glenury Royal", "blue", 39000, 8],
+  ["george", "King George V", "blue", 49000, 7],
+  ["casks", "Blue Label The Casks Edition", "blue", 35000, 7],
+  ["royal", "Explorers’ Club The Royal Route", "travel", 16000, 6],
+  ["spice", "Explorers’ Club The Spice Road", "travel", 6500, 4],
+  ["goldroute", "Explorers’ Club The Gold Route", "travel", 11000, 5],
+  ["swing", "Swing", "vintage", 7000, 4],
+  ["centenary", "Gold Label 18 The Centenary Blend", "vintage", 17000, 7],
+  ["dragon", "Blue Label Year of the Dragon", "blue", 26000, 6],
+].map(([id, name, category, value, rarity]) => ({
+  id: String(id),
+  name: "Johnnie Walker " + name,
+  category: category as Whisky["category"],
+  value: Number(value),
+  rarity: Number(rarity),
+  description:
+    "Autentyczna edycja. Cena referencyjna jest parametrem symulacji, nie ofertą handlową.",
+}));
+export const whisky = (id: string) => catalog.find((w) => w.id === id)!;
+export { productMedia } from "./media";
+export const euro = (n: number) =>
+  new Intl.NumberFormat("pl-PL", { style: "currency", currency: "EUR" }).format(
+    n / 100,
+  );

@@ -12,15 +12,15 @@ npm test
 npm run dev
 ```
 
-Produkcja: `npm run build`, podgląd: `npm run preview`. Domyślnie Vite używa portu 5173, podgląd 4173. Testy nie potrzebują przeglądarki ani usług.
+Produkcja: `npm run build`, podgląd: `npm run preview`. Domyślnie Vite używa portu 5173, podgląd 4173. Testy silnika nie potrzebują przeglądarki ani usług. Testy interfejsu opisano niżej.
 
 ## Jak grać
 
-1. Otwórz sklep i wybierz poziom trudności (domyślnie Realistyczna).
+1. W menu wybierz poziom trudności (domyślnie Realistyczna) i NOWA GRA. Przy zapisanej rozgrywce użyj KONTYNUUJ.
 2. Na aukcji złóż ofertę. Minimalne przebicie 5 €, potwierdzenie po 100–900 ms. Gotówka jest blokowana z uwzględnieniem 12% prowizji i 15 € dostawy. Płacisz tylko za zwycięstwo.
 3. Po 24 rzeczywistych godzinach skontroluj dostawę w magazynie. Sam wpisz cenę i wystaw produkt.
 4. Klienci odwiedzają sklep w godzinach 8–22 Amsterdam. Nie każdy produkt pasuje do ich zainteresowań, opakowania i możliwości finansowych. Wiadomość może nie nadejść tego samego dnia.
-5. Odpowiedz własnym tekstem lub ręcznie wybierz działanie. Kontrpropozycja zawiera dostawę. Niejasny tekst nie zawiera ukrytej decyzji.
+5. W komunikatorze odpowiedz własnym tekstem lub rozwiń konkretne działania. Kontrpropozycja zawiera dostawę. Klient podejmuje decyzję po 45–240 sekundach, według cierpliwości i zapisanego generatora. Oczekująca odpowiedź jest zachowana po odświeżeniu. Niejasny tekst nie zawiera ukrytej decyzji.
 6. Zapakuj zamówienie, kup etykietę i nadaj. Niezabezpieczona paczka obniża stan i może wywołać reklamację. Doręczenie po 2 dniach.
 7. Zwroty obsłuż w zamówieniu. Pełny zwrot uruchamia fizyczny powrót egzemplarza po 2 dniach. Częściowy zwrot nie usuwa praw konsumenta. Model gry nie stanowi porady prawnej.
 
@@ -40,7 +40,7 @@ Przy zamkniętej przeglądarce nic się nie wykonuje; zdarzenia są rekonstruowa
 
 ## Zapis, eksport, offline
 
-Przyciski eksportu/importu znajdują się w stopce. Eksport pobiera JSON zawierający wszystkie osoby i kolejkę zdarzeń. Import sprawdza wersję, strukturę i podstawowe referencje. Wersja 1 jest pierwszym formatem; przyszłe zmiany wymagają jawnej migracji przed uruchomieniem silnika. Obce wersje są odrzucane.
+Eksport/import znajdziesz w Pomoc → Pomoc i zapisy. Import jest też w dyskretnym menu „Twoje zapisy” na ekranie startowym. Eksport pobiera JSON zawierający wszystkie osoby i kolejkę zdarzeń. Import sprawdza wersję, strukturę i podstawowe referencje. Format nadal ma wersję 1. Stare zapisy działają bez resetu: pola `readAt` i `pendingReply` są opcjonalne. Zapis zachowuje też nowe zdarzenie `reply`; starsza wersja aplikacji nie powinna odczytywać nowszych zapisów. Obce wersje są odrzucane.
 
 Service worker produkcyjny zachowuje pliki aplikacji po pierwszym otwarciu online. Następne otwarcie może działać offline; stan pochodzi z IndexedDB tej samej przeglądarki i domeny. Czyszczenie danych witryny usuwa postęp. Regularnie eksportuj zapis. Przy błędzie IndexedDB interfejs ostrzega o konieczności eksportu.
 
@@ -60,8 +60,31 @@ W GitHub: **Settings → Pages → Source → GitHub Actions**. Workflow `.githu
 
 Dane są w `src/catalog.ts`. Dodaj stabilny identyfikator, potwierdzoną nazwę edycji, kategorię, referencyjną cenę w centach i rzadkość. Sprawdź istnienie edycji i parametry w wiarygodnym źródle przed ich dopisaniem; nie zgaduj roczników ani pojemności.
 
-Licencjonowane zdjęcia umieść w `public/images/whisky/`, uzupełnij `IMAGE_SOURCES.md` oraz `whiskyImages`. Komponent `Product` używa wyłącznie zdjęcia przypisanego do konkretnej edycji; przy braku obrazu pokazuje placeholder. Obecnie nie dołączono zdjęć z niepotwierdzonymi prawami.
+Licencjonowane zdjęcia umieść w `public/images/whisky/`, a ich przypisanie i metadane w `src/product-media.json`. Instrukcja i status źródeł: `IMAGE_SOURCES.md`. `ProductGallery` obsługuje osobne fotografie butelki i opakowania, miniatury, powiększanie oraz błąd ładowania. Helper `assetUrl` dodaje `import.meta.env.BASE_URL`; nie używaj ścieżki `/images/...` bez resolvera. Produkcyjny service worker zachowuje także przypisane fotografie offline.
+
+`npm run check:images` sprawdza istnienie i format przypisanych plików oraz metadane. `npm run check:images:strict` dodatkowo wymaga zdjęć trzech głównych aukcji: Blue Label, King George V i Swing. Obecnie strict kończy się błędem, ponieważ brak legalnych plików. Weryfikacja licencji Wikimedia jest zablokowana przez sieć środowiska (403). Nie zastąpiono tego fotografiami innych butelek ani obrazami AI.
 
 ## Zakres MVP
 
-Działają aukcje, magazyn, ręczne ceny, klienci i tekstowe negocjacje, realizacja, reklamacje, finanse, trwały zapis i odtwarzanie. Katalog 40–60 edycji, udokumentowane zdjęcia i galerie, różne warianty butelkowania, losowe szkody transportu przychodzącego, rozbudowana obsługa niezgodności opisu oraz synchronizacja wielu kart pozostają poza tą pierwszą wersją. Placeholdery nie są fotografiami produktów.
+Działają aukcje, magazyn, ręczne ceny, klienci i tekstowe negocjacje, realizacja, reklamacje, finanse, trwały zapis i odtwarzanie. Katalog 40–60 edycji, pozyskanie udokumentowanych zdjęć, różne warianty butelkowania, losowe szkody transportu przychodzącego, rozbudowana obsługa niezgodności opisu oraz synchronizacja wielu kart pozostają poza tą pierwszą wersją. Placeholdery nie są fotografiami produktów.
+
+## Przebudowa interfejsu
+
+- Menu gry z nową grą, kontynuacją, dyskretnym wyborem trudności i zapisów.
+- Kompaktowy pasek gotówki i reputacji; pełne statystyki tylko w Finansach.
+- „Dzieje się teraz” wynika z aktywnych aukcji, zapytań, dostaw i zamówień.
+- Pokój aukcyjny ma własną kwotę, pełny koszt, zegar, prawdziwą historię ofert/obserwacji/wycofań i wyróżnienie ostatnich 30 sekund. Powiadomienia o przebiciu pochodzą z silnika.
+- Komunikator: lista osób, miasta, ostatnie wiadomości, nieprzeczytane, historia i odroczone odpowiedzi.
+- Wygrana aukcja i animowane otwieranie paczki; przyjęcie do magazynu wymaga osobnej decyzji.
+- Informacje techniczne i eksport przeniesiono do Pomocy. Żadne finanse nie są dekoracyjnymi licznikami.
+
+## Testy interfejsu pod ścieżką Pages
+
+```sh
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
+
+Na maszynie z systemowym Chromium: `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e`.
+Testy startują serwer gotowego `dist` pod `/tradegame/`, bez fallbacku dla brakujących plików. Obejmują licytację, czas, reakcje NPC, zapis, komunikator, odroczoną odpowiedź, wygraną, otwieranie paczki, widok 390 px i offline. Test prawdziwych zdjęć jest oznaczony jako pominięty, dopóki manifest nie zawiera plików. Nie oznacza to spełnienia warunku akceptacji fotografii. Testy używają kontrolowanych zapisów i czasu; nie odczekują doby na dostawę.
