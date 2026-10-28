@@ -1,4 +1,4 @@
-# JW Collection Store 3.0
+# JW Collection Store 3.1
 
 Polski symulator sklepu z kolekcjonerskimi whisky Johnnie Walker. React, TypeScript, Vite, Tailwind, Dexie/IndexedDB. Statyczna aplikacja bez serwera aplikacji, kont, API i kluczy. Kapitał początkowy: 5 000 €. Kwoty w eurocentach. Wyceny są datowanymi referencjami z repozytorium źródłowego lub jawnym szacunkiem; nie gwarantują zysku.
 
@@ -18,8 +18,8 @@ npm run dev
 ## Rozgrywka
 
 1. Wybierz trudność i tempo (domyślnie **Dynamiczne**). Opcjonalne sześć krótkich kroków wprowadzenia można pominąć.
-2. Nowa gra otwiera **16 aukcji**, losowanych z całego katalogu według dostępności, także pozycji bez zdjęcia. Rynek regularnie się uzupełnia; docelowo zwykle 12–20 aktywnych partii.
-3. W Aukcjach filtruj kategorię, cenę, rzadkość, czas, nowość i obserwowane. W pokoju aukcyjnym szybkie przyciski tylko wybierają kwotę; **LICYTUJ** ją zatwierdza. Krok zależy od ceny: 5 / 10 / 20 / 50 €. Opcjonalny zapisany limit ogranicza cenę młotkową, nie licytuje automatycznie.
+2. Nowa gra otwiera **16 aukcji**, losowanych z całego katalogu według dostępności; wszystkie mają prawdziwe zdjęcia. Rynek regularnie się uzupełnia; docelowo zwykle 12–20 aktywnych partii.
+3. W Aukcjach filtruj kategorię, cenę, rzadkość, czas, nowość i obserwowane. W pokoju aukcyjnym szybkie przyciski tylko wybierają kwotę; **LICYTUJ** ją zatwierdza. Krok zależy od ceny: 5 / 10 / 20 / 50 €. Automatyczną licytację uruchamiasz osobno: wpisz maksymalną cenę młotkową, wybierz aktywację i zatwierdź całkowity koszt. Automat składa minimalne przebicia, respektuje wspólną gotówkę i pojemność, działa po powrocie do gry. Stare limity nie włączają go samoczynnie.
 4. Oferta wymaga wolnej gotówki na pełny koszt: cena + prowizja danej aukcji (10–15%) + jej koszt transportu. Rejestracja trwa 100–900 ms, a kolejność rozstrzyga termin i numer zdarzenia. Przegrana nic nie kosztuje. Ważna zmiana lidera w ostatnich 10 sekundach dodaje 15 sekund do terminu; mechanizm może zadziałać wielokrotnie.
 5. Odbierz przesyłkę w Magazynie. Dostawy to **skompresowane czasy gry**: krajowe zwykle 3–8 minut, zagraniczne 6–15 minut, czasem dłużej. To nie są terminy rzeczywistego kuriera.
 6. Otwórz paczkę, porównaj stan butelki i pudełka z opisem. Niezgodność można zgłosić sprzedawcy; rekompensata jest księgowana raz i koryguje koszt zapasu.
@@ -89,3 +89,7 @@ Przy systemowym Chromium: `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e`. Te
 `npm run check:images:all` wymaga zdjęć całego katalogu — obecnie przechodzi dla wszystkich 254 produktów. Build sprawdza istnienie przypisanych plików; sam w sobie nie potwierdza kompletności zdjęć.
 
 W GitHub ustaw **Settings → Pages → Source → GitHub Actions**. Push na `main` uruchamia testy, build, Chromium oraz publikację `dist`. Nie trzeba zmieniać bazy Vite dla nazwy repozytorium. Dane katalogu są w `src/catalog-data.json`, typy i helpery w `src/catalog.ts`; stabilnych identyfikatorów istniejących edycji nie zmieniaj.
+
+## Aktualizacja 3.1
+
+[Zmiany i zasady automatu](V31_UPDATE.md). Nowe menu, mobilna nawigacja, wyniki aukcji i codzienne cele za XP. Wyceny referencyjne pozostają wewnętrzne; źródła fotografii są w pomocy, poza galerią. Po ponownym imporcie zdjęć uruchom `npm run report:photo-layout`, aby przeliczyć tła galerii bez modyfikowania fotografii.

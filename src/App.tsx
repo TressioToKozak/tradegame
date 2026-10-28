@@ -5,17 +5,16 @@ import {
   Bell,
   BookOpen,
   ChartNoAxesCombined,
-  Check,
   Download,
   Gavel,
   LayoutDashboard,
-  LogOut,
   MessageCircle,
   Package,
   Store,
   Truck,
   Upload,
   Users,
+  MoreHorizontal,
   Sparkles,
 } from "lucide-react";
 import { euro, whisky } from "./catalog";
@@ -32,6 +31,8 @@ import {
 import { date, Empty, labels, PriceInput } from "./ui";
 import { useGame } from "./useGame";
 import ProductGallery, { Modal } from "./components/ProductGallery";
+import DailyBoard from "./components/DailyBoard";
+import PhotoCredits from "./components/PhotoCredits";
 import Brand from "./components/Brand";
 import Development from "./components/Development";
 import { shopLevel, progress, levelStart } from "./progression";
@@ -75,6 +76,7 @@ export default function App() {
     [auctionId, setAuctionId] = useState<string | null>(null),
     [parcelId, setParcelId] = useState<string | null>(null),
     [help, setHelp] = useState(false),
+    [credits, setCredits] = useState(false),
     [more, setMore] = useState(false),
     [tutorial, setTutorial] = useState<number | null>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -206,7 +208,13 @@ export default function App() {
               </button>
               <span className="header-cash">
                 <small>Wolna gotówka</small>
-                <b>{euro(cash(s) - held(s))}</b>
+                <motion.b
+                  key={cash(s) - held(s)}
+                  initial={{ color: "#f6cc8a" }}
+                  animate={{ color: "#e6bf83" }}
+                >
+                  {euro(cash(s) - held(s))}
+                </motion.b>
               </span>
               <span className="header-reputation">
                 <small>Reputacja</small>
@@ -232,10 +240,7 @@ export default function App() {
                   />
                 </div>
               </button>
-              <span className="header-time">
-                {date(s.now)}
-                <small>Amsterdam</small>
-              </span>
+
               <button
                 className="notification-button"
                 aria-label={`Powiadomienia: ${unread} nieprzeczytanych wiadomości`}
@@ -244,31 +249,46 @@ export default function App() {
                 <Bell size={19} />
                 {unread > 0 && <b>{unread}</b>}
               </button>
+              <button
+                className="icon-button header-more"
+                aria-label="Więcej"
+                onClick={() => setMore(true)}
+              >
+                <MoreHorizontal size={23} />
+              </button>
             </div>
           </header>
-          <nav className="store-nav">
+          <nav className="store-nav" aria-label="Nawigacja gry">
             {tabs.slice(0, 5).map(([name, Icon]) => (
               <button
                 className={tab === name ? "selected" : ""}
+                aria-current={tab === name ? "page" : undefined}
+                aria-label={name === "Aukcje na żywo" ? "Aukcje" : undefined}
                 key={name}
                 onClick={() => go(name)}
               >
                 <Icon size={16} />
-                {name}
+                <span>{name === "Aukcje na żywo" ? "Aukcje" : name}</span>
+                {name === "Aukcje na żywo" && (
+                  <b className="nav-auction-count">{active.length}</b>
+                )}
                 {name === "Wiadomości" && unread > 0 && <b>{unread}</b>}
               </button>
             ))}
-            <button className="help-nav" onClick={() => setMore(true)}>
-              <BookOpen size={16} /> Więcej
-            </button>
           </nav>
           <main className="game-content">
             <div className="page-title">
               <div>
                 <p className="eyebrow">TWÓJ SALON KOLEKCJONERSKI</p>
-                <h1>{tab === "Pulpit" ? "Aktualnie w grze" : tab}</h1>
+                <h1>
+                  {tab === "Pulpit"
+                    ? "Aktualnie w grze"
+                    : tab === "Aukcje na żywo"
+                      ? "Aukcje"
+                      : tab}
+                </h1>
               </div>
-              <span className="save-state sr-only" aria-live="off">
+              <span className="save-state" hidden aria-hidden="true">
                 {game.saved ? "Postęp zapisany" : "Zapisywanie…"}
               </span>
             </div>
@@ -291,6 +311,9 @@ export default function App() {
                   openAuction={setAuctionId}
                   openParcel={setParcelId}
                 />
+              )}
+              {tab === "Pulpit" && (
+                <DailyBoard state={s} mutate={game.mutate} go={go} />
               )}
               {tab === "Pulpit" && (
                 <section className="auctions-section">
@@ -406,11 +429,6 @@ export default function App() {
               )}
               <BusinessPanels tab={tab} state={s} mutate={game.mutate} />
             </motion.div>
-            <footer className="game-footer">
-              <button className="text-button" onClick={() => setMenu(true)}>
-                <LogOut size={14} /> Menu gry
-              </button>
-            </footer>
           </main>
         </div>
       )}
@@ -454,6 +472,10 @@ export default function App() {
                 active[(index + direction + active.length) % active.length].id,
               );
           }}
+          onBackToMarket={() => {
+            setAuctionId(null);
+            go("Aukcje na żywo");
+          }}
           onClose={() => setAuctionId(null)}
         />
       )}
@@ -465,7 +487,11 @@ export default function App() {
         />
       )}
       {won && !menu && !selectedAuction && !selectedParcel && (
-        <WinScreen auction={won} onClose={game.dismissWin} />
+        <WinScreen
+          auction={won}
+          item={s?.items.find((i) => i.auctionId === won.id)}
+          onClose={game.dismissWin}
+        />
       )}
       {game.needsMigration && (
         <Modal
@@ -586,6 +612,7 @@ export default function App() {
           </div>
         </Modal>
       )}
+      {credits && <PhotoCredits onClose={() => setCredits(false)} />}
       {help && (
         <Modal
           title="Pomoc i ustawienia"
@@ -672,11 +699,22 @@ export default function App() {
             Niezależna gra kolekcjonerska, bez powiązania z marką Johnnie
             Walker. Fotografie i znaki producenta należą do ich właścicieli.
           </p>
-          <h3>Fotografie</h3>
+          <button
+            className="outline"
+            onClick={() => {
+              setCredits(true);
+            }}
+          >
+            Fotografie i autorzy
+          </button>
+          <h3>Automatyczna licytacja</h3>
           <p>
-            Galerie pokazują wyłącznie zdjęcia przypisane do konkretnej edycji.
-            Autor i licencja są pod fotografią w szczegółach. Jeśli zdjęcie nie
-            ma potwierdzonych praw, edycja czeka na jego dodanie.
+            Ustaw maksymalną cenę i potwierdź aktywację. Automat składa
+            minimalne przebicia do limitu, uwzględniając wolną gotówkę i opłaty.
+            Działa również po zamknięciu strony: zapisane decyzje są odtwarzane
+            po powrocie. Samo pole limitu ze starszego zapisu nie włącza
+            automatu. Przy równych maksymalnych ofertach wygrywa wcześniejsza
+            rejestracja; zmiana limitu rejestruje go ponownie.
           </p>
           <h3>Prawa klientów</h3>
           <p>

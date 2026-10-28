@@ -39,9 +39,7 @@ describe("Galeria produktu — kontrolowane zasoby testowe, nie fotografie do pu
         .getByAltText("Johnnie Walker Blue Label — Opakowanie")
         .getAttribute("src"),
     ).toContain("test-box.png");
-    expect(screen.getByText("Autor testowy").getAttribute("href")).toBe(
-      "https://example.test/source",
-    );
+    expect(screen.queryByText("Autor testowy")).toBeNull();
   });
   it("otwiera powiększenie, zamyka je klawiszem Escape i przywraca przewijanie", () => {
     render(<ProductGallery product="blue" />);

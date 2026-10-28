@@ -58,7 +58,7 @@ export function useGame() {
             ),
         );
         const important = fresh.find((f) =>
-          /przebity|Oferta zaakceptowana|Oferta spóźniona|zamówienie|Dostawa dotarła|pyta o/.test(
+          /przebity|ponad limit|kończy się|Odblokowano kontakt|Oferta zaakceptowana|Oferta spóźniona|zamówienie|Dostawa dotarła|pyta o/.test(
             f.text,
           ),
         );

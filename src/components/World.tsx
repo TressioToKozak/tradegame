@@ -21,7 +21,7 @@ import {
   type State,
 } from "../engine";
 import { shopLevel, progress, levelStart } from "../progression";
-import { countdown, date } from "../ui";
+import { countdown, date, labels } from "../ui";
 import type { Mutate } from "../useGame";
 import ProductGallery, { Modal } from "./ProductGallery";
 export function NowBoard({
@@ -192,9 +192,11 @@ export function Feed({ state: s }: { state: State }) {
 }
 export function WinScreen({
   auction: a,
+  item,
   onClose,
 }: {
   auction: Auction;
+  item?: Item;
   onClose: () => void;
 }) {
   return (
@@ -206,7 +208,7 @@ export function WinScreen({
       >
         <Trophy size={34} strokeWidth={1.2} />
       </motion.div>
-      <p className="eyebrow">KOLEJNY ROZDZIAŁ TWOJEJ KOLEKCJI</p>
+      <p className="eyebrow">WYGRAŁEŚ!</p>
       <h2>Wygrana aukcja!</h2>
       <ProductGallery product={a.product} compact />
       <h3>{whisky(a.product).name}</h3>
@@ -215,10 +217,18 @@ export function WinScreen({
           Zwycięska oferta <b>{euro(a.price)}</b>
         </span>
         <span>
+          Prowizja <b>{euro(Math.round(a.price * a.fee))}</b>
+        </span>
+        <span>
+          Transport <b>{euro(a.shipping)}</b>
+        </span>
+        <span>
           Z prowizją i transportem <b>{euro(totalCost(a))}</b>
         </span>
       </div>
-      <p>+25 PD · Butelka jest w drodze do Twojego magazynu.</p>
+      <p>
+        +25 PD · {item ? labels[item.status] : "Sprawdź dostawę w magazynie"}
+      </p>
       <button onClick={onClose}>
         Wspaniale. Wracam do sklepu <ArrowUpRight size={17} />
       </button>

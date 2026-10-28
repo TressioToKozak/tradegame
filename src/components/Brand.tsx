@@ -8,23 +8,33 @@ export default function Brand({ small = false }: { small?: boolean }) {
       aria-label="Monogram JWC"
     >
       <path
-        d="M50 3 92 27v50L50 109 8 77V27L50 3Z"
+        d="M19 86V35a31 31 0 0 1 62 0v51L50 108 19 86Z"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="1.6"
       />
       <path
-        d="m50 11 34 20v42l-34 26-34-26V31l34-20Z"
+        d="M25 82V35a25 25 0 0 1 50 0v47L50 100 25 82Z"
         stroke="currentColor"
-        strokeWidth=".7"
+        strokeWidth=".6"
       />
       <path
-        d="M36 30h16v34c0 12-7 19-17 15-5-2-7-6-6-10m20-29 7 29 9-23 9 23 7-29M64 34c-12-7-23 1-23 14 0 14 12 23 23 15"
+        d="M33 34h17v29c0 11-5 17-13 17-5 0-8-3-8-7M46 42l7 32 10-22 9 22 7-32"
         stroke="currentColor"
-        strokeWidth="3"
+        strokeWidth="2.7"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path d="m44 88 6 4 6-4M27 22l23-13 23 13" stroke="currentColor" />
+      <path
+        d="M68 30c-8-5-19 1-19 13 0 14 10 23 20 17"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M44 91h12M46 16h8M50 12v8M12 42v26m76-26v26"
+        stroke="currentColor"
+        strokeWidth="1"
+      />
     </svg>
   );
 }

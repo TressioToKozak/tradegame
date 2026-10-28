@@ -94,9 +94,8 @@ test("kontrolki rynku, klawiatura, animacje i mniejszy ruch na telefonie", async
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await start(page);
-  await page
-    .getByRole("button", { name: "Aukcje na żywo", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Aukcje", exact: true }).click();
+  await page.getByRole("button", { name: /Filtry i sortowanie/ }).click();
   const select = page.getByLabel("Sortowanie", { exact: true });
   await select.selectOption("Cena rosnąco");
   expect(await select.evaluate((e) => getComputedStyle(e).appearance)).toBe(

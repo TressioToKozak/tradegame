@@ -7,6 +7,10 @@ import {
   Star,
   ChevronLeft,
   ChevronRight,
+  Zap,
+  Trophy,
+  Package,
+  ShieldCheck,
 } from "lucide-react";
 import { euro, whisky, productSpecs, availabilityLabel } from "../catalog";
 import {
@@ -14,16 +18,16 @@ import {
   totalCost,
   bidStep,
   watchAuction,
-  setBidLimit,
+  activateProxy,
+  disableProxy,
   watcherCount,
   type Auction,
   type State,
 } from "../engine";
-import { type Mutate } from "../useGame";
-import { tradeContacts } from "../progression";
-import { countdown, time } from "../ui";
-import Hint from "./Hint";
+import type { Mutate } from "../useGame";
+import { countdown, time, labels } from "../ui";
 import ProductGallery, { Modal } from "./ProductGallery";
+import Hint from "./Hint";
 const actor = (s: State, id: string | null) =>
   id === "player"
     ? "Ty"
@@ -37,89 +41,86 @@ export function AuctionCard({
   state: State;
   onOpen: () => void;
 }) {
-  const urgent = a.status === "active" && a.end - s.now < 30000;
-  const extension = a.extensions?.at(-1);
-  const recentExtension =
-    extension && s.now >= extension.at && s.now - extension.at < 6000;
+  const urgent = a.status === "active" && a.end - s.now < 30000,
+    last = a.extensions?.at(-1),
+    recent = last && s.now - last.at < 6000;
   return (
     <motion.article
       layout
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`auction-card ${urgent ? "urgent" : ""}`}
+      className={`auction-card ${urgent ? "urgent" : ""} ${a.leader === "player" ? "player-leading" : ""} ${a.special ? "special-lot" : ""}`}
     >
       <div className="auction-visual">
         <ProductGallery product={a.product} compact />
-        {recentExtension && (
-          <motion.span
-            key={a.end}
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="extension-chip"
-          >
-            +15 SEKUND — AUKCJA PRZEDŁUŻONA!
-          </motion.span>
-        )}
-        <span className="lot">
-          PARTIA {a.id}
-          {a.watched ? " · ★" : ""}
+        <span className="rarity-chip">
+          <Star size={12} />
+          {whisky(a.product).rarity}/10
         </span>
+        {a.watched && <span className="watched-chip">★</span>}
+        {a.special && <span className="special-chip">Z sieci kontaktów</span>}
         <span className={`auction-clock ${urgent ? "urgent" : ""}`}>
-          <Clock size={13} />
+          <Clock size={14} />
           {a.status === "closed" ? "Zakończona" : countdown(a.end, s.now)}
+          {recent && (
+            <motion.b
+              key={a.end}
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="clock-added"
+            >
+              +15 s
+            </motion.b>
+          )}
         </span>
       </div>
       <div className="auction-info">
-        <span className="eyebrow">
-          {whisky(a.product).brand ?? "Johnnie Walker"} · {a.country}
-        </span>
         <h3>{whisky(a.product).name}</h3>
         {(whisky(a.product).volumeMl || whisky(a.product).abv) && (
           <p className="product-specs">{productSpecs(whisky(a.product))}</p>
         )}
-        <div className="auction-facts">
-          <span>
-            Butelka / pudełko{" "}
-            <b>
-              {a.bottleCondition ?? a.condition} /{" "}
-              {a.boxCondition ?? a.condition}
-            </b>
-          </span>
-          <span>
-            Rzadkość <b>{whisky(a.product).market.rarity}/10</b>
-          </span>
-          <span>
-            Obserwuje <b>{watcherCount(s, a)}</b>
-          </span>
-        </div>
-
         <div className="auction-price">
-          <div>
-            <small>Aktualna oferta</small>
-            <AnimatePresence mode="popLayout">
-              <motion.strong
-                key={a.price}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                {euro(a.price)}
-              </motion.strong>
-            </AnimatePresence>
-          </div>
-          <small>
-            {a.bids.length} ofert
-            <br />
-            {actor(s, a.leader)}
-          </small>
+          <AnimatePresence mode="popLayout">
+            <motion.strong
+              key={a.price}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {euro(a.price)}
+            </motion.strong>
+          </AnimatePresence>
+          <span className="bid-competitor">
+            {a.leader && (
+              <span className="bidder-avatar" aria-hidden="true">
+                {actor(s, a.leader).slice(0, 2).toUpperCase()}
+              </span>
+            )}
+            <small>{a.bids.length} ofert</small>
+          </span>
         </div>
         <div className="card-total">
-          Łącznie z opłatami <b>{euro(totalCost(a))}</b>
+          Z opłatami <b>{euro(totalCost(a))}</b>
         </div>
-        {a.leader === "player" ? (
-          <span className="bid-status leading">Prowadzisz</span>
-        ) : a.bids.some((b) => b.actor === "player") ? (
-          <span className="bid-status outbid">Zostałeś przebity</span>
-        ) : null}
+        <div className="card-bid-state">
+          {a.leader === "player" ? (
+            <span className="bid-status leading">
+              <ShieldCheck size={13} />
+              Prowadzisz
+            </span>
+          ) : a.bids.some((b) => b.actor === "player") ? (
+            <span className="bid-status outbid">Przebity</span>
+          ) : (
+            <span className="muted">
+              {a.leader ? "Trwa licytacja" : "Czeka na pierwszą ofertę"}
+            </span>
+          )}
+          {a.proxyActive && a.status === "active" && (
+            <span className="auto-chip">
+              <Zap size={12} />
+              Automat
+            </span>
+          )}
+        </div>
         <button className="outline full" onClick={onOpen}>
           {a.status === "active" ? "Wejdź do licytacji" : "Wynik aukcji"}
           <ArrowUpRight size={16} />
@@ -128,18 +129,32 @@ export function AuctionCard({
     </motion.article>
   );
 }
+const proxyMessage = (a: Auction) =>
+  a.proxyStatus === "limit"
+    ? "Przebity ponad limit"
+    : a.proxyStatus === "funds"
+      ? "Czeka na wolną gotówkę"
+      : a.proxyStatus === "capacity"
+        ? "Czeka na miejsce w magazynie"
+        : a.proxyStatus === "late"
+          ? "Nie zdążył zarejestrować oferty"
+          : a.leader === "player"
+            ? "Twoja oferta prowadzi"
+            : "Czuwa nad aukcją";
 export function AuctionRoom({
   auction: a,
   state: s,
   mutate,
   onClose,
   onNavigate,
+  onBackToMarket,
 }: {
   auction: Auction;
   state: State;
   mutate: Mutate;
   onClose: () => void;
   onNavigate?: (direction: number) => void;
+  onBackToMarket?: () => void;
 }) {
   const [limit, setLimit] = useState(
     a.playerLimit === undefined ? "" : String(a.playerLimit / 100),
@@ -147,18 +162,34 @@ export function AuctionRoom({
   const [value, setValue] = useState(
       String((a.price + bidStep(a.price)) / 100),
     ),
-    [touched, setTouched] = useState(false);
+    [touched, setTouched] = useState(false),
+    [confirmProxy, setConfirmProxy] = useState(false);
   useEffect(() => {
     if (!touched) setValue(String((a.price + bidStep(a.price)) / 100));
   }, [a.price, touched]);
+  useEffect(() => setConfirmProxy(false), [limit]);
   const amount = Math.round(Number(value.replace(",", ".")) * 100),
     valid =
-      Number.isSafeInteger(amount) && amount >= a.price + bidStep(a.price);
+      Number.isSafeInteger(amount) && amount >= a.price + bidStep(a.price),
+    max = Math.round(Number(limit.replace(",", ".")) * 100),
+    validLimit = Number.isSafeInteger(max) && max > 0;
+  const active = a.status === "active",
+    won = !active && a.leader === "player",
+    unsold = !active && !a.leader,
+    urgent = active && a.end - s.now < 30000,
+    last = a.extensions?.at(-1),
+    recent = last && s.now - last.at < 6000;
+  const pending = s.events.some(
+    (e) =>
+      !e.done && e.type === "bid" && e.actor === "player" && e.ref === a.id,
+  );
+  const item = s.items.find((i) => i.auctionId === a.id),
+    lastOffer = a.bids.filter((b) => b.actor === "player").at(-1);
   const timeline = [
     ...a.bids.map((b) => ({
       key: `bid-${b.at}-${b.actor}-${b.amount}`,
       at: b.at,
-      text: `${actor(s, b.actor)} ${b.actor === "player" ? "— Twoja oferta została przyjęta" : "podnosi ofertę"}${a.extensions?.some((e) => e.at === b.at && e.actor === b.actor) ? " · Aukcja przedłużona o 15 sekund" : ""}`,
+      text: `${actor(s, b.actor)} ${b.actor === "player" ? "— Twoja oferta została przyjęta" : "podnosi ofertę"}${b.automatic ? " · automat" : ""}${b.priority ? " · pierwszeństwo wcześniejszego limitu" : ""}${a.extensions?.some((e) => e.at === b.at && e.actor === b.actor) ? " · Aukcja przedłużona o 15 sekund" : ""}`,
       amount: b.amount,
     })),
     ...s.people.flatMap((p) =>
@@ -167,46 +198,49 @@ export function AuctionRoom({
         .map((m) => ({
           key: `${p.id}-${m.kind}-${m.at}`,
           at: m.at,
-          text: `${p.name} ${m.kind === "watch" ? "obserwuje aukcję" : "wycofuje się: limit ceny lub budżetu"}`,
+          text: `${p.name} ${m.kind === "watch" ? "obserwuje aukcję" : "wycofuje się"}`,
           amount: 0,
         })),
     ),
-  ].sort((x, y) => y.at - x.at);
-  const pending = s.events.some(
-    (e) =>
-      !e.done && e.type === "bid" && e.actor === "player" && e.ref === a.id,
-  );
-  const urgent = a.status === "active" && a.end - s.now < 30000;
-  const extension = a.extensions?.at(-1);
-  const recentExtension =
-    extension && s.now >= extension.at && s.now - extension.at < 6000;
+  ]
+    .sort((x, y) => y.at - x.at)
+    .slice(0, 80);
+  const w = whisky(a.product);
   return (
     <Modal
       title={`Aukcja ${a.id}`}
       onClose={onClose}
-      className={`auction-room ${urgent ? "urgent" : ""}`}
+      className={`auction-room ${urgent ? "urgent" : ""} ${!active ? "finished-room" : ""}`}
     >
       <div className="room-heading">
         <p className="eyebrow">
-          SALON AUKCYJNY · PARTIA {a.id}
-          {a.watched ? " · ★" : ""}
+          {active
+            ? "SALON AUKCYJNY"
+            : won
+              ? "TWOJA NOWA ZDOBYCZ"
+              : "WYNIK LICYTACJI"}
+          {a.special ? " · AUKCJA SPECJALNA" : ""}
         </p>
-        <h2>{whisky(a.product).name}</h2>
+        <h2>{w.name}</h2>
         <div className="room-actions">
-          <button
-            className="outline"
-            onClick={() => mutate((g) => watchAuction(g, a.id))}
-          >
-            <Star size={16} fill={a.watched ? "currentColor" : "none"} />
-            {a.watched ? "Obserwowana" : "Obserwuj"}
-          </button>
-          {onNavigate && (
+          {active && (
+            <button
+              className="outline"
+              onClick={() => mutate((g) => watchAuction(g, a.id))}
+            >
+              <Star size={16} fill={a.watched ? "currentColor" : "none"} />
+              {a.watched ? "Obserwowana" : "Obserwuj"}
+            </button>
+          )}
+          {onNavigate && active && (
             <>
               <button className="outline" onClick={() => onNavigate(-1)}>
-                <ChevronLeft size={16} /> Poprzednia
+                <ChevronLeft size={16} />
+                Poprzednia
               </button>
               <button className="outline" onClick={() => onNavigate(1)}>
-                Następna <ChevronRight size={16} />
+                Następna
+                <ChevronRight size={16} />
               </button>
             </>
           )}
@@ -215,40 +249,31 @@ export function AuctionRoom({
       <div className="room-columns">
         <div>
           <ProductGallery product={a.product} />
-          <p className="product-description">{whisky(a.product).description}</p>
+          <p className="product-description">{w.description}</p>
           <div className="condition-strip">
             <span>
-              Butelka / pudełko{" "}
-              <b>
-                {a.bottleCondition ?? a.condition} /{" "}
-                {a.boxCondition ?? a.condition} (na 100)
-              </b>
+              Butelka <b>{a.bottleCondition ?? a.condition}/100</b>
             </span>
             <span>
-              Sprzedawca <b>{a.country}</b>
+              Pudełko <b>{a.boxCondition ?? a.condition}/100</b>
             </span>
-          </div>{" "}
-          {a.supplierContact && (
-            <p className="contact-source">
-              Kontakt:{" "}
-              {tradeContacts.find((c) => c.id === a.supplierContact)?.name}
-            </p>
-          )}
+          </div>
           <details className="edition-data">
-            <summary>Dane edycji i rynku</summary>
-            <p>{productSpecs(whisky(a.product))}</p>
+            <summary>Poznaj ten egzemplarz</summary>
+            <p>{productSpecs(w)}</p>
             <dl>
-              <dt>Dostępność</dt>
+              <dt>Edycja / seria</dt>
+              <dd>{w.series ?? w.name}</dd>
+              <dt>Wiek</dt>
               <dd>
-                {availabilityLabel[whisky(a.product).market.availability]}
+                {w.ageStatement
+                  ? `${w.ageStatement} lat`
+                  : w.ageStatus === "nas"
+                    ? "Bez deklaracji wieku"
+                    : "Nieznany"}
               </dd>
-              <dt>Rzadkość kolekcjonerska</dt>
-              <dd>{whisky(a.product).market.rarity}/10</dd>
-              <dt>Popyt / płynność gry</dt>
-              <dd>
-                {whisky(a.product).market.demand} /{" "}
-                {whisky(a.product).market.liquidity} (na 100)
-              </dd>
+              <dt>Wprowadzenie</dt>
+              <dd>{w.releaseYear ?? "Niepotwierdzone"}</dd>
               <dt>Produkcja</dt>
               <dd>
                 {
@@ -256,306 +281,302 @@ export function AuctionRoom({
                     current: "W produkcji",
                     discontinued: "Wycofana",
                     unknown: "Niepotwierdzona",
-                  }[whisky(a.product).market.productionStatus]
+                  }[w.market.productionStatus]
                 }
               </dd>
-              <dt>Wprowadzenie</dt>
-              <dd>{whisky(a.product).releaseYear ?? "Niepotwierdzone"}</dd>
-              <dt>Region</dt>
+              <dt>Dostępność</dt>
+              <dd>{availabilityLabel[w.market.availability]}</dd>
+              <dt>Rzadkość</dt>
+              <dd>{w.rarity}/10</dd>
+              <dt>Region wydania</dt>
               <dd>
-                {whisky(a.product)
-                  .market.regions.map(
-                    (r) =>
-                      ({
-                        NL: "Holandia",
-                        EU: "Europa",
-                        US: "USA",
-                        Global: "Globalny",
-                        "Travel Retail": "Rynek podróżny",
-                      })[r] ?? r,
-                  )
-                  .join(", ")}
+                {w.salesMarket ??
+                  w.market.regions
+                    .map(
+                      (r) =>
+                        ({
+                          NL: "Holandia",
+                          EU: "Europa",
+                          US: "USA",
+                          Global: "Globalny",
+                          "Travel Retail": "Rynek podróżny",
+                        })[r] ?? r,
+                    )
+                    .join(", ")}
               </dd>
-              <dt>
-                {whisky(a.product).market.retailCents !== undefined
-                  ? "Zaobserwowana oferta detaliczna"
-                  : "Referencja gry (szacunek)"}
-              </dt>
-              <dd>
-                {whisky(a.product).market.retailCents === null
-                  ? "Brak potwierdzonej oferty"
-                  : euro(
-                      whisky(a.product).market.retailCents ??
-                        whisky(a.product).value,
-                    )}
-              </dd>
-              <dt>Zweryfikowany przedział aukcyjny</dt>
-              <dd>
-                {whisky(a.product).market.auctionMinCents !== null &&
-                whisky(a.product).market.auctionMaxCents !== null
-                  ? `${euro(whisky(a.product).market.auctionMinCents!)} – ${euro(whisky(a.product).market.auctionMaxCents!)}`
-                  : "Brak potwierdzonych danych"}
-              </dd>
-              <dt>Rodzaj źródła</dt>
-              <dd>
-                {{
-                  retail: "Oferta sklepowa",
-                  "auction-result": "Zakończona aukcja",
-                  "user-report": "Zgłoszenie użytkownika",
-                }[whisky(a.product).market.sourceQuote?.kind ?? ""] ??
-                  "Parametr gry"}
-              </dd>
-              <dt>Data wyniku aukcji</dt>
-              <dd>
-                {whisky(a.product).market.sourceQuote?.soldAt ??
-                  "Nie dotyczy / nieznana"}
-              </dd>
-              <dt>Weryfikacja w repozytorium źródłowym</dt>
-              <dd>
-                {whisky(a.product).market.lastVerified ??
-                  "Niepotwierdzona zewnętrznie"}
-              </dd>
+              <dt>Sprzedawca</dt>
+              <dd>{a.country}</dd>
             </dl>
-            <p>
-              {whisky(a.product).balanceNote ??
-                whisky(a.product).market.estimateNote ??
-                "Referencja jest parametrem gry, nie aktualną ofertą detaliczną."}
-            </p>
-            {whisky(a.product).market.sources.map((url) => (
-              <p key={url}>
-                <a href={url} target="_blank" rel="noreferrer">
-                  Źródło ceny
-                </a>
-              </p>
-            ))}
           </details>
         </div>
         <div className="bid-desk">
-          <p className="eyebrow">
-            {a.status === "closed" ? "WYNIK AUKCJI" : "TRWA LICYTACJA"}
-          </p>
-          <motion.div
-            key={a.end}
-            initial={
-              a.extensions?.length
-                ? { backgroundColor: "#b57e3e66", scale: 1.03 }
-                : false
-            }
-            animate={{ backgroundColor: "#b57e3e00", scale: 1 }}
-            className="room-timer"
-          >
-            <Clock size={20} />
-            <span>
-              {a.status === "closed" ? "Zakończona" : countdown(a.end, s.now)}
-            </span>
-          </motion.div>
-          {recentExtension && (
-            <motion.p
-              key={a.end}
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="extension-banner"
-              role="status"
-            >
-              +15 SEKUND — AUKCJA PRZEDŁUŻONA!
-            </motion.p>
-          )}
-          <small>
-            {urgent
-              ? "Ostatnie sekundy. Liczy się czas rejestracji oferty."
-              : "Zmiana lidera w ostatnich 10 sekundach przedłuża aukcję o 15 sekund."}
-          </small>
-          <div className="room-price">
-            <small>Aktualna oferta</small>
-            <motion.strong
-              key={a.price}
-              initial={{ color: "#efc07a", scale: 1.025 }}
-              animate={{ color: "#fff0d4", scale: 1 }}
-            >
-              {euro(a.price)}
-            </motion.strong>
-            <p>
-              <span className="bidder-avatar" aria-hidden="true">
-                {actor(s, a.leader).slice(0, 2).toUpperCase()}
-              </span>{" "}
-              Prowadzi{" "}
-              <motion.b
-                key={a.leader}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
+          {active ? (
+            <>
+              <div className="room-live-label">
+                <span className="live-dot" />
+                Licytacja trwa <span>{watcherCount(s, a)} obserwujących</span>
+              </div>
+              <motion.div
+                key={a.end}
+                initial={a.extensions?.length ? { scale: 1.04 } : false}
+                animate={{ scale: 1 }}
+                className="room-timer"
               >
-                {actor(s, a.leader)}
-              </motion.b>
-            </p>
-          </div>
-          {a.status === "active" &&
-            (a.leader === "player" ? (
-              <p className="bid-status leading" role="status">
-                Twoja oferta prowadzi
-              </p>
-            ) : a.bids.some((b) => b.actor === "player") ? (
-              <p className="bid-status outbid" role="status">
-                Zostałeś przebity. Prowadzi {actor(s, a.leader)}.
-              </p>
-            ) : null)}
-          {a.status === "active" && (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (valid && !pending) {
-                  mutate((g) => submitBid(g, a.id, amount));
-                  setTouched(false);
-                }
-              }}
-            >
-              <div className="quick-bids">
-                {[1, 2, 5].map((n) => (
-                  <button
-                    type="button"
-                    className="outline"
-                    key={n}
-                    onClick={() => {
-                      setTouched(true);
-                      setValue(String((a.price + bidStep(a.price) * n) / 100));
-                    }}
+                <Clock size={21} />
+                <span>{countdown(a.end, s.now)}</span>
+                {recent && (
+                  <motion.b
+                    className="extension-banner"
+                    role="status"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
                   >
-                    {n === 1
-                      ? "Minimalne przebicie"
-                      : `+${n} ${n === 2 ? "kroki" : "kroków"}`}{" "}
-                    · +{euro(bidStep(a.price) * n)}
+                    +15 s
+                  </motion.b>
+                )}
+              </motion.div>
+              <div className="room-price">
+                <small>Aktualna oferta</small>
+                <motion.strong
+                  key={a.price}
+                  initial={{ color: "#f5b65f", scale: 1.04 }}
+                  animate={{ color: "#fff0d4", scale: 1 }}
+                >
+                  {euro(a.price)}
+                </motion.strong>
+                <p>
+                  <span className="bidder-avatar" aria-hidden="true">
+                    {a.leader
+                      ? actor(s, a.leader).slice(0, 2).toUpperCase()
+                      : "—"}
+                  </span>
+                  {a.leader
+                    ? `Prowadzi ${actor(s, a.leader)}`
+                    : "Otwórz licytację"}
+                </p>
+              </div>
+              {a.bids.some((b) => b.actor === "player") && (
+                <p
+                  className={`bid-status ${a.leader === "player" ? "leading" : "outbid"}`}
+                  role="status"
+                >
+                  {a.leader === "player"
+                    ? "Twoja oferta prowadzi"
+                    : "Zostałeś przebity"}
+                </p>
+              )}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (valid && !pending) {
+                    mutate((g) => submitBid(g, a.id, amount));
+                    setTouched(false);
+                  }
+                }}
+              >
+                <div className="quick-bids">
+                  {[1, 2, 5].map((n) => (
+                    <button
+                      type="button"
+                      className="outline"
+                      key={n}
+                      onClick={() => {
+                        setTouched(true);
+                        setValue(
+                          String((a.price + bidStep(a.price) * n) / 100),
+                        );
+                      }}
+                    >
+                      +{euro(bidStep(a.price) * n)}
+                      {n === 1 && (
+                        <span className="sr-only">Minimalne przebicie</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <label htmlFor="bid-amount">Twoja oferta (€)</label>
+                <div className="bid-amount-row">
+                  <input
+                    id="bid-amount"
+                    inputMode="decimal"
+                    value={value}
+                    onChange={(e) => {
+                      setTouched(true);
+                      setValue(e.target.value);
+                    }}
+                  />
+                  <button disabled={!valid || pending || a.leader === "player"}>
+                    <Gavel size={17} />
+                    {pending
+                      ? "Rejestrowanie…"
+                      : a.leader === "player"
+                        ? "Prowadzisz"
+                        : "LICYTUJ"}
                   </button>
-                ))}
-              </div>
-              <button
-                type="button"
-                className="text-button custom-amount"
-                onClick={() => document.getElementById("bid-amount")?.focus()}
+                </div>
+                <small className="bid-step">
+                  Krok licytacji {euro(bidStep(a.price))}
+                </small>
+              </form>
+              <section
+                className={`proxy-panel ${a.proxyActive ? "enabled" : ""}`}
+                aria-label="Automatyczna licytacja"
               >
-                Własna kwota
-              </button>
-              <label htmlFor="bid-amount">Twoja oferta (€)</label>
-              <div className="bid-amount-row">
+                <div className="proxy-heading">
+                  <Zap size={19} />
+                  <strong>Automatyczna licytacja</strong>
+                  <span>{a.proxyActive ? "AKTYWNA" : "WYŁĄCZONA"}</span>
+                </div>
+                <label htmlFor="proxy-limit">
+                  Automatyczna licytacja — maksymalna oferta (€)
+                </label>
                 <input
-                  id="bid-amount"
+                  id="proxy-limit"
                   inputMode="decimal"
-                  value={value}
-                  onChange={(e) => {
-                    setTouched(true);
-                    setValue(e.target.value);
-                  }}
+                  value={limit}
+                  placeholder="Twój limit"
+                  onChange={(e) => setLimit(e.target.value)}
                 />
-                <button disabled={!valid || pending || a.leader === "player"}>
-                  <Gavel size={17} />
-                  {pending
-                    ? "Rejestrowanie…"
-                    : a.leader === "player"
-                      ? "Prowadzisz"
-                      : "LICYTUJ"}
-                </button>
+                {a.proxyActive && (
+                  <div className="proxy-status" role="status">
+                    <strong>
+                      Automat aktywny • Limit {euro(a.playerLimit!)}
+                    </strong>
+                    <span>{proxyMessage(a)}</span>
+                  </div>
+                )}
+                {!confirmProxy ? (
+                  <div className="actions">
+                    <button
+                      type="button"
+                      disabled={!validLimit}
+                      onClick={() => setConfirmProxy(true)}
+                    >
+                      {a.proxyActive ? "Zmień limit" : "Aktywuj"}
+                    </button>
+                    {(a.proxyActive || a.playerLimit !== undefined) && (
+                      <button
+                        className="outline"
+                        onClick={() => {
+                          mutate((g) => disableProxy(g, a.id));
+                          setConfirmProxy(false);
+                        }}
+                      >
+                        Wyłącz
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="proxy-confirm">
+                    <p>
+                      Do {euro(max)} za butelkę; z prowizją i transportem do{" "}
+                      <b>{euro(totalCost(a, max))}</b>.
+                    </p>
+                    <p>
+                      Automat składa minimalne przebicia także podczas Twojej
+                      nieobecności.
+                    </p>
+                    <div className="actions">
+                      <button
+                        onClick={() => {
+                          mutate((g) => activateProxy(g, a.id, max));
+                          setConfirmProxy(false);
+                        }}
+                      >
+                        Potwierdź {a.proxyActive ? "zmianę" : "aktywację"}
+                      </button>
+                      <button
+                        className="text-button"
+                        onClick={() => setConfirmProxy(false)}
+                      >
+                        Anuluj
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </section>
+            </>
+          ) : (
+            <section className={`auction-result ${won ? "won" : ""}`}>
+              <div className="result-emblem">
+                {won ? <Trophy size={34} /> : <Gavel size={30} />}
               </div>
-              <p className="muted">
-                Krok {euro(bidStep(a.price))} · minimalna oferta{" "}
-                {euro(a.price + bidStep(a.price))}
+              <p className="eyebrow">
+                {won
+                  ? "WYGRAŁEŚ!"
+                  : unsold
+                    ? "AUKCJA ZAKOŃCZONA BEZ SPRZEDAŻY"
+                    : "AUKCJA ZAKOŃCZONA"}
               </p>
-            </form>
-          )}
-          <div className="bid-limit">
-            <label htmlFor="bid-limit">
-              Twój opcjonalny limit ceny młotkowej (€)
-            </label>
-            <div>
-              <input
-                id="bid-limit"
-                inputMode="decimal"
-                value={limit}
-                placeholder="Bez limitu"
-                onChange={(e) => setLimit(e.target.value)}
-              />
+              <h3>
+                {won
+                  ? "Kolejna historia w Twojej kolekcji"
+                  : unsold
+                    ? "Tym razem bez kupującego"
+                    : actor(s, a.leader)}
+              </h3>
+              {!unsold && <p className="result-price">{euro(a.price)}</p>}
+              {!won && (
+                <p>
+                  Twoja ostatnia oferta:{" "}
+                  <b>
+                    {lastOffer ? euro(lastOffer.amount) : "Nie licytowałeś"}
+                  </b>
+                </p>
+              )}
+              {won && (
+                <p className="delivery-status">
+                  <Package size={18} />
+                  {item ? labels[item.status] : "Dostawa zapisana w magazynie"}
+                </p>
+              )}
               <button
-                className="outline"
-                onClick={() =>
-                  mutate((g) =>
-                    setBidLimit(
-                      g,
-                      a.id,
-                      limit.trim()
-                        ? Math.round(Number(limit.replace(",", ".")) * 100)
-                        : undefined,
-                    ),
-                  )
-                }
+                className="outline full"
+                onClick={onBackToMarket ?? onClose}
               >
-                Zapisz limit
+                Wróć do aktywnych aukcji
+                <ArrowUpRight size={16} />
               </button>
-            </div>
-            <small>
-              {a.playerLimit === undefined
-                ? "Limit chroni kolejne oferty; nie jest automatyczną licytacją."
-                : `Zapisany limit: ${euro(a.playerLimit)}. Prowizja i transport są dodatkowo.`}
-            </small>
-          </div>
-          {totalCost(a, a.status === "active" && valid ? amount : a.price) >
-            whisky(a.product).value && (
-            <p className="purchase-risk">
-              Uwaga: koszt przekracza referencję gry. Marża po wysyłce i
-              prowizji może być ujemna.
-            </p>
+            </section>
           )}
-          <dl className="cost-breakdown">
-            <dt>
-              {a.status === "active"
-                ? "Twoja proponowana oferta"
-                : "Cena zwycięska"}
-            </dt>
-            <dd>{euro(a.status === "active" && valid ? amount : a.price)}</dd>
-            <dt>Prowizja domu aukcyjnego · {Math.round(a.fee * 100)}%</dt>
-            <dd>
-              {euro(
-                Math.round(
-                  (a.status === "active" && valid ? amount : a.price) * a.fee,
-                ),
-              )}
-            </dd>
-            <dt>Transport do magazynu</dt>
-            <dd>{euro(a.shipping)}</dd>
-            <dt>
-              Całkowity koszt zakupu{" "}
-              <Hint label="Jak liczymy pełny koszt?">
-                Cena młotkowa + prowizja aukcyjna + transport do magazynu.
-                Wysyłkę do klienta opłacisz osobno po sprzedaży.
-              </Hint>
-            </dt>
-            <dd>
-              {euro(
-                totalCost(a, a.status === "active" && valid ? amount : a.price),
-              )}
-            </dd>
-          </dl>
+          {(active || won) && (
+            <dl className="cost-breakdown">
+              <dt>{active ? "Twoja proponowana oferta" : "Cena młotkowa"}</dt>
+              <dd>{euro(active && valid ? amount : a.price)}</dd>
+              <dt>Prowizja · {Math.round(a.fee * 100)}%</dt>
+              <dd>
+                {euro(Math.round((active && valid ? amount : a.price) * a.fee))}
+              </dd>
+              <dt>Transport</dt>
+              <dd>{euro(a.shipping)}</dd>
+              <dt>
+                Całkowity koszt zakupu{" "}
+                <Hint label="Jak liczymy pełny koszt?">
+                  Cena młotkowa + prowizja + transport. Wysyłkę do klienta
+                  opłacisz osobno.
+                </Hint>
+              </dt>
+              <dd>{euro(totalCost(a, active && valid ? amount : a.price))}</dd>
+            </dl>
+          )}
         </div>
       </div>
       <div className="live-history">
-        <h3>
-          <i className="live-dot" />
-          Historia licytacji na żywo
-        </h3>
+        <h3>Przebieg aukcji</h3>
         <AnimatePresence initial={false}>
-          {timeline.map((entry) => (
+          {timeline.map((t) => (
             <motion.div
-              key={entry.key}
-              initial={{ opacity: 0, x: -12, backgroundColor: "#8d63363b" }}
-              animate={{ opacity: 1, x: 0, backgroundColor: "#8d633600" }}
+              key={t.key}
+              initial={{ opacity: 0, x: -12, backgroundColor: "#b8803540" }}
+              animate={{ opacity: 1, x: 0, backgroundColor: "#b8803500" }}
             >
-              <time>{time(entry.at)}</time>
-              <span>{entry.text}</span>
-              {entry.amount > 0 && <b>{euro(entry.amount)}</b>}
+              <time>{time(t.at)}</time>
+              <span>{t.text}</span>
+              {t.amount > 0 && <b>{euro(t.amount)}</b>}
             </motion.div>
           ))}
         </AnimatePresence>
-        {!timeline.length && (
-          <p className="muted">
-            Jeszcze nikt nie złożył oferty. Możesz otworzyć licytację.
-          </p>
-        )}
+        {!timeline.length && <p className="muted">Nie złożono ofert.</p>}
       </div>
     </Modal>
   );

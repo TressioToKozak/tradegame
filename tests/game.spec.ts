@@ -284,9 +284,7 @@ test("fotografie, filtry i limit działają na partii 12 aukcji", async ({
   }));
   state.events = [];
   await importState(page, state);
-  await page
-    .getByRole("button", { name: "Aukcje na żywo", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Aukcje", exact: true }).click();
   await expect(page.locator(".auction-card")).toHaveCount(
     state.auctions.length,
   );
@@ -303,6 +301,7 @@ test("fotografie, filtry i limit działają na partii 12 aukcji", async ({
       )
       .toBe(true);
   }
+  await page.getByRole("button", { name: /Filtry i sortowanie/ }).click();
   await page.getByLabel("Kategoria", { exact: true }).selectOption("Vintage");
   await expect(page.locator(".auction-card")).toHaveCount(1);
   await page.getByRole("button", { name: "Wejdź do licytacji" }).click();
@@ -310,8 +309,11 @@ test("fotografie, filtry i limit działają na partii 12 aukcji", async ({
   await expect(
     page.getByRole("button", { name: "Obserwowana", exact: true }),
   ).toBeVisible();
-  await page.getByLabel("Twój opcjonalny limit ceny młotkowej (€)").fill("40");
-  await page.getByRole("button", { name: "Zapisz limit" }).click();
+  await page
+    .getByLabel("Automatyczna licytacja — maksymalna oferta (€)")
+    .fill("40");
+  await page.getByRole("button", { name: "Aktywuj", exact: true }).click();
+  await page.getByRole("button", { name: "Potwierdź aktywację" }).click();
   await page.getByRole("button", { name: "Zamknij okno" }).click();
   await page.getByLabel("Tylko obserwowane").check();
   await expect(page.locator(".auction-card")).toHaveCount(1);
@@ -397,7 +399,7 @@ test("anti-sniping: dwa przedłużenia, odświeżenie i jedno rozliczenie NPC", 
   let room = page.getByRole("dialog", { name: /Aukcja/ });
   await room.getByLabel("Twoja oferta (€)").fill("200");
   await room.getByRole("button", { name: "LICYTUJ", exact: true }).click();
-  await expect(room.locator(".extension-banner")).toContainText("+15 SEKUND");
+  await expect(room.locator(".extension-banner")).toContainText("+15 s");
   await expect(page.locator(".save-state")).toContainText("Postęp zapisany");
   await page.reload();
   await page.getByRole("button", { name: "KONTYNUUJ GRĘ" }).click();
@@ -415,9 +417,12 @@ test("anti-sniping: dwa przedłużenia, odświeżenie i jedno rozliczenie NPC", 
   ).toBeVisible({ timeout: 15000 });
   await page.waitForTimeout(Math.max(0, now + 24000 - Date.now()));
   await expect(room.locator(".room-timer")).not.toContainText("Zakończona");
-  await expect(room.locator(".room-timer")).toContainText("Zakończona", {
-    timeout: 20000,
-  });
+  await expect(room.locator(".auction-result")).toContainText(
+    "AUKCJA ZAKOŃCZONA",
+    {
+      timeout: 20000,
+    },
+  );
   await expect(page.locator(".save-state")).toContainText("Postęp zapisany");
   const result = await page.evaluate(
     async () =>

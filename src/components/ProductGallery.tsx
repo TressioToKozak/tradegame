@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
 import { createPortal } from "react-dom";
-import { assetUrl, photosFor, productMedia, type Photo } from "../media";
+import { assetUrl, photosFor, productMedia } from "../media";
+import layouts from "../photo-layout.json" with { type: "json" };
 import { whisky } from "../catalog";
 
 export function Modal({
@@ -120,27 +121,19 @@ export default function ProductGallery({
     setSelected((index) => Math.min(index, Math.max(0, usable.length - 1)));
   }, [usable.length]);
   const photo = usable[Math.min(selected, usable.length - 1)];
-  const attribution = (p: Photo) =>
-    compact && p.sourceRepository ? (
-      <p className="photo-credit">
-        <a href={p.source} target="_blank" rel="noreferrer">
-          Źródło fotografii
-        </a>
-      </p>
-    ) : (
-      <p className="photo-credit">
-        <a href={p.source} target="_blank" rel="noreferrer">
-          {p.author}
-        </a>{" "}
-        ·{" "}
-        <a href={p.licenseUrl} target="_blank" rel="noreferrer">
-          {p.license}
-        </a>
-      </p>
-    );
+  const layout = photo
+    ? (layouts as Record<string, { background: string; brightness: string }>)[
+        photo.path
+      ]
+    : undefined;
   return (
     <div
-      className={`product-gallery ${compact ? "compact" : ""} ${collection ? "collection-photo" : ""}`}
+      className={`product-gallery ${compact ? "compact" : ""} ${collection ? "collection-photo" : ""} photo-${layout?.brightness ?? "light"}`}
+      style={
+        {
+          "--photo-background": layout?.background ?? "#f7f5f0",
+        } as React.CSSProperties
+      }
     >
       {photo ? (
         <>
@@ -180,7 +173,6 @@ export default function ProductGallery({
               )}
             </>
           )}
-          {attribution(photo)}
         </>
       ) : (
         <div className="photo-missing">
@@ -225,7 +217,6 @@ export default function ProductGallery({
               <ChevronRight size={18} />
             </button>
           </div>
-          {attribution(photo)}
         </Modal>
       )}
     </div>

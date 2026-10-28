@@ -1,3 +1,4 @@
+import { daily, recordDaily, type DailyState } from "./daily";
 import {
   progress,
   earn,
@@ -48,6 +49,23 @@ export interface Auction {
   createdAt?: number;
   watched?: boolean;
   playerLimit?: number;
+  proxyActive?: boolean;
+  proxyRevision?: number;
+  proxyStatus?:
+    | "off"
+    | "leading"
+    | "active"
+    | "limit"
+    | "funds"
+    | "capacity"
+    | "late"
+    | "closed";
+  maximumRegistrations?: Record<
+    string,
+    { limit: number; at: number; order: number }
+  >;
+  special?: boolean;
+  endingNotified?: boolean;
   bottleCondition?: number;
   boxCondition?: number;
   price: number;
@@ -59,12 +77,19 @@ export interface Auction {
   country: string;
   supplierContact?: string;
   limits: Record<string, number>;
-  bids: { at: number; actor: string; amount: number }[];
+  bids: {
+    at: number;
+    actor: string;
+    amount: number;
+    automatic?: boolean;
+    priority?: boolean;
+  }[];
   watchers?: string[];
   extensions?: { at: number; actor: string; oldEnd: number; newEnd: number }[];
 }
 export interface Item {
   id: string;
+  auctionId?: string;
   product: string;
   cost: number;
   condition: number;
@@ -112,6 +137,8 @@ export interface Event {
   id: number;
   at: number;
   type:
+    | "ending"
+    | "proxy"
     | "think"
     | "bid"
     | "close"
@@ -125,12 +152,14 @@ export interface Event {
   actor?: string;
   amount?: number;
   done: boolean;
+  revision?: number;
 }
 export interface State {
   version: 2;
   pace: Pace;
   tutorialDone?: boolean;
   progression?: Progression;
+  daily?: DailyState;
   seed: number;
   serial: number;
   now: number;
@@ -184,6 +213,7 @@ const schedule = (
   };
   s.events.push(e);
   queues.get(s)?.push(e);
+  return e;
 };
 const log = (s: State, text: string) => {
   s.feed.unshift({ at: s.now, text });
@@ -273,6 +303,7 @@ export function createGame(
       preferredCondition: i % 3 === 0 ? 100 : 80,
     }),
   );
+  daily(s);
   post(s, "opening", 500000, "Kapitał początkowy", "company");
   addBidders(s);
   for (const [availability, count] of Object.entries(initialProducts)) {
@@ -295,6 +326,8 @@ export function createGame(
 export function makeAuction(s: State, index: number, end: number) {
   const w = catalog[index];
   const range = auctionRange(w);
+  const openingHigh=Math.min(range.max,w.market.observedAuctionCents??range.max);
+  const openingLow=Math.min(range.min,openingHigh);
   const contacts = unlockedContacts(s).filter(
     (c) =>
       c.id === "noor" ||
@@ -328,7 +361,7 @@ export function makeAuction(s: State, index: number, end: number) {
     price: Math.max(
       500,
       Math.round(
-        ((range.min + random(s) * (range.max - range.min) * 0.35) *
+        ((openingLow + random(s) * (openingHigh - openingLow) * 0.35) *
           (0.82 + random(s) * 0.1) *
           conditionValueFactor(w, bottleCondition, boxCondition)) /
           100,
@@ -336,6 +369,7 @@ export function makeAuction(s: State, index: number, end: number) {
     ),
     leader: null,
     status: "active",
+    proxyActive: false,
     fee,
     shipping,
     condition,
@@ -396,6 +430,7 @@ export function makeAuction(s: State, index: number, end: number) {
           Math.floor((a.end - s.now) * (p.strategy === "early" ? 0.08 : 0.45));
     schedule(s, at, "think", a.id, p.id);
   }
+  schedule(s, a.end - 30000, "ending", a.id);
   schedule(s, a.end, "close", a.id);
 }
 export function bid(
@@ -403,10 +438,15 @@ export function bid(
   auctionId: string,
   actor: string,
   amount: number,
+  mode: "manual" | "proxy" | "priority" = "manual",
 ) {
   const a = s.auctions.find((a) => a.id === auctionId);
   if (!a || a.status !== "active" || s.now >= a.end) return "Oferta spóźniona.";
-  if (!Number.isSafeInteger(amount) || amount < a.price + bidStep(a.price))
+  const priority = mode === "priority" && canWinEqualMaximum(s, a, actor);
+  if (
+    !Number.isSafeInteger(amount) ||
+    (amount < a.price + bidStep(a.price) && !(priority && amount === a.price))
+  )
     return `Minimalne przebicie wynosi ${bidStep(a.price) / 100} €.`;
   if (
     actor === "player" &&
@@ -429,16 +469,34 @@ export function bid(
   if (
     actor === "player"
       ? cost > cash(s) - held(s, a.id)
-      : !p || cost > available(p) || amount > a.limits[actor]
+      : !p ||
+        !Number.isSafeInteger(a.limits[actor]) ||
+        cost > available(p) ||
+        amount > a.limits[actor]
   )
     return "Brak dostępnego budżetu lub przekroczony limit.";
+  const registrations = (a.maximumRegistrations ??= {});
+  const max =
+    actor === "player"
+      ? a.proxyActive
+        ? a.playerLimit!
+        : amount
+      : a.limits[actor];
+  if (!registrations[actor] || registrations[actor].limit !== max)
+    registrations[actor] = { limit: max, at: s.now, order: ++s.serial };
   const wasPlayer = a.leader === "player";
   const old = s.people.find((p) => p.id === a.leader);
   if (old) old.reserved -= totalCost(a);
   if (p) p.reserved += cost;
   a.price = amount;
   a.leader = actor;
-  a.bids.push({ at: s.now, actor, amount });
+  a.bids.push({
+    at: s.now,
+    actor,
+    amount,
+    ...(mode !== "manual" ? { automatic: true } : {}),
+    ...(priority ? { priority: true } : {}),
+  });
   if (a.end - s.now <= 10000) extendAuction(s, a, actor);
   if (p) remember(s, p, "bid", a.id, String(amount));
   if (wasPlayer && actor !== "player")
@@ -447,6 +505,9 @@ export function bid(
     s,
     `${p?.name ?? "Ty"}: oferta ${(amount / 100).toFixed(2)} € — ${whisky(a.product).name}.`,
   );
+  notifyEnding(s, a);
+  wakeProxies(s);
+  queueEqualPriority(s, a);
   return "Oferta zaakceptowana.";
 }
 export function submitBid(s: State, auctionId: string, amount: number) {
@@ -472,6 +533,9 @@ export function submitBid(s: State, auctionId: string, amount: number) {
 function close(s: State, a: Auction) {
   if (a.status === "closed") return;
   a.status = "closed";
+  if (a.proxyActive) a.proxyStatus = "closed";
+  a.proxyActive = false;
+  cancelPlayerProxy(s, a);
   const cost = totalCost(a);
   const winner = s.people.find((p) => p.id === a.leader);
   if (winner) {
@@ -499,6 +563,7 @@ function close(s: State, a: Auction) {
     post(s, a.id + "shipping", -a.shipping, "Transport do magazynu", a.id);
     const item: Item = {
       id: id(s, "I"),
+      auctionId: a.id,
       product: a.product,
       cost,
       condition: a.condition,
@@ -550,6 +615,14 @@ function visit(s: State, p: Person) {
     if (i) {
       i.views++;
       const w = whisky(i.product);
+      if (
+        !p.memory.some(
+          (m) => m.kind === "view" && m.ref === i.id && s.now - m.at < DAY,
+        )
+      ) {
+        remember(s, p, "view", i.id, i.product);
+        log(s, `${p.name} ogląda ${w.name}.`);
+      }
       const max = Math.min(
         available(p),
         customerCeiling(
@@ -611,6 +684,7 @@ function visit(s: State, p: Person) {
 }
 export function advance(s: State, target: number) {
   progress(s);
+  migrateAutomation(s);
   if (target < s.now) {
     s.clockWarning = true;
     return s;
@@ -689,6 +763,15 @@ export function advance(s: State, target: number) {
         );
         log(s, `${s.people.find((p) => p.id === t.customer)?.name}: ${result}`);
       }
+    } else if (e.type === "ending" && a) {
+      if (s.now >= a.end - 30000) notifyEnding(s, a);
+      else if (!a.endingNotified) schedule(s, a.end - 30000, "ending", a.id);
+    } else if (e.type === "proxy" && a) {
+      if (e.actor === "player") {
+        if (a.proxyActive && e.revision === a.proxyRevision)
+          runPlayerProxy(s, a);
+      } else if (e.actor && canWinEqualMaximum(s, a, e.actor))
+        bid(s, a.id, e.actor, a.price, "priority");
     } else if (e.type === "bid") log(s, bid(s, e.ref, e.actor!, e.amount!));
     else if (e.type === "close" && a) {
       if (a.status === "active" && s.now < a.end) {
@@ -752,6 +835,8 @@ export function advance(s: State, target: number) {
           Math.max(0, s.reputation + (o.status === "complaint" ? -4 : 2)),
         );
         earn(s, "delivery:" + o.id, o.status === "delivered" ? 50 : 10);
+        if (o.status === "delivered") recordDaily(s, "deliver", o.id);
+        wakeProxies(s);
         remember(s, c, o.status, o.id, `Jakość przesyłki: ${o.quality}`);
         log(
           s,
@@ -763,7 +848,13 @@ export function advance(s: State, target: number) {
       if (active < 20) {
         const index = chooseMarketProduct(s);
         makeAuction(s, index, s.now + auctionDuration(s, index));
-        log(s, `Nowa aukcja: ${catalog[index].name}.`);
+        const created = s.auctions.at(-1)!;
+        created.special =
+          catalog[index].rarity >= 7 && !!created.supplierContact;
+        log(
+          s,
+          `${created.special ? "Specjalna aukcja z sieci kontaktów" : "Nowa aukcja"}: ${catalog[index].name}.`,
+        );
       }
       // Top up gradually; no instantaneous wall of identical auctions.
       schedule(s, s.now + marketInterval(s), "market", "world");
@@ -781,6 +872,7 @@ export function advance(s: State, target: number) {
     }
     checkAchievements(s);
   }
+  daily(s);
   s.feed = s.feed.slice(0, 200);
   queues.delete(s);
   s.events = s.events.filter((e) => !e.done);
@@ -792,6 +884,7 @@ export function inspect(s: State, itemId: string) {
   if (i?.status === "inspect") {
     i.status = "stock";
     earn(s, "inspect:" + i.id, 10);
+    recordDaily(s, "inspect", i.id);
     log(s, "Towar sprawdzony i przyjęty do magazynu.");
   }
 }
@@ -806,6 +899,7 @@ export function list(s: State, itemId: string, price: number) {
     return "Nieprawidłowa cena lub status.";
   i.price = price;
   i.status = "listed";
+  recordDaily(s, "list", i.id);
   log(
     s,
     `Wystawiono ${whisky(i.product).name} za ${(price / 100).toFixed(2)} €.`,
@@ -954,6 +1048,7 @@ export function respond(
     text: `Zgadzam się na ${(amount / 100).toFixed(2)} € z dostawą. Proszę przygotować zamówienie.`,
   });
   earn(s, "sale:" + oid, 35);
+  wakeProxies(s);
   log(s, `Nowe zamówienie ${oid} od ${c.name}.`);
   return "Sprzedaż potwierdzona. Zapakuj i nadaj zamówienie.";
 }
@@ -1161,15 +1256,200 @@ export function setPace(s: State, pace: Pace) {
 }
 export function watchAuction(s: State, id: string) {
   const a = s.auctions.find((a) => a.id === id);
-  if (a) a.watched = !a.watched;
+  if (a) {
+    a.watched = !a.watched;
+    notifyEnding(s, a);
+  }
 }
 export function setBidLimit(s: State, id: string, limit: number | undefined) {
   const a = s.auctions.find((a) => a.id === id);
-  if (!a) return;
+  if (!a || a.status !== "active" || s.now >= a.end)
+    return "Aukcja jest zakończona.";
   if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 0))
     return "Nieprawidłowy limit.";
+  // Compatibility command: a saved safety cap is never implicit consent to automate.
+  a.proxyActive = false;
+  a.proxyStatus = "off";
+  a.proxyRevision = (a.proxyRevision ?? 0) + 1;
+  cancelPlayerProxy(s, a);
   a.playerLimit = limit;
-  return limit === undefined ? "Limit usunięty." : "Limit licytacji zapisany.";
+  return limit === undefined
+    ? "Limit usunięty."
+    : "Limit bezpieczeństwa zapisany. Automat pozostaje wyłączony.";
+}
+function notifyEnding(s: State, a: Auction) {
+  if (
+    a.status === "active" &&
+    s.now < a.end &&
+    !a.endingNotified &&
+    a.end - s.now <= 30000 &&
+    (a.watched || a.leader === "player" || a.proxyActive)
+  ) {
+    a.endingNotified = true;
+    log(
+      s,
+      `Aukcja ${a.id} kończy się za ${Math.max(1, Math.ceil((a.end - s.now) / 1000))} s: ${whisky(a.product).name}.`,
+    );
+  }
+}
+export function migrateAutomation(s: State) {
+  for (const a of s.auctions)
+    if (a.proxyActive === undefined) a.proxyActive = false;
+}
+function cancelPlayerProxy(s: State, a: Auction) {
+  for (const e of s.events)
+    if (!e.done && e.type === "proxy" && e.ref === a.id && e.actor === "player")
+      e.done = true;
+}
+function canWinEqualMaximum(s: State, a: Auction, actor: string) {
+  if (
+    a.status !== "active" ||
+    s.now >= a.end ||
+    a.leader === actor ||
+    !a.leader
+  )
+    return false;
+  const own = a.maximumRegistrations?.[actor],
+    leader = a.maximumRegistrations?.[a.leader];
+  if (
+    !own ||
+    !leader ||
+    own.limit !== a.price ||
+    leader.limit !== a.price ||
+    own.order >= leader.order
+  )
+    return false;
+  if (actor === "player") return !!a.proxyActive && a.playerLimit === a.price;
+  const p = s.people.find((p) => p.id === actor);
+  return !!p && a.limits[actor] === a.price && totalCost(a) <= available(p);
+}
+function queueEqualPriority(s: State, a: Auction) {
+  const candidates = Object.entries(a.maximumRegistrations ?? {})
+    .filter(([actor]) => canWinEqualMaximum(s, a, actor))
+    .sort((x, y) => x[1].order - y[1].order);
+  const actor = candidates[0]?.[0];
+  if (!actor) return;
+  if (actor === "player") {
+    queuePlayerProxy(s, a);
+    return;
+  }
+  if (
+    !s.events.some(
+      (e) =>
+        !e.done && e.type === "proxy" && e.ref === a.id && e.actor === actor,
+    )
+  )
+    schedule(s, s.now + 200, "proxy", a.id, actor);
+}
+function proxyState(s: State, a: Auction, status: Auction["proxyStatus"]) {
+  if (a.proxyStatus === status) return;
+  a.proxyStatus = status;
+  if (status === "limit")
+    log(
+      s,
+      `Automat ${a.id}: zostałeś przebity ponad limit ${((a.playerLimit ?? 0) / 100).toFixed(2)} €.`,
+    );
+  if (status === "funds")
+    log(s, `Automat ${a.id} czeka: brak wolnej gotówki na ofertę z opłatami.`);
+  if (status === "capacity")
+    log(s, `Automat ${a.id} czeka: magazyn jest pełny.`);
+}
+function queuePlayerProxy(s: State, a: Auction) {
+  if (!a.proxyActive || a.status !== "active" || s.now >= a.end) return;
+  if (a.leader === "player") {
+    a.proxyStatus = "leading";
+    return;
+  }
+  if (a.playerLimit === undefined) return;
+  if (
+    a.price + bidStep(a.price) > a.playerLimit &&
+    !canWinEqualMaximum(s, a, "player")
+  ) {
+    proxyState(s, a, "limit");
+    return;
+  }
+  if (
+    s.events.some(
+      (e) =>
+        !e.done &&
+        e.type === "proxy" &&
+        e.ref === a.id &&
+        e.actor === "player" &&
+        e.revision === a.proxyRevision,
+    )
+  )
+    return;
+  schedule(s, s.now + 200, "proxy", a.id, "player").revision = a.proxyRevision;
+}
+function wakeProxies(s: State) {
+  for (const a of s.auctions) queuePlayerProxy(s, a);
+}
+function runPlayerProxy(s: State, a: Auction) {
+  if (a.status !== "active" || s.now >= a.end) {
+    proxyState(s, a, "late");
+    return;
+  }
+  if (a.leader === "player") {
+    a.proxyStatus = "leading";
+    return;
+  }
+  const equal = canWinEqualMaximum(s, a, "player"),
+    amount = equal ? a.price : a.price + bidStep(a.price);
+  if (amount > (a.playerLimit ?? 0)) {
+    proxyState(s, a, "limit");
+    return;
+  }
+  if (totalCost(a, amount) > cash(s) - held(s, a.id)) {
+    proxyState(s, a, "funds");
+    return;
+  }
+  const occupied =
+    s.items.filter((i) => i.status !== "sold").length +
+    s.auctions.filter(
+      (x) => x.status === "active" && x.leader === "player" && x.id !== a.id,
+    ).length;
+  if (occupied >= capacity(s)) {
+    proxyState(s, a, "capacity");
+    return;
+  }
+  bid(s, a.id, "player", amount, equal ? "priority" : "proxy");
+}
+export function activateProxy(s: State, id: string, limit: number) {
+  const a = s.auctions.find((a) => a.id === id);
+  if (!a || a.status !== "active" || s.now >= a.end)
+    return "Aukcja jest zakończona.";
+  if (!Number.isSafeInteger(limit) || limit <= 0)
+    return "Podaj prawidłową maksymalną ofertę.";
+  if (a.leader === "player" && limit < a.price)
+    return "Limit nie może być niższy od Twojej przyjętej oferty.";
+  const same = a.proxyActive && a.playerLimit === limit;
+  a.proxyActive = true;
+  a.playerLimit = limit;
+  if (!same) {
+    a.proxyRevision = (a.proxyRevision ?? 0) + 1;
+    cancelPlayerProxy(s, a);
+    (a.maximumRegistrations ??= {}).player = {
+      limit,
+      at: s.now,
+      order: ++s.serial,
+    };
+  }
+  a.proxyStatus = a.leader === "player" ? "leading" : "active";
+  notifyEnding(s, a);
+  queuePlayerProxy(s, a);
+  return `Automat aktywny • Limit ${(limit / 100).toFixed(2)} €`;
+}
+export function disableProxy(s: State, id: string) {
+  const a = s.auctions.find((a) => a.id === id);
+  if (!a || a.status !== "active" || s.now >= a.end)
+    return "Aukcja jest zakończona.";
+  a.proxyActive = false;
+  a.proxyStatus = "off";
+  a.proxyRevision = (a.proxyRevision ?? 0) + 1;
+  cancelPlayerProxy(s, a);
+  delete a.playerLimit;
+  if (a.maximumRegistrations) delete a.maximumRegistrations.player;
+  return "Automatyczna licytacja wyłączona. Przyjęte oferty nadal obowiązują.";
 }
 export function supplierClaim(s: State, id: string) {
   const i = s.items.find((i) => i.id === id);
@@ -1186,6 +1466,7 @@ export function supplierClaim(s: State, id: string) {
   );
   post(s, "supplier-" + i.id, amount, "Ugoda ze sprzedawcą aukcyjnym", i.id);
   i.cost -= amount;
+  wakeProxies(s);
   return "Niezgodność potwierdzona. Zaksięgowano rekompensatę za obniżony stan.";
 }
 const extraNames = [
@@ -1275,10 +1556,14 @@ export function addBidders(s: State) {
 }
 export function migrateGame(input: unknown): State {
   const s = input as Omit<State, "version"> & { version: number };
-  if (s.version === 2) return s as State;
+  if (s.version === 2) {
+    migrateAutomation(s as State);
+    return s as State;
+  }
   if (s.version !== 1) throw Error("Nieobsługiwana wersja zapisu.");
   s.version = 2;
   s.pace = "Dynamiczne";
+  migrateAutomation(s as State);
   addBidders(s as State);
   // Existing bids, money, ledger and delivery deadlines are preserved.
   s.events = s.events.filter((e) => !e.done && e.type !== "market");

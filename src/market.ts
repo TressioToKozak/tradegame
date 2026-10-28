@@ -41,7 +41,9 @@ export function conditionValueFactor(w: Whisky, bottle = 100, box = 100) {
 }
 export function estimatedHammerValue(w: Whisky, bottle = 100, box = 100) {
   const r = auctionRange(w);
-  return Math.round(
-    (r.min + (r.max - r.min) * 0.7) * conditionValueFactor(w, bottle, box),
-  );
+  // The median of matching sales is a valuation anchor; an isolated high result must not inflate everyone's ceiling.
+  const observed=w.market.observedAuctionCents;
+  const center=observed!==null && observed!==undefined ? observed : Math.min(w.value,r.min+(r.max-r.min)*.55);
+  const caution=w.market.pricingNeedsReview && observed ? .9 : 1;
+  return Math.round(center*caution*conditionValueFactor(w,bottle,box));
 }

@@ -10,6 +10,7 @@ export default function AuctionMarket({
   state: State;
   onOpen: (id: string) => void;
 }) {
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [category, setCategory] = useState("Wszystkie"),
     [sort, setSort] = useState("Czas do końca"),
     [watched, setWatched] = useState(false),
@@ -50,10 +51,7 @@ export default function AuctionMarket({
           "Wszystkie",
           "Kończące się",
           "Obserwowane",
-          "Tanie",
           "Rzadkie",
-          "Vintage",
-          "Limitowane",
           "Nowo dodane",
         ].map((label) => (
           <button
@@ -66,7 +64,17 @@ export default function AuctionMarket({
           </button>
         ))}
       </div>
-      <div className="market-tools">
+      <button
+        className="filter-toggle outline"
+        aria-expanded={filtersOpen}
+        onClick={() => setFiltersOpen(!filtersOpen)}
+      >
+        Filtry i sortowanie{" "}
+        <span>
+          {shown.length}/{active.length}
+        </span>
+      </button>
+      <div className={`market-tools ${filtersOpen ? "expanded" : "collapsed"}`}>
         <label>
           Kategoria
           <select

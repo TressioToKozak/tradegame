@@ -144,6 +144,14 @@ export function buyUpgrade(s: State, id: Upgrade) {
     at: s.now,
     text: `Ulepszenie: ${u.name}, stopień ${tier + 1}.`,
   });
+  if (id === "contacts") {
+    const contact = tradeContacts.find((c) => c.tier === p.upgrades.contacts);
+    if (contact)
+      s.feed.unshift({
+        at: s.now,
+        text: `Odblokowano kontakt: ${contact.name}.`,
+      });
+  }
   checkAchievements(s);
   return `${u.name}: stopień ${tier + 1}.`;
 }

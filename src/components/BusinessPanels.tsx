@@ -210,11 +210,7 @@ export default function BusinessPanels({
       )}
       {tab === "Uczestnicy" && (
         <section>
-          <h2>Ludzie, nie losowe komunikaty</h2>
-          <p className="muted">
-            Podgląd diagnostyczny silnika. Prywatne limity są widoczne tutaj,
-            aby można było sprawdzić przyczyny decyzji.
-          </p>
+          <h2>Znajome twarze</h2>
           <div className="people-grid">
             {s.people.map((p) => (
               <article className="card panel" key={p.id}>
@@ -230,11 +226,7 @@ export default function BusinessPanels({
                   </div>
                 </div>
                 <dl>
-                  <dt>Budżet / blokady</dt>
-                  <dd>
-                    {euro(p.budget)} / {euro(p.reserved)}
-                  </dd>
-                  <dt>Strategia</dt>
+                  <dt>Styl licytacji</dt>
                   <dd>
                     {
                       {
@@ -244,39 +236,34 @@ export default function BusinessPanels({
                       }[p.strategy]
                     }
                   </dd>
-                  <dt>Zainteresowania</dt>
-                  <dd>{p.favorites.join(", ")}</dd>
-                  <dt>Cierpliwość / wrażliwość cenowa</dt>
+                  <dt>Kolekcjonuje</dt>
                   <dd>
-                    {Math.round(p.patience * 100)} /{" "}
-                    {Math.round(p.sensitivity * 100)}
+                    {p.favorites
+                      .map(
+                        (f) =>
+                          ({
+                            standard: "Klasyka",
+                            blue: "Blue Label",
+                            vintage: "Historyczne wydania",
+                            travel: "Travel Retail",
+                          })[f] ?? f,
+                      )
+                      .join(", ")}
                   </dd>
-                  <dt>Zaufanie / negocjacje</dt>
+                  <dt>Na żywo</dt>
                   <dd>
-                    {Math.round(p.trust * 100)} /{" "}
-                    {Math.round(p.negotiation * 100)}
+                    {
+                      active.filter(
+                        (a) =>
+                          a.watchers?.includes(p.id) ||
+                          a.bids.some((b) => b.actor === p.id),
+                      ).length
+                    }{" "}
+                    aukcji
                   </dd>
-                  <dt>Kolekcja</dt>
-                  <dd>{p.owned.length} butelek</dd>
+                  <dt>Zdobyte butelki</dt>
+                  <dd>{p.owned.length}</dd>
                 </dl>
-                <details>
-                  <summary>Pamięć · {p.memory.length} zdarzeń</summary>
-                  {p.memory
-                    .slice(-15)
-                    .reverse()
-                    .map((m, i) => (
-                      <p key={i}>
-                        {date(m.at)} · {memoryLabel(m.kind)} · {m.ref} ·{" "}
-                        {m.detail}
-                      </p>
-                    ))}
-                  {p.role === "bidder" &&
-                    active.map((a) => (
-                      <p key={a.id}>
-                        Limit {a.id}: {euro(a.limits[p.id])}
-                      </p>
-                    ))}
-                </details>
               </article>
             ))}
           </div>
@@ -285,21 +272,3 @@ export default function BusinessPanels({
     </>
   );
 }
-const memoryLabel = (kind: string) =>
-  ({
-    watch: "Obserwacja",
-    bid: "Oferta",
-    won: "Wygrana",
-    lost: "Przegrana",
-    withdraw: "Rezygnacja",
-    inquiry: "Zapytanie",
-    passed: "Pominięcie",
-    ignored: "Brak odpowiedzi",
-    rejected: "Odmowa",
-    purchase: "Zakup",
-    refund: "Zwrot",
-    delivered: "Doręczenie",
-    complaint: "Reklamacja",
-    wait: "Oczekiwanie",
-    "counter-rejected": "Odrzucona cena",
-  })[kind] ?? kind;

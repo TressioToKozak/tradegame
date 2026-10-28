@@ -124,6 +124,66 @@ function validate(s: State) {
       (a.leader !== null && a.leader !== "player" && !person(a.leader))
     )
       fail();
+  for (const a of s.auctions) {
+    if (a.proxyActive !== undefined && typeof a.proxyActive !== "boolean")
+      fail();
+    if (a.playerLimit !== undefined && !money(a.playerLimit)) fail();
+    if (a.proxyRevision !== undefined && !money(a.proxyRevision)) fail();
+    if (a.maximumRegistrations) {
+      if (
+        typeof a.maximumRegistrations !== "object" ||
+        Array.isArray(a.maximumRegistrations)
+      )
+        fail();
+      const orders: number[] = [];
+      for (const [actor, r] of Object.entries(a.maximumRegistrations)) {
+        if (
+          (actor !== "player" && !person(actor)) ||
+          !r ||
+          !money(r.limit) ||
+          r.limit <= 0 ||
+          !finite(r.at) ||
+          !Number.isSafeInteger(r.order) ||
+          r.order <= 0 ||
+          r.order > s.serial
+        )
+          fail();
+        orders.push(r.order);
+      }
+      if (new Set(orders).size !== orders.length) fail();
+    }
+    if (
+      a.proxyActive &&
+      (!a.playerLimit ||
+        !a.maximumRegistrations?.player ||
+        a.maximumRegistrations.player.limit !== a.playerLimit ||
+        a.proxyRevision === undefined)
+    )
+      fail();
+  }
+  if (s.daily) {
+    if (
+      typeof s.daily.day !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(s.daily.day) ||
+      !s.daily.completed ||
+      !Array.isArray(s.daily.claimed) ||
+      new Set(s.daily.claimed).size !== s.daily.claimed.length
+    )
+      fail();
+    for (const key of ["inspect", "list", "deliver"] as const) {
+      const rows = s.daily.completed[key];
+      if (
+        !Array.isArray(rows) ||
+        rows.some((x) => typeof x !== "string") ||
+        new Set(rows).size !== rows.length
+      )
+        fail();
+    }
+    if (
+      s.daily.claimed.some((k) => !["inspect", "list", "deliver"].includes(k))
+    )
+      fail();
+  }
   for (const a of s.auctions)
     if (
       a.extensions &&
@@ -189,11 +249,14 @@ function validate(s: State) {
       fail();
   for (const e of s.events)
     if (
+      (e.revision !== undefined && !money(e.revision)) ||
       !Number.isSafeInteger(e.id) ||
       !finite(e.at) ||
       typeof e.ref !== "string" ||
       typeof e.done !== "boolean" ||
       ![
+        "proxy",
+        "ending",
         "think",
         "bid",
         "close",

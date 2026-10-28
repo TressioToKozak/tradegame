@@ -3,6 +3,9 @@ import { useState } from "react";
 import { Modal } from "./ProductGallery";
 import Brand from "./Brand";
 import { assetUrl, productMedia } from "../media";
+import { cash } from "../engine";
+import { euro } from "../catalog";
+import { shopLevel } from "../progression";
 import { pacing, type Pace } from "../pace";
 import type { State } from "../engine";
 export default function GameMenu({
@@ -23,19 +26,36 @@ export default function GameMenu({
     [pace, setPace] = useState<Pace>("Dynamiczne");
   const photo = productMedia.collection[0];
   return (
-    <main className="game-menu menu-v3">
+    <main className="game-menu menu-v3 menu-v31">
       <div className="menu-story">
-        <Brand />
-        <p className="menu-wordmark">
-          JOHNNIE WALKER
-          <br />
-          <strong>COLLECTION STORE</strong>
-        </p>
+        <div className="menu-identity">
+          <Brand />
+          <span>
+            JW COLLECTION STORE<small>TWÓJ DOM KOLEKCJONERSKI</small>
+          </span>
+        </div>
+        <p className="menu-wordmark">JOHNNIE WALKER COLLECTION STORE</p>
         <h1>
-          Zbuduj swoje
+          Twoja pasja.
           <br />
-          <em>whisky imperium.</em>
+          <em>Twoje imperium.</em>
         </h1>
+        {s && (
+          <div className="menu-resume">
+            <span className="menu-level">{shopLevel(s)}</span>
+            <div>
+              <strong>Twój salon</strong>
+              <span>
+                {euro(cash(s))} ·{" "}
+                {s.items.filter((i) => i.status !== "sold").length} butelek
+              </span>
+            </div>
+            <b>
+              {s.auctions.filter((a) => a.status === "active").length}
+              <small>aukcji na żywo</small>
+            </b>
+          </div>
+        )}
         <div className="menu-actions">
           <button className="menu-primary" disabled={!s} onClick={onContinue}>
             <Play size={20} /> KONTYNUUJ GRĘ
@@ -61,15 +81,6 @@ export default function GameMenu({
               src={assetUrl(photo.path)}
               alt="Fotograficzna kolekcja butelek Johnnie Walker"
             />
-            <div className="menu-photo-credit">
-              <a href={photo.source} target="_blank" rel="noreferrer">
-                {photo.author}
-              </a>{" "}
-              ·{" "}
-              <a href={photo.licenseUrl} target="_blank" rel="noreferrer">
-                {photo.license}
-              </a>
-            </div>
           </>
         )}
       </div>

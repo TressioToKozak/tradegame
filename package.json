@@ -1,7 +1,7 @@
 {
   "name": "jw-collection-store",
   "private": true,
-  "version": "3.0.0",
+  "version": "3.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -15,7 +15,8 @@
     "report:images": "node scripts/report-media.mjs",
     "import:johnnie-walker": "node scripts/import-johnnie-walker.mjs --include-walker-sons",
     "test:pages": "node scripts/verify-pages.mjs",
-    "report:import": "node scripts/report-import.mjs"
+    "report:import": "node scripts/report-import.mjs",
+    "report:photo-layout": "node scripts/photo-layout.mjs"
   },
   "dependencies": {
     "dexie": "^4.0.11",

@@ -40,7 +40,7 @@ for (const [batch, records] of batches.entries())
       page.getByRole("heading", { name: "Aktualnie w grze", exact: true }),
     ).toBeVisible();
     await page
-      .getByRole("button", { name: "Aukcje na żywo", exact: true })
+      .getByRole("button", { name: "Aukcje", exact: true })
       .click();
     await expect(page.locator(".auction-card")).toHaveCount(records.length);
     for (const [i, r] of records.entries()) {

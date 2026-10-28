@@ -113,9 +113,7 @@ try {
     },
     photos.map((p) => new URL(p.path, base).href),
   );
-  await page
-    .getByRole("button", { name: "Aukcje na żywo", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Aukcje", exact: true }).click();
   const activeCount = await page.locator(".auction-card").count();
   if (activeCount < 12 || activeCount > 20)
     throw Error(
