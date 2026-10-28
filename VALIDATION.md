@@ -1,27 +1,13 @@
-# Weryfikacja kandydata 3.0
+# Weryfikacja pełnego importu i wersji 3.0
 
-## Silnik i zapis
+- **78 testów jednostkowych, komponentowych i integracyjnych:** finanse, NPC, anty-sniping, replay, zapis/migracja, rozwój, pełny import, dopasowania i ceny. Testy importera działają na odizolowanych katalogach tymczasowych; sprawdzają powtórzenie identyczne bajtowo, brak innych marek, warianty pojemności, dry-run, brak pliku, złe ścieżki, kolizje i duplikaty. Grafiki testowe nie trafiają do gry.
+- Wszystkie 253 importowane edycje przechodzą w silniku złożenie oferty, zakończenie aukcji, pełne rozliczenie kosztów, dostawę i kontrolę magazynową. Istniejące testy obejmują dalszą sprzedaż, negocjacje, wysyłkę, doręczenie i reklamację; żadna edycja nie wymaga osobnego kodu biznesowego.
+- Źródłowy katalog i mapa obejmują dokładnie 232 Johnnie Walker + 21 John Walker & Sons. Wszystkie 56 starych ID pozostało; zapis zachowuje pieniądze, koszty zapasu, cenę oferty, prowizję, transport i terminy trwających aukcji.
+- **28 scenariuszy Chromium na produkcyjnym `dist` pod `/tradegame/`:** dotychczasowa gra i 13 partii maks. 20 aukcji, pokazujących wszystkie 253 importowane fotografie jako rzeczywiste karty aplikacji. Testy sprawdzają widoczność, właściwe powiązanie produktu/ścieżki, `Image.decode()`, `naturalWidth` i `naturalHeight` każdego obrazu.
+- Przeglądarka potwierdza, że samo otwarcie menu nie pobiera importowanej biblioteki; osobny cache jest zapełniany na żądanie i ograniczony do 80 fotografii. Tryb offline shell oraz zapis nadal działają.
+- Anty-sniping w Chromium używa rzeczywistego upływu około 39 s: oferta gracza, +15 s, odświeżenie, oferta NPC, kolejne +15 s, brak wcześniejszego zamknięcia i jedno rozliczenie.
+- Godzinny rynek i obciążenie 20 aukcji zachowują budżety; kilkudniowe odtworzenie jest porcjowane i ma identyczny wynik jak przebieg co minutę.
+- `check:images:all` przechodzi: 255 referencji zdjęć, 254 produkty, zero braków. SHA-256 wszystkich 253 nowych lokalnych obrazów zgadza się z raportem importu. Nie użyto zewnętrznych URL jako obrazów podczas gry.
+- TypeScript i produkcyjny build Vite przechodzą. `scripts/verify-pages.mjs` testuje skompilowane wejście, SHA-256 wszystkich publikowanych zasobów i fotografii, dekodowanie 255 obrazów, nowe menu i 16 aukcji. Ten sam skrypt jest uruchamiany po publikacji w GitHub Actions; wynik publicznego wdrożenia należy odróżniać od lokalnego przebiegu.
 
-`npm test`: **64 testy jednostkowe i komponentowe**, bez pominiętych. Zachowane obliczenia aukcji, wspólne budżety NPC, klienci, rezerwacje, zwroty, księga i import. Nowe testy obejmują płatne ulepszenia, blokady gotówki, pojemność w momencie rejestracji, jednokrotne PD, zgodność starszych zapisów, wpływ pakowania na ryzyko, kontakty i pochodzenie partii, przedziały wyceny i brak mnożnika rzadkości.
-
-Godzinny rynek utrzymuje zwykle 12–20 aukcji, nigdy więcej niż 20; test obciążenia obejmuje 20 partii i wspólne budżety. Trzy dni offline odtwarzają się w około 1 s na tej maszynie; to obserwacja, nie gwarancja wydajności telefonu. Silnik przetwarza ograniczone porcje 50 000 zdarzeń. Test porównuje pełne odtworzenie w takich porcjach z odtwarzaniem co minutę; oba kończą na żądanym czasie i identycznym stanie, także z doświadczeniem.
-
-Anti-sniping: próg 10/11 sekund, wielokrotne +15 s, gracz/NPC, spóźnione/odrzucone/własne oferty, stare zdarzenia zamknięcia, zaktualizowane decyzje snajperów, odświeżenie i jedno rozliczenie.
-
-## Przeglądarka i wygląd
-
-**14 scenariuszy Chromium zaliczonych**, bez pominiętych, na skompilowanym `dist`, serwowanym z rzeczywistego podfolderu `/tradegame/`. Zestaw obejmuje menu i nieinteraktywne zdjęcie kolekcji, focus, monogram, osobną konfigurację nowej gry, licytację, zegary i NPC, klientów i zapis odpowiedzi, rozpakowanie, finanse, mobilny układ, tryb offline, migrację z eksportem oryginału, zdjęcia, filtry, checkbox, obserwowanie, limit, rozwój i koszt/pojemność po odświeżeniu, ustawienie uproszczonych animacji i tooltip zamykany Escape.
-
-Test anti-sniping korzysta z rzeczywistego upływu czasu przez około 39 s: gracz przedłuża aukcję, odświeża stronę, NPC ponownie przedłuża, żaden wcześniejszy termin nie zamyka aukcji, budżet NPC i pamięć zwycięstwa są rozliczone raz.
-
-Zrzuty menu, pulpitu, rozwoju i rynku mobilnego zapisują się w `test-results/`; wybrane są zachowane w `docs/screenshots/`. Obejrzano ekran menu, pulpit, rynek mobilny i rozwój. Po przeglądzie zmniejszono karty bez fotografii, skrócono sekcję nowych okazji i usunięto część mikrotekstu z telefonu. Zrzuty nie ukrywają braku 44 fotografii.
-
-Każdy z 15 przypisanych plików jest dekodowany przez `Image.decode()` w prawdziwym Chromium, a 12 sfotografowanych produktów sprawdza `complete` i `naturalWidth` na kartach. To nie jest test kompletności całego katalogu.
-
-## Build i blokery
-
-- TypeScript, Vite i kontrola istniejących fotografii przechodzą.
-- **`check:images:all` nie przechodzi: 44 braki z 56 produktów.** W tej sesji nie pozyskano nowych plików: wszystkie osiem sprawdzonych źródeł jest zablokowane przez proxy CONNECT 403. Pełna lista w `MISSING_IMAGES.md`.
-- Aktualne detaliczne ceny i zakończone aukcje nie zostały zewnętrznie zweryfikowane. Szacunki są oznaczone jako szacunki, a daty i źródła nie są fabrykowane.
-- Publiczna domena Pages także jest poza aktywną listą dostępu tego środowiska. Nie wykonano końcowego testu nowej wersji na publicznym hostingu.
-- Kandydat pozostaje na gałęzi `jwcs-v3`, bez zastąpienia opublikowanej gry. Publikacja wymaga przejścia kontroli fotografii całego katalogu. Zgodność z podfolderem Pages i tryb offline sprawdzono lokalnie; nie jest to deklaracja wydania 3.0.
+W `docs/screenshots/` są zrzuty prawdziwego Chromium, odświeżone po imporcie. Galerie nie są makietami. Dane źródłowe wycen mają daty z repozytorium, a nie nową, niezależną weryfikację w tej sesji. **134 wyceny wymagają dalszego sprawdzenia**; pełna lista i powody są w `IMPORT_REPORT.md`. Pojedynczy wynik nie staje się potwierdzonym przedziałem, wycena zagraniczna nie udaje oferty NL, a dane o niezgodnej pojemności/mocy nie są używane jako zweryfikowana cena wariantu.

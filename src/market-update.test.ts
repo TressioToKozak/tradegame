@@ -134,13 +134,13 @@ describe("Anti-sniping: rzeczywisty termin i jednokrotne rozliczenie", () => {
 describe("Siedem edycji, model rynku i losowanie bez ukrywania braków fotografii", () => {
   it("aktualizuje trzy istniejące ID i dodaje cztery, bez duplikatu Red Rye", () => {
     for (const [id, price, rarity, volume, abv] of [
-      ["red", 1900, 1, 700, 40],
-      ["red-soul", 1900, 2, 700, 40],
-      ["rye", 3500, 5, 700, 40],
-      ["high-rye", 3500, 5, 750, 45],
-      ["triple-cask", 6000, 5, 1000, 40],
-      ["black-ruby", 3400, 2, 700, 40],
-      ["sherry", 3500, 4, 700, 40],
+      ["red", 1365, 1, 700, 40],
+      ["red-soul", 1250, 2, 700, 40],
+      ["rye", 2959, 5, 700, 40],
+      ["high-rye", 8878, 5, 750, 45],
+      ["triple-cask", 4045, 5, 1000, 40],
+      ["black-ruby", 2395, 2, 700, 40],
+      ["sherry", 4439, 4, 700, 40],
     ] as const) {
       const w = catalog.find((w) => w.id === id)!;
       expect(w.market.referenceRetailCents).toBe(price);
@@ -164,23 +164,32 @@ describe("Siedem edycji, model rynku i losowanie bez ukrywania braków fotografi
       if (w.market.referenceKind === "game-balance")
         expect(w.market.lastVerified).toBeNull();
     }
-    expect(catalog.find((w) => w.id === "high-rye")!.balanceNote).toContain(
-      "nie jest to potwierdzona cena",
-    );
+    expect(
+      catalog.find((w) => w.id === "high-rye")!.market.sourceQuote?.kind,
+    ).toBe("auction-result");
+    expect(
+      catalog.find((w) => w.id === "high-rye")!.market.retailCents,
+    ).toBeNull();
   });
   it("powszechne i regionalne produkty mają różną częstotliwość, a braki zdjęć nie są filtrowane", () => {
-    const s = createGame(now, 21);
-    s.auctions = [];
-    const counts: Record<string, number> = {};
-    let missing = 0;
-    for (let i = 0; i < 10000; i++) {
-      const w = catalog[chooseMarketProduct(s)];
-      counts[w.id] = (counts[w.id] ?? 0) + 1;
-      if (!photosFor(w.id).length) missing++;
+    const originalRedPhotos = productMedia.products.red;
+    delete productMedia.products.red;
+    try {
+      const s = createGame(now, 21);
+      s.auctions = [];
+      const counts: Record<string, number> = {};
+      let missing = 0;
+      for (let i = 0; i < 10000; i++) {
+        const w = catalog[chooseMarketProduct(s)];
+        counts[w.id] = (counts[w.id] ?? 0) + 1;
+        if (!photosFor(w.id).length) missing++;
+      }
+      expect(counts.red).toBeGreaterThan(counts.honour);
+      expect(counts.rye).toBeGreaterThan(counts["high-rye"]);
+      expect(missing).toBeGreaterThan(0);
+    } finally {
+      productMedia.products.red = originalRedPhotos;
     }
-    expect(counts.red).toBeGreaterThan(counts.honour);
-    expect(counts.rye).toBeGreaterThan(counts["high-rye"]);
-    expect(missing).toBeGreaterThan(0);
   });
   it("handlarze i kolekcjonerzy nie podbijają pospolitego Red Label do 100 €", () => {
     const s = createGame(now, 8);
@@ -210,7 +219,13 @@ describe("Kompletność raportu i rozdzielenie cech rynku", () => {
     );
     for (const w of catalog) {
       const photos = productMedia.products[w.id] ?? [];
-      if (!photos.length) expect(report.split("\n").filter(line=>line.startsWith("|")).map(line=>line.split("|")[1].trim())).toContain(w.id);
+      if (!photos.length)
+        expect(
+          report
+            .split("\n")
+            .filter((line) => line.startsWith("|"))
+            .map((line) => line.split("|")[1].trim()),
+        ).toContain(w.id);
       else
         for (const photo of photos)
           expect(

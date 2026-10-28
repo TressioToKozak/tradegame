@@ -1,0 +1,999 @@
+{
+  "sourceRecords": 638,
+  "brands": [
+    "Johnnie Walker",
+    "John Walker & Sons"
+  ],
+  "selectedRecords": 253,
+  "uniqueProducts": 253,
+  "added": 18,
+  "updated": 235,
+  "images": 253,
+  "missingFiles": [],
+  "baselineLegacyCount": 56,
+  "addedSinceBaseline": 198,
+  "updatedLegacy": 55,
+  "sourceRepository": "TressioToKozak/whisky",
+  "sourceCommit": "5c99c4eaed7c48047b58c29e4f442fd08552ccc3",
+  "totalGameProducts": 254,
+  "productsWithoutPhotos": [],
+  "sourceBytes": 12850121,
+  "outputBytes": 8470372,
+  "pricingReview": [
+    {
+      "id": "double",
+      "name": "Johnnie Walker Double Black",
+      "reasons": [
+        "Brak zweryfikowanej wyceny tego wariantu w repozytorium źródłowym"
+      ]
+    },
+    {
+      "id": "platinum",
+      "name": "Johnnie Walker Platinum Label 18 Year Old",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "rye",
+      "name": "Johnnie Walker Blenders' Batch · Red Rye Finish",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "blonde",
+      "name": "Johnnie Walker Johnnie Blonde",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "islay",
+      "name": "Johnnie Walker Black Label 12 Year Old Islay Origin",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "anniversary",
+      "name": "Johnnie Walker Blue Label · 200th Anniversary Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "xr21",
+      "name": "Johnnie Walker XR 21 Year Old",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "premier",
+      "name": "Johnnie Walker Premier",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "odyssey",
+      "name": "John Walker & Sons Odyssey",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "quest",
+      "name": "Johnnie Walker Quest",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "pig",
+      "name": "Johnnie Walker Blue Label · Year of the Pig 2019",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "rat",
+      "name": "Johnnie Walker Blue Label · Year of the Rat 2020",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "rabbit",
+      "name": "Johnnie Walker Blue Label Year of the Rabbit Limited Edition",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "select",
+      "name": "Johnnie Walker Select Casks 10 Year Old Rye Cask Finish",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "high-rye",
+      "name": "Johnnie Walker High Rye",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-009",
+      "name": "Johnnie Walker Black Label 12 · 200 Years",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-e7c49fa1b187",
+      "name": "Johnnie Walker Black Label Squid Game Limited Edition",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-cfa84236a438",
+      "name": "Johnnie Walker 30 Year Old · Eight Treasures",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-03b2c78c0513",
+      "name": "Johnnie Walker Blue Label · Year of the Horse 2026 (Taiwan Edition)",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-58b260e125f8",
+      "name": "Johnnie Walker Black Label 12 Year Old · Air Ink Mexico City Edition",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-e1285edb7c05",
+      "name": "Johnnie Walker Black Label 12 Year Old · Air Ink San José Edition",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-221fdd1b660b",
+      "name": "Johnnie Walker Black Label 12 Year Old · Air Ink New Delhi Edition",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-77ef31a78842",
+      "name": "Johnnie Walker Black Label 12 Year Old · Air Ink Bangkok Edition",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-245bbc0beb34",
+      "name": "Johnnie Walker XR 19 Year Old",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-f29545856b67",
+      "name": "Johnnie Walker XR 23 Year Old",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-854643fbf2c1",
+      "name": "Johnnie Walker Blue Label · Cities Of The Future Hainan 2220",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-00ee1bf1ffaa",
+      "name": "Johnnie Walker Gold Label 18 Year Old · The Centenary Blend (First Edition)",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-70d785ae6445",
+      "name": "Johnnie Walker Red Label · 1980s",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-ecd76d110a36",
+      "name": "Johnnie Walker Old Harmony · 1970s",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-fc1e75f76a49",
+      "name": "Johnnie Walker Red Label · 1970s",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-5cfdf92717ae",
+      "name": "Johnnie Walker Blue Label · Year of the Pig 2019 (Taiwan Edition)",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-bd2e064343bd",
+      "name": "Johnnie Walker Blue Label · South Africa Limited Edition Design",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-820f3c73334f",
+      "name": "Johnnie Walker Black Label 12 Year Old · Air Ink Istanbul Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-8370a1d25807",
+      "name": "Johnnie Walker Black Label 12 Year Old · Air Ink Warsaw Edition",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ffa2a4db4241",
+      "name": "Johnnie Walker Red Label · Icons 2.0",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-32646e7bc8cb",
+      "name": "Johnnie Walker Blue Label · Taiwan Limited Edition Design",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-646b1be0353c",
+      "name": "Johnnie Walker Blue Label · Great Inventions",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-93d2e18af694",
+      "name": "Johnnie Walker Blue Label · New York Limited Edition Design",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-45e656af7147",
+      "name": "Johnnie Walker Blue Label · Singapore Limited Edition Design",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-2bf2aa7411d4",
+      "name": "Johnnie Walker Blue Label · Icons 2.0",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-16bbd1175fb9",
+      "name": "Johnnie Walker Gold Label 18 Year Old · 1990s",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-81c21720092f",
+      "name": "Johnnie Walker Green Label 15 Year Old · 1990s",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-12afe20d7c31",
+      "name": "Johnnie Walker Black Label Extra Special · 1970s",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-77559b2d6b2e",
+      "name": "Johnnie Walker Black Label 12 Year Old · Air Ink Lagos Edition",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-bbb3e123ff54",
+      "name": "Johnnie Walker 40 Year Old Master's Ruby Reserve",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-4ed38f9bbd46",
+      "name": "Johnnie Walker Black Label 12 Year Old · Icons 2.0",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-3168521d58c6",
+      "name": "Johnnie Walker 48 Year Old Masters of Flavour",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-117a095fa553",
+      "name": "Johnnie Walker Icon Gold · 200 Years Keep Walking Limited Edition",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-f6aff259b427",
+      "name": "Johnnie Walker Extra Special Black Label · 1960s",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-e94f244fddd0",
+      "name": "Johnnie Walker Black Label 12 Year Old 100th Anniversary Edition",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-053cbf44629a",
+      "name": "Johnnie Walker Black Label 12 Year Old · 1980s",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-b721b0c31347",
+      "name": "Johnnie Walker Gold Label Reserve · Limited Edition Bottle",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-fa853c7ae155",
+      "name": "Johnnie Walker Blue Label (Old Bottling)",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-a57b272146a1",
+      "name": "Johnnie Walker Blue Label · Rare Side of Scotland Limited Edition",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-9f42a012842a",
+      "name": "Johnnie Walker Blue Label · London Limited Edition Design",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-dc657ce193ac",
+      "name": "Johnnie Walker XR 21 Year Old · New Year 2022 Limited Edition",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-724bb55a7fc2",
+      "name": "Johnnie Walker The Directors Blend 2011",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-395ccd57d0b8",
+      "name": "Johnnie Walker Blue Label · Vienna Limited Edition Design",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-9a4d28020123",
+      "name": "Johnnie Walker Blue Label · 1990s",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-5c6c2cbe720a",
+      "name": "Johnnie Walker Blue Label · Sogo 30th Anniversary",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-edcb63a6a031",
+      "name": "Johnnie Walker Blue Label · Hong Kong Limited Edition",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-802f15aa3f9a",
+      "name": "Johnnie Walker Blue Label · Bu Gwi Yeong Hwa The Casks Edition",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-d5bc9fc033ff",
+      "name": "Johnnie Walker Master’s Cut",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-fdfcf8fb137b",
+      "name": "Johnnie Walker 18 Year Old · 2010s",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-a69c09502203",
+      "name": "Johnnie Walker Vault The Couture Blend",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-7f00db4965c8",
+      "name": "Johnnie Walker 15 Year Old Gold Label · 1990s",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-62256392d42a",
+      "name": "Johnnie Walker Swing · 1960s",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-167906e9154f",
+      "name": "Johnnie Walker Swing · 1980s",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-243c435682a6",
+      "name": "Johnnie Walker Kilmarnock 400 15 Year Old · 1990s",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-a8fc178aacb4",
+      "name": "Johnnie Walker Swing · 1970s",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-aa3098d9fe54",
+      "name": "Johnnie Walker White Label · ok. 1900",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-a0f40347cae0",
+      "name": "Johnnie Walker Red Label · 1960s",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-ed-1d7350b2167d",
+      "name": "Johnnie Walker Red Label Diageo Hurlford 40 Years Set",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-66f987f58fd7",
+      "name": "Johnnie Walker Blue Label Carp And Dragon",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-c78bf9b9c4db",
+      "name": "Johnnie Walker Blue Label For Kilmarnock FC 125th Anniversary",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-b1b76e744adb",
+      "name": "Johnnie Walker Black Label 12 · 500 Years Of Whisky Distilling",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-3602d39f8025",
+      "name": "Johnnie Walker Black Label 12 · Ryder Cup 1995",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-87d1fe10dea2",
+      "name": "Johnnie Walker Blue Label Greg Norman Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-442986ca36c3",
+      "name": "Johnnie Walker Black Label 12 · Project Halo Dubai Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-56dc1d78cde0",
+      "name": "Johnnie Walker Blue Label Lotte Duty Free Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-cf8d8e8e713a",
+      "name": "Johnnie Walker Blue Label Mexico City 2220 Cities Of The Future",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-3c7850c7ff1d",
+      "name": "Johnnie Walker Blue Label Australia Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-915a8f1c83da",
+      "name": "Johnnie Walker Blue Label Chinese Mythology Collection ‘Prosperity’",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-fb69d4d2a1b6",
+      "name": "Johnnie Walker Black Label 12 · Classic 2007 Celebration",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-a3809dede391",
+      "name": "Johnnie Walker Seasonal Blends 16 · Spring · Batch 3",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-369f9692b8ae",
+      "name": "Johnnie Walker Blue Label Milan Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-5ac339cf7318",
+      "name": "Johnnie Walker Blue Label Seoul 2220 Cities Of The Future",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-591d1d6ea39b",
+      "name": "Johnnie Walker Blue Label Heritage Celebration",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-bf15f03a070b",
+      "name": "Johnnie Walker Blenders’ Batch #6 Wine Cask Blend",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem"
+      ]
+    },
+    {
+      "id": "jw-ed-6c232f807453",
+      "name": "Johnnie Walker Blue Label Barcelona Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-46041419bc79",
+      "name": "Johnnie Walker Black Label 12 · New York Yankees 2017 Limited Edition",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-ba0e0f813fb9",
+      "name": "Johnnie Walker Blue Label Chinese Mythology Collection ‘Fortune’",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-bc62ee159a80",
+      "name": "Johnnie Walker Blue Label Middle East Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-c335df0a388f",
+      "name": "Johnnie Walker Blue Label Miami Edition",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-fbf25d6b8f3a",
+      "name": "Johnnie Walker Blue Label California Edition",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-4cc607b7c099",
+      "name": "Johnnie Walker Black Label 12 · Nouch Edition Air-Ink",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-4a27962a75cf",
+      "name": "Johnnie Walker Blue Label Fortune Magnet",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-2e7df61c304b",
+      "name": "Johnnie Walker Double Black Mattia Biagi Limited Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-5c6851ce805c",
+      "name": "Johnnie Walker Blue Label For Johnnie Walker House Chengdu",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-1750a153ab9c",
+      "name": "Johnnie Walker Blue Label Year of The Tiger Taiwan Limited Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-410ac80ed645",
+      "name": "Johnnie Walker Blue Label Johnnie Walker X Scott Naismith",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-f8610d110f61",
+      "name": "Johnnie Walker Blue Label Year of The Snake Taiwan Limited Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-e608d634b654",
+      "name": "Johnnie Walker Blue Label Voyage Yacht Taipei Commemorative Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-827e6170c814",
+      "name": "Johnnie Walker Red Label Special Old Highland Whisky Circa 1930’s",
+      "reasons": [
+        "Niezgodna lub niepotwierdzona pojemność/moc wyników źródłowych"
+      ]
+    },
+    {
+      "id": "jw-ed-96cbbd330986",
+      "name": "Johnnie Walker XR 21 Year Old Starlux",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-70aaa22b4fae",
+      "name": "Johnnie Walker Blue Label Paris Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-c026eb33e369",
+      "name": "Johnnie Walker Blue Label Texas Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-0ce1139f5f11",
+      "name": "Johnnie Walker Blue Label Year of The Dog Australia Limited Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-dfa1eca7cb20",
+      "name": "Johnnie Walker Blue Label Dun Huang Fairies",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-02dbe26913de",
+      "name": "Johnnie Walker Blue Label Chinese Mythology Collection ‘Wisdom’",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-15ae6294d56f",
+      "name": "Johnnie Walker Black Label 12 · 40th Anniversary of Diageo Shieldhall",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-b110f8b7baf5",
+      "name": "Johnnie Walker Blue Label Five Ways Of Wealth 'Vision'",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-1f37229e12fc",
+      "name": "Johnnie Walker Blue Label Las Vegas Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-67719954ca8d",
+      "name": "Johnnie Walker Blue Label Rome Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-4a63366488f9",
+      "name": "Johnnie Walker Green Label 15 Taiwan Limited Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-79e6703b3050",
+      "name": "Johnnie Walker The Directors Blend 2008",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-43852bd7ca94",
+      "name": "Johnnie Walker The Directors Blend 2009",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-887763b40b27",
+      "name": "Johnnie Walker The Directors Blend 2010 Release",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-06ff91e1c7b2",
+      "name": "Johnnie Walker The Directors Blend 2012",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-947094696e5b",
+      "name": "Johnnie Walker Blue Label Lebanon Edition",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-black-sabrina-carpenter",
+      "name": "Johnnie Walker Black Label 12 · Sabrina Carpenter",
+      "reasons": [
+        "Cena bez zgodnego dowodu sprzedaży lub oferty"
+      ]
+    },
+    {
+      "id": "jw-c946140a0264",
+      "name": "John Walker & Sons 28 Year Old · Bicentenary Blend",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-b159521d8b8d",
+      "name": "John Walker & Sons King George V · Chinese New Year Edition 2021",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-6adbbf0ad634",
+      "name": "John Walker & Sons King George V · Chinese New Year Edition 2022",
+      "reasons": [
+        "Oferta zagraniczna; cena i dostępność w NL wymagają sprawdzenia"
+      ]
+    },
+    {
+      "id": "jw-d06af9adc2c2",
+      "name": "John Walker & Sons The John Walker",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-064511080a1c",
+      "name": "John Walker & Sons Private Collection 28 Year Old 2018 Edition",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-ba63f897741e",
+      "name": "John Walker & Sons XR 21 Year Old Legacy Collection Cantonese",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-f43d045f132b",
+      "name": "John Walker & Sons XR 21 Year Old Legacy Collection Hokkien",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-a7492abc0135",
+      "name": "John Walker & Sons XR 21 Year Old Legacy Collection Hakka",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-5f4c14806c26",
+      "name": "John Walker & Sons XR 21 Year Old Legacy Collection Teochew",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-bbe77f2da519",
+      "name": "John Walker & Sons XR 21 Year Old Legacy Collection Foochow",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-a359d35ec519",
+      "name": "John Walker & Sons XR 21 Year Old Legacy Collection Hainan",
+      "reasons": [
+        "Tylko jeden zgodny wynik aukcji; przedział pozostaje szacunkiem",
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-cd32210b7a72",
+      "name": "John Walker & Sons XR 21 Year Old James Jean Limited Edition",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    },
+    {
+      "id": "jw-ed-25a508867231",
+      "name": "John Walker & Sons XR 21 Year Old Philip Colbert Limited Edition",
+      "reasons": [
+        "Wynik starszy niż rok względem aktualizacji źródła"
+      ]
+    }
+  ],
+  "unmatchedLegacy": [
+    {
+      "id": "double",
+      "name": "Johnnie Walker Double Black"
+    }
+  ]
+}

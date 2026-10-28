@@ -9,6 +9,13 @@ export function auctionRange(w: Whisky) {
     m.sources.length
   )
     return { min: m.auctionMinCents, max: m.auctionMaxCents, estimated: false };
+  // One matching sale is a reference point, never an invented observed range.
+  if (m.observedAuctionCents && m.sourceQuote?.kind === "auction-result")
+    return {
+      min: Math.round(m.observedAuctionCents * 0.75),
+      max: Math.round(m.observedAuctionCents * 1.1),
+      estimated: true,
+    };
   // Conservative fallback: liquidity and demand constrain what can actually sell.
   const resale = {
     common: [0.42, 0.78],
@@ -24,11 +31,17 @@ export function auctionRange(w: Whisky) {
     estimated: true,
   };
 }
+export function conditionValueFactor(w: Whisky, bottle = 100, box = 100) {
+  const premium = w.market.boxPremiumRate ?? 0.25;
+  return (
+    ((Math.max(0, Math.min(100, bottle)) / 100) *
+      (1 + (premium * Math.max(0, Math.min(100, box))) / 100)) /
+    (1 + premium)
+  );
+}
 export function estimatedHammerValue(w: Whisky, bottle = 100, box = 100) {
   const r = auctionRange(w);
   return Math.round(
-    (r.min + (r.max - r.min) * 0.7) *
-      (bottle / 100) *
-      (0.8 + Math.max(0, box) / 500),
+    (r.min + (r.max - r.min) * 0.7) * conditionValueFactor(w, bottle, box),
   );
 }

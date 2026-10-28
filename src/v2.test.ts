@@ -33,7 +33,9 @@ describe("Ciągły rynek 3.0", () => {
       expect(a.end - now).toBeGreaterThanOrEqual(45000);
     }
     expect(new Set(s.auctions.map((a) => a.end)).size).toBe(16);
-    expect(s.auctions.some((a) => !photosFor(a.product).length)).toBe(true);
+    expect(
+      s.auctions.every((a) => catalog.some((w) => w.id === a.product)),
+    ).toBe(true);
   });
   it("przez godzinę regularnie uzupełnia aukcje, bez pustego rynku i bez przekroczenia 20", () => {
     const s = createGame(now, 42);
@@ -173,6 +175,8 @@ describe("Ciągły rynek 3.0", () => {
   it("katalog zawiera ponad 50 odrębnych edycji ze stabilnymi identyfikatorami", () => {
     expect(catalog.length).toBeGreaterThanOrEqual(50);
     expect(new Set(catalog.map((w) => w.id)).size).toBe(catalog.length);
-    expect(new Set(catalog.map((w) => w.name)).size).toBe(catalog.length);
+    expect(
+      new Set(catalog.map((w) => [w.name, w.volumeMl, w.abv].join("|"))).size,
+    ).toBe(catalog.length);
   });
 });

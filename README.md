@@ -1,8 +1,8 @@
-# JW Collection Store 3.0 — kandydat wydania
+# JW Collection Store 3.0
 
-Polski symulator sklepu z kolekcjonerskimi whisky Johnnie Walker. React, TypeScript, Vite, Tailwind, Dexie/IndexedDB. Statyczna aplikacja bez serwera aplikacji, kont, API i kluczy. Kapitał początkowy: 5 000 €. Kwoty w eurocentach. Ceny referencyjne są balansem gry, nie bieżącymi notowaniami.
+Polski symulator sklepu z kolekcjonerskimi whisky Johnnie Walker. React, TypeScript, Vite, Tailwind, Dexie/IndexedDB. Statyczna aplikacja bez serwera aplikacji, kont, API i kluczy. Kapitał początkowy: 5 000 €. Kwoty w eurocentach. Wyceny są datowanymi referencjami z repozytorium źródłowego lub jawnym szacunkiem; nie gwarantują zysku.
 
-**Bloker wydania:** nadal brakuje 44 fotografii. Zmiany są na gałęzi `jwcs-v3`, bez zastępowania gry na Pages. Workflow publikacyjny wymaga `check:images:all`. [Raport wersji 3.0](V3_UPDATE.md).
+**Pełny import:** 253 edycje obu linii Walker z repozytorium `whisky`, 254 produkty w grze, zero brakujących fotografii. [Raport importu i wycen](IMPORT_REPORT.md).
 
 ## Uruchomienie
 
@@ -50,19 +50,29 @@ Automatyczny zapis w IndexedDB działa co sekundę i po decyzjach. Eksport/impor
 
 Format 2 obsługuje dawne zapisy formatu 1. Przy otwarciu starej rozgrywki pojawia się ekran **eksportu oryginału przed migracją**. Przeniesienie zachowuje gotówkę, księgę, przedmioty, aukcje i istniejące terminy. Oryginał jest dodatkowo zachowywany w rekordzie IndexedDB `pre-v2`. Dopiero potwierdzenie uruchamia migrację i nowy rynek. Import starego JSON również jest obsługiwany; plik źródłowy pozostaje u użytkownika. Nie wczytuj nowego zapisu w starej wersji gry.
 
-Service worker zachowuje aplikację i przypisane zdjęcia offline po pierwszym otwarciu online. Czyszczenie danych witryny usuwa postęp; regularnie eksportuj grę.
+Service worker zachowuje aplikację oraz ostatnio obejrzane zdjęcia (maksymalnie 80) offline po pierwszym otwarciu online. Czyszczenie danych witryny usuwa postęp; regularnie eksportuj grę.
 
-## Fotografie
+## Fotografie i synchronizacja katalogu
 
-W projekcie jest **15 fotografii**, obejmujących **12/56 produktów**. Dodano Red Rye Finish i White Walker. Pełna lista 44 brakujących edycji: [MISSING_IMAGES.md](MISSING_IMAGES.md); autorzy i licencje: [IMAGE_SOURCES.md](IMAGE_SOURCES.md). Nie podstawiamy innych wariantów whisky.
+W grze jest 254 produktów: wszystkie 232 pozycje Johnnie Walker i 21 John Walker & Sons z katalogu źródłowego oraz zachowany Double Black 1000 ml. Zaimportowano 253 fotografie; łącznie manifest wskazuje 255 lokalnych zdjęć (wraz z wariantem 1000 ml i kolekcją menu). Nie ma innych marek.
 
-Rynek nie filtruje produktów według posiadania fotografii. Wszystkie edycje mogą się pojawiać, a brak obrazu jest widoczny. `public/images/whisky/` zawiera pliki; `src/product-media.json` przypisania. `assetUrl` uwzględnia bazę Vite. `npm run report:images` odtwarza raport kompletności.
+```sh
+git clone https://github.com/TressioToKozak/whisky.git ../whisky
+npm run import:johnnie-walker -- --source ../whisky --dry-run
+npm run import:johnnie-walker -- --source ../whisky
+npm run report:import
+npm run report:images
+```
+
+Przed kolejną synchronizacją aktualizuj czysty klon źródła przez `git -C ../whisky pull --ff-only`. Skrypt czyta lokalny katalog, dopasowuje trwałe ID, rozdziela pojemności, kopiuje i optymalizuje właściwe pliki oraz zapisuje mapę i raport JSON. Powtórzenie nie tworzy duplikatów. W czasie gry nie pobieramy danych z GitHuba ani sklepów.
+
+`check:images:all` wymaga zdjęć każdego aktywnego produktu i blokuje publikację przy brakach. Źródła i hashe każdego pliku są w `data/johnnie-walker/image-provenance.json`. Miniatury używają lazy loading; service worker nie pobiera biblioteki przy instalacji, a cache obejrzanych obrazów ma limit 80 plików. Opakowanie jest widoczne, jeżeli występuje na właściwej fotografii. Szczegóły: [IMPORT_REPORT.md](IMPORT_REPORT.md).
 
 ## Aktualizacja rynku
 
-Siedem produktów, ceny gry i rzadkości, ograniczenia weryfikacji zewnętrznej, nowy model i anti-sniping opisano w [MARKET_UPDATE.md](MARKET_UPDATE.md). Ceny w centach i rzadkość mają aliasy zgodne ze starym silnikiem, ale dostępność, popyt i płynność są oddzielne. Dane źródłowe są w `src/catalog-data.json`; nieznane parametry i zweryfikowane przedziały cen pozostają nieuzupełnione zamiast zgadywania.
+Aktualne dane, źródła i rozdzielenie cen detalicznych od wyników aukcji opisano w [IMPORT_REPORT.md](IMPORT_REPORT.md). Archiwalny etap 2.1 pozostaje w [MARKET_UPDATE.md](MARKET_UPDATE.md). Ceny w centach i rzadkość mają aliasy zgodne ze starym silnikiem, ale dostępność, popyt i płynność są oddzielne. Dane źródłowe są w `src/catalog-data.json`; nieznane parametry i zweryfikowane przedziały cen pozostają nieuzupełnione zamiast zgadywania.
 
-Początkowy rynek to 3 partie powszechne, 3 o średniej dostępności, 2 ograniczone i 2 trudno dostępne. `src/initial-products.json` opisuje te proporcje, nie listę zdjęć. Filtry obejmują kończące się, obserwowane, tanie, rzadkie, vintage, limitowane i nowe partie.
+Początkowy rynek to 5 partii powszechnych, 4 o średniej dostępności, 4 ograniczone i 3 trudno dostępne. `src/initial-products.json` opisuje te proporcje, nie listę zdjęć. Filtry obejmują kończące się, obserwowane, tanie, rzadkie, vintage, limitowane i nowe partie.
 
 ## Testy i GitHub Pages
 
@@ -76,6 +86,6 @@ npm run test:e2e
 
 Przy systemowym Chromium: `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e`. Testy przeglądarkowe działają na gotowym `dist` pod `/tradegame/`, bez fallbacku HTML dla brakujących plików. Sprawdzają rzeczywiste dekodowanie zdjęć, licytację, reakcje NPC, komunikator, zapis, migrację, magazyn, mobilność i offline.
 
-`npm run check:images:all` wymaga zdjęć całego katalogu — obecnie zgłasza 44 braki. Build sprawdza istnienie przypisanych plików; sam w sobie nie potwierdza kompletności zdjęć.
+`npm run check:images:all` wymaga zdjęć całego katalogu — obecnie przechodzi dla wszystkich 254 produktów. Build sprawdza istnienie przypisanych plików; sam w sobie nie potwierdza kompletności zdjęć.
 
 W GitHub ustaw **Settings → Pages → Source → GitHub Actions**. Push na `main` uruchamia testy, build, Chromium oraz publikację `dist`. Nie trzeba zmieniać bazy Vite dla nazwy repozytorium. Dane katalogu są w `src/catalog-data.json`, typy i helpery w `src/catalog.ts`; stabilnych identyfikatorów istniejących edycji nie zmieniaj.

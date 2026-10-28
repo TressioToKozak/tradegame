@@ -1,3 +1,5 @@
+> Raport archiwalny aktualizacji 2.1. Bieżący katalog, fotografie i wyceny opisano w [IMPORT_REPORT.md](IMPORT_REPORT.md).
+
 # Aktualizacja rynku i aukcji — raport
 
 ## Siedem edycji

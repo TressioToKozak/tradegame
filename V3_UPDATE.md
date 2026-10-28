@@ -1,4 +1,4 @@
-# JW Collection Store 3.0 — kandydat, nie ukończone wydanie
+# JW Collection Store 3.0
 
 ## Wprowadzone zmiany
 
@@ -41,10 +41,8 @@ Ulepszenia nie gwarantują sprzedaży, nie zmieniają za gracza cen i nie tworz�
 
 Format pozostaje 2. `progression` jest opcjonalne; starszy zapis otrzymuje rozwój na podstawie zachowanych ukończonych działań. Pieniądze, butelki, terminy i istniejące transakcje nie są zmieniane. Oryginalny eksport przed migracją formatu 1 jest nadal dostępny. Zbyt duży istniejący magazyn nie jest redukowany; ograniczenie dotyczy nowych zakupów. Import sprawdza poprawność nowych pól.
 
-## Bloker fotografii i wydania
+## Fotografie — bloker usunięty importem
 
-**12 z 56 produktów ma zdjęcia; 15 istniejących plików. Nadal brakuje 44 fotografowanych edycji.** Pełna lista w [MISSING_IMAGES.md](MISSING_IMAGES.md). W tej sesji nie dodano zdjęć, gdyż proxy nie pozwala dotrzeć do źródeł.
+Pełny import obu linii z repozytorium `TressioToKozak/whisky` uzupełnił wszystkie fotografie. Aktualny katalog ma 254 produktów, bez brakujących zdjęć. Import obejmuje 198 nowych produktów i aktualizację 55 dotychczasowych; osobno zachowano Double Black 1000 ml. Szczegółowe liczby, źródłowe ceny, mapowanie i lista wycen wymagających weryfikacji: [IMPORT_REPORT.md](IMPORT_REPORT.md).
 
-28 października 2026 sprawdzono Wikimedia API, Wikimedia Upload, producenta Johnnie Walker, Master of Malt, Whisky Auctioneer, The Whisky Exchange, Openverse i Scotch Whisky Auctions. Wszystkie osiem połączeń zakończyło się blokadą CONNECT proxy, HTTP 403. Brak dostępu do treści nie jest interpretowany jako brak fotografii w danym serwisie. Nie użyto obejścia proxy, wyłączania TLS, innych butelek ani grafik AI. Nowe i wcześniejsze domeny źródeł oraz domenę Pages zapisano w szkicu ustawień środowiska. Zapis szkicu nie uruchamia dostępu: użytkownik musi zapisać ustawienia i opublikować środowisko.
-
-Zgodnie z warunkiem „nie uznawaj zadania za ukończone, dopóki wszystkie aktywne produkty nie mają właściwych zdjęć”, kandydat jest na osobnej gałęzi `jwcs-v3`. Pages nie jest zastępowane tym kandydatem. Dodano bramkę `check:images:all` przed publikacją, aby przyszłe wdrożenie wymagało zdjęć całego aktywnego katalogu. CI gałęzi weryfikuje silnik, build i przeglądarkę, ale nie oznacza ukończenia fotografii ani wydania 3.0.
+Kontrola `check:images:all` przechodzi i pozostaje wymagana przed publikacją. Poprzednie szkice dostępu do zewnętrznych serwisów nie są potrzebne do gry ani ponownego importu z lokalnego klonu GitHub. Publikacja 3.0 korzysta z istniejącego workflow Pages, z kontrolą skompilowanego wejścia, sum SHA-256 zasobów oraz rzeczywistego menu i zdjęć w Chromium po wdrożeniu.

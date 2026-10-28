@@ -6,7 +6,11 @@ import {
   unlockedContacts,
   type Progression,
 } from "./progression";
-import { auctionRange, estimatedHammerValue } from "./market";
+import {
+  auctionRange,
+  estimatedHammerValue,
+  conditionValueFactor,
+} from "./market";
 import initialProducts from "./initial-products.json" with { type: "json" };
 import { catalog, whisky, type MarketData } from "./catalog";
 import { EventQueue } from "./scheduler";
@@ -326,8 +330,7 @@ export function makeAuction(s: State, index: number, end: number) {
       Math.round(
         ((range.min + random(s) * (range.max - range.min) * 0.35) *
           (0.82 + random(s) * 0.1) *
-          (bottleCondition / 100) *
-          (0.8 + boxCondition / 500)) /
+          conditionValueFactor(w, bottleCondition, boxCondition)) /
           100,
       ) * 100,
     ),
@@ -371,17 +374,15 @@ export function makeAuction(s: State, index: number, end: number) {
           ? 0.9
           : 1.4;
     const allIn =
-      (estimatedHammerValue(
+      estimatedHammerValue(
         w,
         a.bottleCondition ?? a.condition,
         a.boxCondition ?? a.condition,
       ) *
-        (1 + a.fee) *
-        interest *
-        duplicate *
-        Math.min(ceiling, modeled) *
-        a.condition) /
-      100;
+      (1 + a.fee) *
+      interest *
+      duplicate *
+      Math.min(ceiling, modeled);
     const tradeCosts =
       p.sensitivity >= 0.8 ? 950 + Math.round(w.value * 0.025) : 0;
     a.limits[p.id] = Math.max(
@@ -551,7 +552,14 @@ function visit(s: State, p: Person) {
       const w = whisky(i.product);
       const max = Math.min(
         available(p),
-        customerCeiling(p, w, i.condition, s.reputation),
+        customerCeiling(
+          p,
+          w,
+          i.condition,
+          s.reputation,
+          i.bottleCondition,
+          i.boxCondition,
+        ),
       );
       const rejected = p.memory.some(
         (m) => m.kind === "rejected" && m.ref === i.id && s.now - m.at < DAY,
@@ -892,7 +900,14 @@ export function respond(
   const amount = intent === "accept" ? t.offer : price!;
   const willingness = Math.min(
     c.budget,
-    customerCeiling(c, whisky(i.product), i.condition, s.reputation),
+    customerCeiling(
+      c,
+      whisky(i.product),
+      i.condition,
+      s.reputation,
+      i.bottleCondition,
+      i.boxCondition,
+    ),
   );
   if (amount > willingness) {
     remember(s, c, "counter-rejected", i.id, String(amount));
@@ -1276,6 +1291,8 @@ function customerCeiling(
   w: (typeof catalog)[number],
   condition: number,
   reputation: number,
+  bottle = condition,
+  box = condition,
 ) {
   const raw =
     1.35 -
@@ -1283,7 +1300,9 @@ function customerCeiling(
     (p.trust - 0.5) * 0.2 +
     (reputation - 50) / 500;
   const cap = w.market.availability === "common" ? 1.06 : 1.4;
-  return Math.floor((w.value * Math.min(raw, cap) * condition) / 100);
+  return Math.floor(
+    w.value * Math.min(raw, cap) * conditionValueFactor(w, bottle, box),
+  );
 }
 /** Availability controls frequency; demand and liquidity affect people, not rarity. */
 export function chooseMarketProduct(

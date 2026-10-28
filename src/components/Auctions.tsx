@@ -70,7 +70,9 @@ export function AuctionCard({
         </span>
       </div>
       <div className="auction-info">
-        <span className="eyebrow">JOHNNIE WALKER · {a.country}</span>
+        <span className="eyebrow">
+          {whisky(a.product).brand ?? "Johnnie Walker"} · {a.country}
+        </span>
         <h3>{whisky(a.product).name}</h3>
         {(whisky(a.product).volumeMl || whisky(a.product).abv) && (
           <p className="product-specs">{productSpecs(whisky(a.product))}</p>
@@ -274,8 +276,19 @@ export function AuctionRoom({
                   )
                   .join(", ")}
               </dd>
-              <dt>Referencja detaliczna gry</dt>
-              <dd>{euro(whisky(a.product).value)}</dd>
+              <dt>
+                {whisky(a.product).market.retailCents !== undefined
+                  ? "Zaobserwowana oferta detaliczna"
+                  : "Referencja gry (szacunek)"}
+              </dt>
+              <dd>
+                {whisky(a.product).market.retailCents === null
+                  ? "Brak potwierdzonej oferty"
+                  : euro(
+                      whisky(a.product).market.retailCents ??
+                        whisky(a.product).value,
+                    )}
+              </dd>
               <dt>Zweryfikowany przedział aukcyjny</dt>
               <dd>
                 {whisky(a.product).market.auctionMinCents !== null &&
@@ -283,7 +296,21 @@ export function AuctionRoom({
                   ? `${euro(whisky(a.product).market.auctionMinCents!)} – ${euro(whisky(a.product).market.auctionMaxCents!)}`
                   : "Brak potwierdzonych danych"}
               </dd>
-              <dt>Weryfikacja ceny</dt>
+              <dt>Rodzaj źródła</dt>
+              <dd>
+                {{
+                  retail: "Oferta sklepowa",
+                  "auction-result": "Zakończona aukcja",
+                  "user-report": "Zgłoszenie użytkownika",
+                }[whisky(a.product).market.sourceQuote?.kind ?? ""] ??
+                  "Parametr gry"}
+              </dd>
+              <dt>Data wyniku aukcji</dt>
+              <dd>
+                {whisky(a.product).market.sourceQuote?.soldAt ??
+                  "Nie dotyczy / nieznana"}
+              </dd>
+              <dt>Weryfikacja w repozytorium źródłowym</dt>
               <dd>
                 {whisky(a.product).market.lastVerified ??
                   "Niepotwierdzona zewnętrznie"}
@@ -291,6 +318,7 @@ export function AuctionRoom({
             </dl>
             <p>
               {whisky(a.product).balanceNote ??
+                whisky(a.product).market.estimateNote ??
                 "Referencja jest parametrem gry, nie aktualną ofertą detaliczną."}
             </p>
             {whisky(a.product).market.sources.map((url) => (

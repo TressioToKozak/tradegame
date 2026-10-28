@@ -1,0 +1,565 @@
+{
+  "black": {
+    "availability": "common",
+    "rarity": 1,
+    "demand": 75,
+    "liquidity": 87,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "double": {
+    "availability": "common",
+    "rarity": 2,
+    "demand": 70,
+    "liquidity": 79,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "green": {
+    "availability": "common",
+    "rarity": 2,
+    "demand": 70,
+    "liquidity": 79,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "gold": {
+    "availability": "common",
+    "rarity": 2,
+    "demand": 70,
+    "liquidity": 79,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "platinum": {
+    "availability": "moderate",
+    "rarity": 4,
+    "demand": 60,
+    "liquidity": 63,
+    "productionStatus": "discontinued",
+    "regions": [
+      "Global"
+    ]
+  },
+  "18": {
+    "availability": "moderate",
+    "rarity": 3,
+    "demand": 65,
+    "liquidity": 71,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "blue": {
+    "availability": "moderate",
+    "rarity": 3,
+    "demand": 65,
+    "liquidity": 71,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "brora": {
+    "availability": "scarce",
+    "rarity": 8,
+    "demand": 40,
+    "liquidity": 31,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "port": {
+    "availability": "scarce",
+    "rarity": 9,
+    "demand": 35,
+    "liquidity": 23,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "glenury": {
+    "availability": "scarce",
+    "rarity": 8,
+    "demand": 40,
+    "liquidity": 31,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "george": {
+    "availability": "scarce",
+    "rarity": 7,
+    "demand": 45,
+    "liquidity": 39,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "casks": {
+    "availability": "scarce",
+    "rarity": 7,
+    "demand": 45,
+    "liquidity": 39,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "royal": {
+    "availability": "limited",
+    "rarity": 6,
+    "demand": 50,
+    "liquidity": 47,
+    "productionStatus": "unknown",
+    "regions": [
+      "Travel Retail"
+    ]
+  },
+  "spice": {
+    "availability": "moderate",
+    "rarity": 4,
+    "demand": 60,
+    "liquidity": 63,
+    "productionStatus": "unknown",
+    "regions": [
+      "Travel Retail"
+    ]
+  },
+  "goldroute": {
+    "availability": "limited",
+    "rarity": 5,
+    "demand": 55,
+    "liquidity": 55,
+    "productionStatus": "unknown",
+    "regions": [
+      "Travel Retail"
+    ]
+  },
+  "swing": {
+    "availability": "moderate",
+    "rarity": 4,
+    "demand": 60,
+    "liquidity": 63,
+    "productionStatus": "discontinued",
+    "regions": [
+      "Global"
+    ]
+  },
+  "centenary": {
+    "availability": "scarce",
+    "rarity": 7,
+    "demand": 45,
+    "liquidity": 39,
+    "productionStatus": "discontinued",
+    "regions": [
+      "Global"
+    ]
+  },
+  "dragon": {
+    "availability": "limited",
+    "rarity": 6,
+    "demand": 50,
+    "liquidity": 47,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "red": {
+    "availability": "common",
+    "rarity": 1,
+    "demand": 75,
+    "liquidity": 95,
+    "productionStatus": "current",
+    "regions": [
+      "NL",
+      "Global"
+    ]
+  },
+  "rye": {
+    "availability": "limited",
+    "rarity": 5,
+    "demand": 48,
+    "liquidity": 50,
+    "productionStatus": "discontinued",
+    "regions": [
+      "EU"
+    ]
+  },
+  "blonde": {
+    "availability": "common",
+    "rarity": 2,
+    "demand": 70,
+    "liquidity": 79,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "white": {
+    "availability": "limited",
+    "rarity": 5,
+    "demand": 55,
+    "liquidity": 55,
+    "productionStatus": "discontinued",
+    "regions": [
+      "Global"
+    ]
+  },
+  "ice": {
+    "availability": "limited",
+    "rarity": 5,
+    "demand": 55,
+    "liquidity": 55,
+    "productionStatus": "discontinued",
+    "regions": [
+      "Global"
+    ]
+  },
+  "fire": {
+    "availability": "limited",
+    "rarity": 5,
+    "demand": 55,
+    "liquidity": 55,
+    "productionStatus": "discontinued",
+    "regions": [
+      "Global"
+    ]
+  },
+  "jane": {
+    "availability": "limited",
+    "rarity": 6,
+    "demand": 50,
+    "liquidity": 47,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "sherry": {
+    "availability": "moderate",
+    "rarity": 4,
+    "demand": 59,
+    "liquidity": 65,
+    "productionStatus": "unknown",
+    "regions": [
+      "EU"
+    ]
+  },
+  "speyside": {
+    "availability": "limited",
+    "rarity": 5,
+    "demand": 55,
+    "liquidity": 55,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "highlands": {
+    "availability": "limited",
+    "rarity": 5,
+    "demand": 55,
+    "liquidity": 55,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "lowlands": {
+    "availability": "limited",
+    "rarity": 5,
+    "demand": 55,
+    "liquidity": 55,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "islay": {
+    "availability": "limited",
+    "rarity": 5,
+    "demand": 55,
+    "liquidity": 55,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "pittyvaich": {
+    "availability": "scarce",
+    "rarity": 8,
+    "demand": 40,
+    "liquidity": 31,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "portdundas": {
+    "availability": "scarce",
+    "rarity": 8,
+    "demand": 40,
+    "liquidity": 31,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "anniversary": {
+    "availability": "scarce",
+    "rarity": 8,
+    "demand": 40,
+    "liquidity": 31,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "celebratory": {
+    "availability": "limited",
+    "rarity": 6,
+    "demand": 50,
+    "liquidity": 47,
+    "productionStatus": "discontinued",
+    "regions": [
+      "Global"
+    ]
+  },
+  "legendary": {
+    "availability": "scarce",
+    "rarity": 8,
+    "demand": 40,
+    "liquidity": 31,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "xr21": {
+    "availability": "limited",
+    "rarity": 6,
+    "demand": 50,
+    "liquidity": 47,
+    "productionStatus": "unknown",
+    "regions": [
+      "Travel Retail"
+    ]
+  },
+  "premier": {
+    "availability": "scarce",
+    "rarity": 7,
+    "demand": 45,
+    "liquidity": 39,
+    "productionStatus": "discontinued",
+    "regions": [
+      "Travel Retail"
+    ]
+  },
+  "odyssey": {
+    "availability": "scarce",
+    "rarity": 9,
+    "demand": 35,
+    "liquidity": 23,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "quest": {
+    "availability": "scarce",
+    "rarity": 9,
+    "demand": 35,
+    "liquidity": 23,
+    "productionStatus": "discontinued",
+    "regions": [
+      "Travel Retail"
+    ]
+  },
+  "honour": {
+    "availability": "scarce",
+    "rarity": 9,
+    "demand": 35,
+    "liquidity": 23,
+    "productionStatus": "discontinued",
+    "regions": [
+      "Global"
+    ]
+  },
+  "island": {
+    "availability": "limited",
+    "rarity": 5,
+    "demand": 55,
+    "liquidity": 55,
+    "productionStatus": "unknown",
+    "regions": [
+      "Travel Retail"
+    ]
+  },
+  "ram": {
+    "availability": "scarce",
+    "rarity": 7,
+    "demand": 45,
+    "liquidity": 39,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "monkey": {
+    "availability": "scarce",
+    "rarity": 7,
+    "demand": 45,
+    "liquidity": 39,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "rooster": {
+    "availability": "scarce",
+    "rarity": 7,
+    "demand": 45,
+    "liquidity": 39,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "dog": {
+    "availability": "scarce",
+    "rarity": 7,
+    "demand": 45,
+    "liquidity": 39,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "pig": {
+    "availability": "scarce",
+    "rarity": 7,
+    "demand": 45,
+    "liquidity": 39,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "rat": {
+    "availability": "scarce",
+    "rarity": 7,
+    "demand": 45,
+    "liquidity": 39,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "ox": {
+    "availability": "scarce",
+    "rarity": 7,
+    "demand": 45,
+    "liquidity": 39,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "tiger": {
+    "availability": "scarce",
+    "rarity": 7,
+    "demand": 45,
+    "liquidity": 39,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "rabbit": {
+    "availability": "scarce",
+    "rarity": 7,
+    "demand": 45,
+    "liquidity": 39,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "snake": {
+    "availability": "limited",
+    "rarity": 6,
+    "demand": 50,
+    "liquidity": 47,
+    "productionStatus": "unknown",
+    "regions": [
+      "Global"
+    ]
+  },
+  "select": {
+    "availability": "limited",
+    "rarity": 6,
+    "demand": 50,
+    "liquidity": 47,
+    "productionStatus": "unknown",
+    "regions": [
+      "Travel Retail"
+    ]
+  },
+  "red-soul": {
+    "availability": "common",
+    "rarity": 2,
+    "demand": 62,
+    "liquidity": 85,
+    "productionStatus": "current",
+    "regions": [
+      "NL",
+      "EU"
+    ]
+  },
+  "high-rye": {
+    "availability": "limited",
+    "rarity": 5,
+    "demand": 42,
+    "liquidity": 38,
+    "productionStatus": "unknown",
+    "regions": [
+      "US"
+    ]
+  },
+  "triple-cask": {
+    "availability": "moderate",
+    "rarity": 5,
+    "demand": 53,
+    "liquidity": 55,
+    "productionStatus": "unknown",
+    "regions": [
+      "Travel Retail"
+    ]
+  },
+  "black-ruby": {
+    "availability": "common",
+    "rarity": 2,
+    "demand": 66,
+    "liquidity": 85,
+    "productionStatus": "current",
+    "regions": [
+      "NL",
+      "EU"
+    ]
+  }
+}

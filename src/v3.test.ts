@@ -237,6 +237,9 @@ describe("Tempo i ostrożny rynek", () => {
   });
   it("nie uzależnia szacunku ceny od samej rzadkości i wycenia brak pudełka niżej", () => {
     const w = structuredClone(whisky("brora"));
+    w.market.auctionMinCents = null;
+    w.market.auctionMaxCents = null;
+    w.market.observedAuctionCents = null;
     const before = auctionRange(w);
     w.market.rarity = 1;
     expect(auctionRange(w)).toEqual(before);
@@ -247,6 +250,8 @@ describe("Tempo i ostrożny rynek", () => {
   });
   it("wykorzystuje potwierdzony przedział dopiero ze źródłami i datą", () => {
     const w = structuredClone(whisky("blue"));
+    w.market.sources = [];
+    w.market.lastVerified = null;
     w.market.auctionMinCents = 10000;
     w.market.auctionMaxCents = 13000;
     expect(auctionRange(w).estimated).toBe(true);

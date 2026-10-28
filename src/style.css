@@ -5295,3 +5295,26 @@ html[data-reduced-motion="true"] *:after {
   transition: none !important;
   scroll-behavior: auto !important;
 }
+@media (min-width: 701px) {
+  .feature-event:has(.event-bottle) {
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .feature-event:has(.event-bottle) .event-product {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+    height: 180px;
+    flex-shrink: 0;
+  }
+  .feature-event:has(.event-bottle) .event-bottle {
+    max-height: 180px;
+  }
+  .feature-event:has(.event-bottle) > h3 {
+    margin: 4px 0;
+  }
+  .feature-event:has(.event-bottle) > p {
+    margin-bottom: 0;
+  }
+}

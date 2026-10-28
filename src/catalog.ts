@@ -11,12 +11,55 @@ export interface MarketData {
   regions: string[];
   lastVerified: string | null;
   sources: string[];
-  referenceKind: "game-balance" | "verified-retail";
+  referenceKind:
+    | "game-balance"
+    | "verified-retail"
+    | "sourced-retail"
+    | "sourced-auction";
+  retailCents?: number | null;
+  observedAuctionCents?: number | null;
+  boxPremiumRate?: number;
+  boxPremiumEstimated?: boolean;
+  sampleCount?: number;
+  pricingNeedsReview?: boolean;
+  pricingReviewReasons?: string[];
+  availabilityEstimated?: boolean;
+  availabilityNL?: "retail-listed" | "unknown";
+  availabilityEU?: "retail-listed" | "unknown";
+  verificationScope?: "source-repository";
+  estimateNote?: string;
+  sourceQuote?: {
+    kind: string;
+    market: string;
+    amount: number;
+    currency: string;
+    checkedAt: string;
+    sourceUrl: string;
+    soldAt?: string;
+    feesIncluded?: boolean | null;
+    note?: string;
+    referenceOnly?: boolean;
+  } | null;
   lastReviewed: string;
 }
 export interface Whisky {
   id: string;
   name: string;
+  brand?: string;
+  series?: string | null;
+  sourceCategory?: string;
+  importSource?: {
+    repository: string;
+    id: string;
+    commit: string;
+    image: string;
+    originalName: string;
+  };
+  ageStatus?: string;
+  country?: string | null;
+  productionRegion?: string | null;
+  salesMarket?: string | null;
+  tags?: string[];
   category: "standard" | "blue" | "vintage" | "travel";
   /** Legacy aliases for the existing economy and save IDs. */
   value: number;
@@ -24,9 +67,9 @@ export interface Whisky {
   description: string;
   collectorNote?: string;
   releaseYear?: number;
-  volumeMl?: number;
-  abv?: number;
-  ageStatement?: number;
+  volumeMl?: number | null;
+  abv?: number | null;
+  ageStatement?: number | null;
   sourceUrl?: string;
   balanceNote?: string;
   market: MarketData;
@@ -38,9 +81,10 @@ export const catalog: Whisky[] = (
   value: w.market.referenceRetailCents,
   rarity: w.market.rarity,
 }));
-export const whisky = (id: string) => catalog.find((w) => w.id === id)!;
+const byId = new Map(catalog.map((w) => [w.id, w]));
+export const whisky = (id: string) => byId.get(id)!;
 export const categoryLabel = (w: Whisky) =>
-  w.name.includes("Ghost & Rare")
+  /Ghost (?:&|and) Rare/.test(w.name)
     ? "Ghost & Rare"
     : w.id === "centenary" || w.id === "honour"
       ? "Historyczne edycje"

@@ -12,12 +12,16 @@ const photo = (kind: "bottle" | "box"): Photo => ({
   license: "Licencja testowa",
   licenseUrl: "https://example.test/license",
 });
+const originalBlue = productMedia.products.blue,
+  originalBrora = productMedia.products.brora;
 beforeEach(() => {
+  productMedia.products.brora = [];
   productMedia.products.blue = [photo("bottle"), photo("box")];
 });
 afterEach(() => {
   cleanup();
-  delete productMedia.products.blue;
+  productMedia.products.blue = originalBlue;
+  productMedia.products.brora = originalBrora;
   document.body.style.overflow = "";
 });
 describe("Galeria produktu — kontrolowane zasoby testowe, nie fotografie do publikacji", () => {
@@ -62,7 +66,7 @@ describe("Galeria produktu — kontrolowane zasoby testowe, nie fotografie do pu
     const { rerender } = render(<ProductGallery product="blue" />);
     rerender(<ProductGallery product="brora" />);
     expect(screen.queryByRole("img")).toBeNull();
-    expect(screen.getByText("Blue Label Ghost & Rare Brora")).toBeTruthy();
+    expect(screen.getByText("Blue Label · Ghost & Rare Brora")).toBeTruthy();
   });
   it("Escape zamyka tylko wierzchnie powiększenie, zachowując pokój aukcyjny", () => {
     render(

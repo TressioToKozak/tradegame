@@ -34,3 +34,9 @@ Nowe fotografie (zmniejszenie i WebP; pozostałe warunki licencji jak u źródł
 Fotografia White Walker przedstawia pustą, rzeczywistą butelkę; podpis galerii mówi o tym wprost. Fotografia Red Rye przedstawia właściwą butelkę i pudełko Blenders’ Batch, nie High Rye ani Red Label.
 
 Manifest: `src/product-media.json`. Pliki: `public/images/whisky/`. Galerie, powiększanie, przypisania i ścieżki bazowe pozostają wspólne. Dodawaj wyłącznie zdjęcia konkretnej edycji z prawem wykorzystania. Raport `npm run report:images` obejmuje cały katalog; weryfikator plików nie udaje weryfikacji praw autorskich ani kompletności zawartości.
+
+## Pełny import obu linii Walker
+
+253 fotografie skopiowano z rekordów `brand: Johnnie Walker` oraz `brand: John Walker & Sons` katalogu repozytorium `TressioToKozak/whisky`, commit `5c99c4eaed7c48047b58c29e4f442fd08552ccc3`. Pliki zoptymalizowano proporcjonalnie do WebP, bez generowania lub podmieniania etykiet. Żadne zdjęcie pozostałych marek nie jest importowane.
+
+Dokładna mapa źródło → produkt → lokalny plik, URL fotografii, URL produktu i hashe wejścia/wyjścia: [image-provenance.json](data/johnnie-walker/image-provenance.json). Katalog źródłowy nie podaje autorów/licencji tych fotografii; zachowano adresy źródeł, a brak danych jest jawny. Nie nadano licencji Creative Commons plikom komercyjnych serwisów. Wcześniejsze fotografie Commons i ich metadane pozostają w repozytorium; aktualnie przypisane obrazy wskazuje manifest.

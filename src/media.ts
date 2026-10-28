@@ -8,6 +8,12 @@ export interface Photo {
   source: string;
   license: string;
   licenseUrl: string;
+  sourceRepository?: string;
+  sourceCommit?: string;
+  sourcePath?: string;
+  sourceSha256?: string;
+  outputSha256?: string;
+  sourceImageUrl?: string | null;
 }
 export const productMedia = manifest as {
   products: Record<string, Photo[]>;

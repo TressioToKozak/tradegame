@@ -120,17 +120,24 @@ export default function ProductGallery({
     setSelected((index) => Math.min(index, Math.max(0, usable.length - 1)));
   }, [usable.length]);
   const photo = usable[Math.min(selected, usable.length - 1)];
-  const attribution = (p: Photo) => (
-    <p className="photo-credit">
-      <a href={p.source} target="_blank" rel="noreferrer">
-        {p.author}
-      </a>{" "}
-      ·{" "}
-      <a href={p.licenseUrl} target="_blank" rel="noreferrer">
-        {p.license}
-      </a>
-    </p>
-  );
+  const attribution = (p: Photo) =>
+    compact && p.sourceRepository ? (
+      <p className="photo-credit">
+        <a href={p.source} target="_blank" rel="noreferrer">
+          Źródło fotografii
+        </a>
+      </p>
+    ) : (
+      <p className="photo-credit">
+        <a href={p.source} target="_blank" rel="noreferrer">
+          {p.author}
+        </a>{" "}
+        ·{" "}
+        <a href={p.licenseUrl} target="_blank" rel="noreferrer">
+          {p.license}
+        </a>
+      </p>
+    );
   return (
     <div
       className={`product-gallery ${compact ? "compact" : ""} ${collection ? "collection-photo" : ""}`}

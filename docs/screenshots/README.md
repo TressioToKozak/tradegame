@@ -1,4 +1,4 @@
-# Zrzuty kandydata 3.0
+# Zrzuty wersji 3.0 po pełnym imporcie
 
 Rzeczywisty Chromium, produkcyjny build pod `/tradegame/`. Zrzuty nie są makietami.
 
@@ -8,4 +8,7 @@ Rzeczywisty Chromium, produkcyjny build pod `/tradegame/`. Zrzuty nie są makiet
 - [Rozwój sklepu](development.png)
 - [Rynek na telefonie](market-mobile.png)
 
-Braki fotografii są widoczne i pozostają blokerem wydania. Rynek i pulpit używają pełnego katalogu. Nie wybrano wyłącznie sfotografowanych produktów.
+Wszystkie 254 produkty mają fotografie. Rynek i pulpit korzystają z całego katalogu.
+
+- [Pierwsze 20 importowanych edycji w aplikacji](import-market.png)
+- [Przegląd 18 priorytetowych edycji](import-priority-editions.webp) — pomocniczy arkusz właściwych lokalnych fotografii do oceny wizualnej; nie jest zastępczą grafiką gry.
