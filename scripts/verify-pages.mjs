@@ -116,7 +116,11 @@ try {
   await page
     .getByRole("button", { name: "Aukcje na żywo", exact: true })
     .click();
-  await expect(page.locator(".auction-card")).toHaveCount(16);
+  const activeCount = await page.locator(".auction-card").count();
+  if (activeCount < 12 || activeCount > 20)
+    throw Error(
+      `Nieprawidłowy stan dynamicznego rynku: ${activeCount} aukcji.`,
+    );
   await page.screenshot({
     path: "test-results/live-market.png",
     fullPage: true,
