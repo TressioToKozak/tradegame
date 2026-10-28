@@ -12,6 +12,7 @@ function offline(): Plugin {
         "./",
         "favicon.svg",
         "brand/jwcs.svg",
+        "game-art/whisky-salon.png",
         ...Object.keys(bundle),
         ...collection.map((photo) => photo.path),
       ];

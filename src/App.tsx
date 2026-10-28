@@ -31,14 +31,15 @@ import {
 import { date, Empty, labels, PriceInput } from "./ui";
 import { useGame } from "./useGame";
 import ProductGallery, { Modal } from "./components/ProductGallery";
+import InteractiveSalon from "./components/InteractiveSalon";
 import DailyBoard from "./components/DailyBoard";
 import PhotoCredits from "./components/PhotoCredits";
 import Brand from "./components/Brand";
 import Development from "./components/Development";
 import { shopLevel, progress, levelStart } from "./progression";
 import GameMenu from "./components/GameMenu";
-import { AuctionCard, AuctionRoom } from "./components/Auctions";
-import { NowBoard, Feed, Unboxing, WinScreen } from "./components/World";
+import { AuctionRoom } from "./components/Auctions";
+import { Unboxing, WinScreen } from "./components/World";
 import Messenger from "./components/Messenger";
 import AuctionMarket from "./components/AuctionMarket";
 import BusinessPanels from "./components/BusinessPanels";
@@ -282,7 +283,7 @@ export default function App() {
                 <p className="eyebrow">TWÓJ SALON KOLEKCJONERSKI</p>
                 <h1>
                   {tab === "Pulpit"
-                    ? "Aktualnie w grze"
+                    ? "Twój salon whisky"
                     : tab === "Aukcje na żywo"
                       ? "Aukcje"
                       : tab}
@@ -305,91 +306,16 @@ export default function App() {
                 </div>
               )}
               {tab === "Pulpit" && (
-                <NowBoard
-                  state={s}
-                  go={go}
-                  openAuction={setAuctionId}
-                  openParcel={setParcelId}
-                />
-              )}
-              {tab === "Pulpit" && (
-                <DailyBoard state={s} mutate={game.mutate} go={go} />
-              )}
-              {tab === "Pulpit" && (
-                <section className="auctions-section">
-                  <div className="section-heading">
-                    <h2>
-                      Kończą się za chwilę{" "}
-                      <span className="live-tag">
-                        <i className="live-dot" />
-                        {active.length} AKTYWNE
-                      </span>
-                    </h2>
-                    {tab === "Pulpit" && (
-                      <button
-                        className="text-button"
-                        onClick={() => go("Aukcje na żywo")}
-                      >
-                        Wejdź do salonu <ArrowUpRight size={16} />
-                      </button>
-                    )}
-                  </div>
-                  <div className="auction-grid">
-                    {active
-                      .slice()
-                      .sort((a, b) => a.end - b.end)
-                      .slice(0, 3)
-                      .map((a) => (
-                        <AuctionCard
-                          key={a.id}
-                          auction={a}
-                          state={s}
-                          onOpen={() => setAuctionId(a.id)}
-                        />
-                      ))}
-                  </div>
-                  {!active.length && (
-                    <Empty text="Nowe aukcje pojawią się zgodnie z harmonogramem świata. Do tego czasu możesz zająć się własną kolekcją." />
-                  )}
-                </section>
+                <>
+                  <InteractiveSalon state={s} go={go} />
+                  <details className="salon-daily">
+                    <summary>Cele dnia</summary>
+                    <DailyBoard state={s} mutate={game.mutate} go={go} />
+                  </details>
+                </>
               )}
               {tab === "Aukcje na żywo" && (
                 <AuctionMarket state={s} onOpen={setAuctionId} />
-              )}
-              {tab === "Pulpit" && (
-                <section className="new-opportunities">
-                  <div className="section-heading">
-                    <h2>Nowe okazje</h2>
-                    <span className="muted">Najnowsze partie</span>
-                  </div>
-                  <div className="auction-grid">
-                    {active
-                      .slice()
-                      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
-                      .slice(0, 3)
-                      .map((a) => (
-                        <AuctionCard
-                          key={a.id}
-                          auction={a}
-                          state={s}
-                          onOpen={() => setAuctionId(a.id)}
-                        />
-                      ))}
-                  </div>
-                </section>
-              )}
-              {tab === "Pulpit" && (
-                <>
-                  <section className="journal-section">
-                    <div className="section-heading">
-                      <h2>Dziennik Twojego świata</h2>
-                      <span className="live-tag">
-                        <i className="live-dot" /> ZDARZENIA NA ŻYWO
-                      </span>
-                    </div>
-                    <Feed state={s} />
-                  </section>
-                </>
               )}
               {tab === "Magazyn" && (
                 <section>

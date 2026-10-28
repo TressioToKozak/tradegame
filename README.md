@@ -1,4 +1,4 @@
-# JW Collection Store 3.1
+# JW Collection Store 4.0 — etap 1
 
 Polski symulator sklepu z kolekcjonerskimi whisky Johnnie Walker. React, TypeScript, Vite, Tailwind, Dexie/IndexedDB. Statyczna aplikacja bez serwera aplikacji, kont, API i kluczy. Kapitał początkowy: 5 000 €. Kwoty w eurocentach. Wyceny są datowanymi referencjami z repozytorium źródłowego lub jawnym szacunkiem; nie gwarantują zysku.
 
@@ -93,3 +93,7 @@ W GitHub ustaw **Settings → Pages → Source → GitHub Actions**. Push na `ma
 ## Aktualizacja 3.1
 
 [Zmiany i zasady automatu](V31_UPDATE.md). Nowe menu, mobilna nawigacja, wyniki aukcji i codzienne cele za XP. Wyceny referencyjne pozostają wewnętrzne; źródła fotografii są w pomocy, poza galerią. Po ponownym imporcie zdjęć uruchom `npm run report:photo-layout`, aby przeliczyć tła galerii bez modyfikowania fotografii.
+
+## Interaktywny salon 4.0
+
+Pulpit to teraz pełna ilustracja `public/game-art/whisky-salon.png` z pięcioma przyciskami prowadzącymi do istniejących ekranów. Na telefonie przyciski są pod obrazem. Obserwowane aukcje blisko końca, nieprzeczytane wiadomości, nowe propozycje, paczki do otwarcia i zamówienia do przygotowania wyróżniają odpowiednie miejsca. Pod sceną są trzy ostatnie zdarzenia, rozwijana historia oraz zwijane cele dnia. [Opis i weryfikacja etapu](V4_SALON.md).

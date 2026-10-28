@@ -148,6 +148,7 @@ test("przełącznik animacji i tooltip obsługują klawiaturę", async ({
   await page.getByRole("button", { name: "NOWA GRA", exact: true }).click();
   await page.getByRole("button", { name: "ROZPOCZNIJ GRĘ" }).click();
   await page.getByRole("button", { name: "Pomiń wprowadzenie" }).click();
+  await page.getByRole("button", { name: "Aukcje", exact: true }).click();
   await page
     .getByRole("button", { name: "Wejdź do licytacji" })
     .first()

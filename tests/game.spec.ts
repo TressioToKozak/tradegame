@@ -15,7 +15,7 @@ async function importState(page: any, state: ReturnType<typeof createGame>) {
     buffer: Buffer.from(JSON.stringify(state)),
   });
   await expect(
-    page.getByRole("heading", { name: "Aktualnie w grze", exact: true }),
+    page.getByRole("heading", { name: "Twój salon whisky", exact: true }),
   ).toBeVisible();
 }
 function storeFixture() {
@@ -91,6 +91,7 @@ test("nowa gra, zegar, prawdziwe oferty NPC, własna oferta i zapis", async ({
   await page.getByRole("button", { name: "Menu główne" }).click();
   page.on("dialog", (d) => d.accept());
   await importState(page, state);
+  await page.getByRole("button", { name: "Aukcje", exact: true }).click();
   await page
     .getByRole("button", { name: "Wejdź do licytacji" })
     .first()
@@ -110,6 +111,7 @@ test("nowa gra, zegar, prawdziwe oferty NPC, własna oferta i zapis", async ({
   await page
     .getByRole("button", { name: "KONTYNUUJ GRĘ", exact: true })
     .click();
+  await page.getByRole("button", { name: "Aukcje", exact: true }).click();
   await page
     .getByRole("button", { name: "Wejdź do licytacji" })
     .first()
@@ -123,7 +125,7 @@ test("komunikator odracza decyzję klienta i zachowuje ją po przeładowaniu", a
   page,
 }) => {
   await importState(page, storeFixture());
-  await page.getByRole("button", { name: /^Wiadomości/ }).click();
+  await page.getByRole("navigation", { name: "Nawigacja gry" }).getByRole("button", { name: /^Wiadomości/ }).click();
   await page.getByText("Wybierz konkretne działanie").click();
   await page.getByRole("button", { name: /^Akceptuj/ }).click();
   await expect(
@@ -131,7 +133,7 @@ test("komunikator odracza decyzję klienta i zachowuje ją po przeładowaniu", a
   ).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: "KONTYNUUJ GRĘ" }).click();
-  await page.getByRole("button", { name: /^Wiadomości/ }).click();
+  await page.getByRole("navigation", { name: "Nawigacja gry" }).getByRole("button", { name: /^Wiadomości/ }).click();
   await expect(
     page.getByText("Wiadomość wysłana. Klient zapoznaje się z ofertą."),
   ).toBeVisible();
@@ -219,7 +221,7 @@ test("produkcja działa offline w podfolderze repozytorium", async ({
   await page.reload();
   await page.getByRole("button", { name: "KONTYNUUJ GRĘ" }).click();
   await expect(
-    page.getByRole("heading", { name: "Aktualnie w grze", exact: true }),
+    page.getByRole("heading", { name: "Twój salon whisky", exact: true }),
   ).toBeVisible();
 });
 test("przypisane fotografie ładują się z /tradegame/ i można je powiększyć", async ({
@@ -229,6 +231,7 @@ test("przypisane fotografie ładują się z /tradegame/ i można je powiększyć
   s.auctions[0].product = "blue";
   s.auctions[0].end = s.now + 60000;
   await importState(page, s);
+  await page.getByRole("button", { name: "Aukcje", exact: true }).click();
   const photo = page
     .locator(".auction-card")
     .first()
@@ -392,6 +395,7 @@ test("anti-sniping: dwa przedłużenia, odświeżenie i jedno rozliczenie NPC", 
     },
   ];
   await importState(page, state);
+  await page.getByRole("button", { name: "Aukcje", exact: true }).click();
   await page
     .getByRole("button", { name: "Wejdź do licytacji" })
     .first()
@@ -403,6 +407,7 @@ test("anti-sniping: dwa przedłużenia, odświeżenie i jedno rozliczenie NPC", 
   await expect(page.locator(".save-state")).toContainText("Postęp zapisany");
   await page.reload();
   await page.getByRole("button", { name: "KONTYNUUJ GRĘ" }).click();
+  await page.getByRole("button", { name: "Aukcje", exact: true }).click();
   await page
     .getByRole("button", { name: "Wejdź do licytacji" })
     .first()

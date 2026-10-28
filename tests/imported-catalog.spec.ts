@@ -37,7 +37,7 @@ for (const [batch, records] of batches.entries())
         buffer: Buffer.from(JSON.stringify(s)),
       });
     await expect(
-      page.getByRole("heading", { name: "Aktualnie w grze", exact: true }),
+      page.getByRole("heading", { name: "Twój salon whisky", exact: true }),
     ).toBeVisible();
     await page
       .getByRole("button", { name: "Aukcje", exact: true })

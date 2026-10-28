@@ -1,0 +1,48 @@
+.interactive-salon { animation: salon-enter .45s ease-out both; }
+.salon-scene { position: relative; width: 100%; border: 1px solid #b5905266; border-radius: 14px; box-shadow: 0 14px 50px #0005; }
+.salon-art { width: 100%; height: auto; display: block; border-radius: inherit; }
+.salon-zones { position: absolute; inset: 0; }
+.salon-zone { position: absolute; transform: translate(-50%, -50%); padding: 10px 13px; min-height: 44px; border: 1px solid #dcb779ad; border-radius: 8px; color: #faecd5; background: #21170cd9; box-shadow: 0 3px 15px #0007; backdrop-filter: blur(5px); display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; transition: background .2s, box-shadow .2s, scale .15s; }
+.salon-zone[data-zone="messages"] { transform: translate(-100%, -50%); }
+.salon-zone:hover:not(:disabled) { transform: translate(-50%, -50%); background: #493018ed; color: #fff4df; box-shadow: 0 0 22px #e9bb6360; }
+.salon-zone[data-zone="messages"]:hover { transform: translate(-100%, -50%); }
+.salon-zone:active { scale: .97; }
+.salon-zone:focus-visible { outline: 3px solid #ffe0a1; outline-offset: 4px; }
+.salon-zone-heading { display: flex; gap: 7px; align-items: center; font-size: 12px; white-space: nowrap; }
+.salon-zone-heading svg { color: #edc484; flex-shrink: 0; }
+.salon-zone-status { font-size: 10px; line-height: 1.4; color: #dfccb0; opacity: .85; transition: opacity .2s; }
+.salon-zone:hover .salon-zone-status, .salon-zone:focus-visible .salon-zone-status { opacity: 1; }
+.salon-count { min-width: 19px; height: 19px; padding: 0 4px; border-radius: 20px; background: #dfb575; color: #28190d; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; }
+.salon-zone-active { border-color: #f3cd8a; animation: salon-light 3s ease-in-out infinite; }
+.salon-events { margin-top: 24px; padding: 18px 22px; border: 1px solid var(--line); border-radius: 10px; background: #ffffff03; }
+.salon-events-heading h2 { margin: 0; font-size: 18px; }
+.salon-events ol { list-style: none; margin: 12px 0 0; padding: 0; }
+.salon-events li { display: flex; gap: 16px; padding: 9px 0; font-size: 12px; line-height: 1.6; border-bottom: 1px solid var(--line); }
+.salon-events li:last-child { border-bottom: 0; }
+.salon-events time { flex: 0 0 130px; color: var(--muted); font-size: 10px; }
+.salon-history { margin-top: 12px; }
+.salon-history > summary, .salon-daily > summary { cursor: pointer; padding: 12px 0; color: var(--gold); font-size: 12px; }
+.salon-history[open] > ol { max-height: 350px; overflow-y: auto; }
+.salon-daily { margin-top: 12px; }
+@keyframes salon-enter { from { opacity: 0; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
+@keyframes salon-light { 0%,100% { box-shadow: 0 0 7px #edb75830; } 50% { box-shadow: 0 0 24px #edb75880; } }
+@media (min-width: 701px) and (max-width: 900px) {
+  .salon-zone { padding: 7px 9px; }
+  .salon-zone-heading { font-size: 11px; gap: 5px; }
+  .salon-zone-status { font-size: 9px; }
+}
+@media (max-width: 700px) {
+  .salon-scene { border: 0; box-shadow: none; }
+  .salon-art { border: 1px solid #b5905266; }
+  .salon-zones { position: static; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 14px; }
+  .salon-zone, .salon-zone[data-zone="messages"], .salon-zone:hover:not(:disabled), .salon-zone[data-zone="messages"]:hover { position: static; transform: none; min-width: 0; min-height: 72px; padding: 12px 10px; }
+  .salon-zone:last-child { grid-column: 1 / -1; }
+  .salon-zone-heading { font-size: 12px; white-space: normal; }
+  .salon-zone-status { font-size: 10px; }
+  .salon-events { padding: 14px; margin-top: 18px; }
+  .salon-events li { flex-direction: column; gap: 2px; }
+  .salon-events time { flex: auto; }
+}
+@media (prefers-reduced-motion: reduce) { .interactive-salon, .salon-zone-active { animation: none; } .salon-zone, .salon-zone-status { transition: none; } }
+:root[data-reduced-motion="true"] .interactive-salon, :root[data-reduced-motion="true"] .salon-zone-active { animation: none; }
+:root[data-reduced-motion="true"] .salon-zone, :root[data-reduced-motion="true"] .salon-zone-status { transition: none; }

@@ -39,6 +39,7 @@ const paths = [
   "sw.js",
   "favicon.svg",
   "brand/jwcs.svg",
+  "game-art/whisky-salon.png",
   ...new Set(photos.map((p) => p.path)),
 ];
 const digest = (data) => createHash("sha256").update(data).digest("hex");
@@ -82,17 +83,10 @@ try {
   await page.getByRole("button", { name: "ROZPOCZNIJ GRĘ" }).click();
   await page.getByRole("button", { name: "Pomiń wprowadzenie" }).click();
   await expect(page.locator(".live-shortcut")).toContainText("16 aukcji");
-  const visible = page.locator(
-    ".auctions-section .auction-card .photo-stage img",
-  );
-  await expect(visible).toHaveCount(3);
-  for (let i = 0; i < 3; i++) {
-    const img = visible.nth(i);
-    await img.scrollIntoViewIfNeeded();
-    await expect
-      .poll(() => img.evaluate((i) => i.complete && i.naturalWidth > 0))
-      .toBe(true);
-  }
+  const salon = page.locator(".interactive-salon");
+  await expect(salon.locator(".salon-zone")).toHaveCount(5);
+  await expect.poll(() => salon.locator(".salon-art").evaluate(img => img.complete && img.naturalWidth === 1672)).toBe(true);
+  await page.screenshot({path:"test-results/live-salon.png",fullPage:true});
   const decoded = await page.evaluate(
     async (urls) => {
       let next = 0,
@@ -119,13 +113,19 @@ try {
     throw Error(
       `Nieprawidłowy stan dynamicznego rynku: ${activeCount} aukcji.`,
     );
+  const visible = page.locator(".auction-card .photo-stage img");
+  for (let i = 0; i < Math.min(3, activeCount); i++) {
+    const img = visible.nth(i);
+    await img.scrollIntoViewIfNeeded();
+    await expect.poll(() => img.evaluate(i => i.complete && i.naturalWidth > 0)).toBe(true);
+  }
   await page.screenshot({
     path: "test-results/live-market.png",
     fullPage: true,
   });
   if (errors.length) throw Error(errors.join("\n"));
   console.log(
-    `Pages: zgodne SHA-256 ${verified} plików; ${decoded} zdjęć zdekodowanych; menu, 16 aukcji i fotografie w kartach działają.`,
+    `Pages: zgodne SHA-256 ${verified} plików; ${decoded} zdjęć zdekodowanych; menu, salon, 16 aukcji i fotografie w kartach działają.`,
   );
 } finally {
   await browser.close();

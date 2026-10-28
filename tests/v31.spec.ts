@@ -42,10 +42,11 @@ async function openGame(page: any, s: State) {
     buffer: Buffer.from(JSON.stringify(s)),
   });
   await expect(
-    page.getByRole("heading", { name: "Aktualnie w grze", exact: true }),
+    page.getByRole("heading", { name: "Twój salon whisky", exact: true }),
   ).toBeVisible();
 }
 async function openRoom(page: any) {
+  await page.getByRole("button", { name: "Aukcje", exact: true }).click();
   await page
     .getByRole("button", { name: "Wejdź do licytacji" })
     .first()
@@ -237,6 +238,7 @@ test("cel dnia jest nagradzany po rzeczywistej kontroli paczki i zapisuje odbió
     .click();
   await parcel.getByRole("button", { name: "Przyjmij do magazynu" }).click();
   await page.getByRole("button", { name: "Pulpit", exact: true }).click();
+  await page.locator(".salon-daily > summary").click();
   await page
     .getByRole("button", { name: "Odbierz 15 PD", exact: true })
     .click();
