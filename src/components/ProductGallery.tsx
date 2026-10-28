@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
 import { createPortal } from "react-dom";
 import { assetUrl, photosFor, productMedia, type Photo } from "../media";
 import { whisky } from "../catalog";
@@ -22,6 +22,14 @@ export function Modal({
     const previous = document.activeElement as HTMLElement | null;
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    const background = Array.from(document.body.children).filter(
+      (node): node is HTMLElement =>
+        node instanceof HTMLElement && !node.contains(ref.current),
+    );
+    const previousInert = background.map((node) => node.inert);
+    background.forEach((node) => {
+      node.inert = true;
+    });
     ref.current?.focus();
     const key = (e: KeyboardEvent) => {
       const dialogs = document.querySelectorAll('[aria-modal="true"]');
@@ -51,6 +59,9 @@ export function Modal({
     return () => {
       document.removeEventListener("keydown", key);
       document.body.style.overflow = overflow;
+      background.forEach((node, index) => {
+        node.inert = previousInert[index];
+      });
       previous?.focus();
     };
   }, []);
@@ -166,16 +177,12 @@ export default function ProductGallery({
         </>
       ) : (
         <div className="photo-missing">
-          <Camera size={compact ? 24 : 36} strokeWidth={1} />
-          <strong>{title.replace("Johnnie Walker ", "")}</strong>
-          <span>
+          <span>{title.replace("Johnnie Walker ", "")}</span>
+          <small>
             {photos.length
-              ? "Nie udało się wczytać fotografii"
-              : "Fotografia oczekuje na dodanie"}
-          </span>
-          {!compact && (
-            <small>Wyłącznie zdjęcie tej edycji z potwierdzoną licencją.</small>
-          )}
+              ? "Zdjęcie niedostępne"
+              : "Brak fotografii tej edycji"}
+          </small>
         </div>
       )}
       {zoom && photo && (

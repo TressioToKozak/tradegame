@@ -9,7 +9,9 @@ import {
   Trophy,
   Gavel,
   Check,
+  Sparkles,
 } from "lucide-react";
+import { photosFor, assetUrl } from "../media";
 import { euro, whisky } from "../catalog";
 import {
   inspect,
@@ -18,6 +20,7 @@ import {
   type Item,
   type State,
 } from "../engine";
+import { shopLevel, progress, levelStart } from "../progression";
 import { countdown, date } from "../ui";
 import type { Mutate } from "../useGame";
 import ProductGallery, { Modal } from "./ProductGallery";
@@ -41,9 +44,9 @@ export function NowBoard({
   return (
     <section className="now-section">
       <div className="section-heading">
-        <h2>Dzieje się teraz</h2>
+        <h2>Twój następny ruch</h2>
         <span className="live-tag">
-          <i className="live-dot" /> TWÓJ ŚWIAT ŻYJE
+          <i className="live-dot" /> NA ŻYWO
         </span>
       </div>
       <div className="now-grid">
@@ -52,6 +55,15 @@ export function NowBoard({
             className="world-event feature-event"
             onClick={() => openAuction(soon.id)}
           >
+            <div className="event-product">
+              {photosFor(soon.product)[0] ? (
+                <img
+                  className="event-bottle"
+                  src={assetUrl(photosFor(soon.product)[0].path)}
+                  alt={whisky(soon.product).name}
+                />
+              ) : null}
+            </div>
             <div className="event-icon">
               <Gavel size={23} />
             </div>
@@ -59,8 +71,8 @@ export function NowBoard({
             <h3>{whisky(soon.product).name.replace("Johnnie Walker ", "")}</h3>
             <p>
               {soon.leader === "player"
-                ? "Twoja oferta prowadzi. Obserwuj konkurencję."
-                : "Kolekcjonerzy podejmują decyzje. Dołącz do licytacji."}
+                ? "Prowadzisz"
+                : `${euro(soon.price)} · ${soon.bids.length} ofert`}
             </p>
             <div>
               <strong>
@@ -78,8 +90,8 @@ export function NowBoard({
             <span className="eyebrow">CHWILA NA DOBRĄ DECYZJĘ</span>
             <h3>Salon czeka na nowe okazje</h3>
             <p>
-              Nowe aukcje pojawiają się regularnie, zwykle co 1–2 minuty.
-              Sprawdź w tym czasie sklep i wiadomości.
+              Kolejna partia pojawi się za chwilę. Sprawdź w tym czasie sklep i
+              wiadomości.
             </p>
           </div>
         )}
@@ -89,12 +101,12 @@ export function NowBoard({
           <h3>
             {threads.length
               ? `${threads.length} ${threads.length === 1 ? "propozycja czeka" : "propozycje czekają"}`
-              : "Pozwól się odkryć"}
+              : "Otwórz witrynę"}
           </h3>
           <p>
             {threads.length
               ? `${s.people.find((p) => p.id === threads[0].customer)?.name} proponuje ${euro(threads[0].offer)} za Twoją butelkę.`
-              : "Wystaw whisky, by przyciągnąć klientów o pasujących zainteresowaniach."}
+              : "Twoje oferty przyciągną kolekcjonerów."}
           </p>
           <button
             className="text-button"
@@ -119,7 +131,7 @@ export function NowBoard({
               ? `${whisky(parcel.product).name}. Odkryj, co kryje pudełko.`
               : order
                 ? `Zamówienie ${order.id} czeka na bezpieczne pakowanie.`
-                : `${s.items.filter((i) => i.status === "incoming").length} przesyłek przychodzących. Dobre rzeczy potrzebują czasu.`}
+                : `${s.items.filter((i) => i.status === "incoming").length} przesyłek przychodzących.`}
           </p>
           <button
             className="text-button"
@@ -137,6 +149,22 @@ export function NowBoard({
             <ArrowUpRight size={16} />
           </button>
         </div>
+        <button
+          className="world-event growth-event"
+          onClick={() => go("Rozwój sklepu")}
+        >
+          <Sparkles size={22} />
+          <span className="eyebrow">TWÓJ SALON ROŚNIE</span>
+          <h3>Poziom {shopLevel(s)}</h3>
+          <progress
+            aria-label="Postęp rozwoju"
+            value={progress(s).xp - levelStart(shopLevel(s))}
+            max={levelStart(shopLevel(s) + 1) - levelStart(shopLevel(s))}
+          />
+          <span>
+            {progress(s).xp} PD · Rozwijaj sklep <ArrowUpRight size={16} />
+          </span>
+        </button>
       </div>
     </section>
   );
@@ -145,9 +173,9 @@ export function Feed({ state: s }: { state: State }) {
   return (
     <div className="world-feed">
       <AnimatePresence initial={false}>
-        {s.feed.slice(0, 9).map((f, i) => (
+        {s.feed.slice(0, 5).map((f) => (
           <motion.div
-            key={`${f.at}-${f.text}-${i}`}
+            key={`${f.at}-${f.text}`}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
           >
@@ -190,10 +218,7 @@ export function WinScreen({
           Z prowizją i transportem <b>{euro(totalCost(a))}</b>
         </span>
       </div>
-      <p>
-        Butelka jest już w drodze do Twojego sklepu. Czasy dostaw są
-        skompresowane: zwykle 5–12 minut w kraju, 10–25 minut zza granicy.
-      </p>
+      <p>+25 PD · Butelka jest w drodze do Twojego magazynu.</p>
       <button onClick={onClose}>
         Wspaniale. Wracam do sklepu <ArrowUpRight size={17} />
       </button>
@@ -231,7 +256,7 @@ export function Unboxing({
                   ? { rotate: [0, -3, 3, 0], y: -15, opacity: 0, scale: 1.1 }
                   : {}
               }
-              transition={{ duration: reduced ? 0 : 1.1 }}
+              transition={{ duration: reduced ? 0 : 0.3 }}
               onAnimationComplete={() => {
                 if (phase === "opening") setPhase("revealed");
               }}
@@ -239,7 +264,7 @@ export function Unboxing({
               <div className="parcel-tape" />
               <Package size={65} strokeWidth={0.8} />
               <span>JW COLLECTION STORE</span>
-              <small>FRAGILE · HANDLE WITH CARE</small>
+              <small>OSTROŻNIE · SZKŁO</small>
             </motion.div>
           </div>
           <p>{whisky(i.product).name}</p>

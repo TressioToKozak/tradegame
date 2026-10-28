@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import {
   ArrowUpRight,
   Bell,
@@ -16,8 +16,9 @@ import {
   Truck,
   Upload,
   Users,
+  Sparkles,
 } from "lucide-react";
-import { catalog, euro, whisky } from "./catalog";
+import { euro, whisky } from "./catalog";
 import {
   cash,
   held,
@@ -31,6 +32,9 @@ import {
 import { date, Empty, labels, PriceInput } from "./ui";
 import { useGame } from "./useGame";
 import ProductGallery, { Modal } from "./components/ProductGallery";
+import Brand from "./components/Brand";
+import Development from "./components/Development";
+import { shopLevel, progress, levelStart } from "./progression";
 import GameMenu from "./components/GameMenu";
 import { AuctionCard, AuctionRoom } from "./components/Auctions";
 import { NowBoard, Feed, Unboxing, WinScreen } from "./components/World";
@@ -43,11 +47,27 @@ const tabs = [
   ["Mój sklep", Store],
   ["Magazyn", Package],
   ["Wiadomości", MessageCircle],
+  ["Rozwój sklepu", Sparkles],
   ["Zamówienia", Truck],
   ["Finanse", ChartNoAxesCombined],
   ["Uczestnicy", Users],
 ] as const;
 export default function App() {
+  const [simplifiedMotion, setSimplifiedMotion] = useState(() => {
+    try {
+      return localStorage.getItem("jw-reduced-motion") === "true";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    document.documentElement.dataset.reducedMotion = String(simplifiedMotion);
+    try {
+      localStorage.setItem("jw-reduced-motion", String(simplifiedMotion));
+    } catch {
+      /* System preference still works when storage is unavailable. */
+    }
+  }, [simplifiedMotion]);
   const game = useGame(),
     s = game.state;
   const [menu, setMenu] = useState(true),
@@ -91,7 +111,7 @@ export default function App() {
   if (!game.ready)
     return (
       <div className="loading">
-        <span className="brand-seal">JW</span>
+        <Brand small />
         <p>Twój salon za chwilę otworzy drzwi…</p>
       </div>
     );
@@ -150,7 +170,10 @@ export default function App() {
     </article>
   );
   return (
-    <>
+    <MotionConfig
+      reducedMotion={simplifiedMotion ? "always" : "user"}
+      transition={{ duration: 0.24 }}
+    >
       {importInput}
       {menu || !s ? (
         <GameMenu
@@ -168,9 +191,9 @@ export default function App() {
               onClick={() => setMenu(true)}
               aria-label="Menu główne"
             >
-              <span className="brand-seal">JW</span>
+              <Brand small />
               <span>
-                COLLECTION STORE<small>TWÓJ SALON KOLEKCJONERSKI</small>
+                COLLECTION STORE<small>TWÓJ SALON</small>
               </span>
             </button>
             <div className="store-status">
@@ -192,6 +215,23 @@ export default function App() {
                   <i>/100</i>
                 </b>
               </span>
+              <button
+                className="header-level"
+                onClick={() => go("Rozwój sklepu")}
+                aria-label={`Poziom sklepu ${shopLevel(s)} — rozwój`}
+              >
+                <span>{shopLevel(s)}</span>
+                <div>
+                  <small>Poziom sklepu</small>
+                  <progress
+                    aria-label="Postęp sklepu"
+                    value={progress(s).xp - levelStart(shopLevel(s))}
+                    max={
+                      levelStart(shopLevel(s) + 1) - levelStart(shopLevel(s))
+                    }
+                  />
+                </div>
+              </button>
               <span className="header-time">
                 {date(s.now)}
                 <small>Amsterdam</small>
@@ -225,239 +265,148 @@ export default function App() {
           <main className="game-content">
             <div className="page-title">
               <div>
-                <p className="eyebrow">
-                  {tab === "Pulpit"
-                    ? "WITAJ W SWOIM SALONIE"
-                    : "JW COLLECTION STORE"}
-                </p>
-                <h1>
-                  {tab === "Pulpit" ? (
-                    <>
-                      Dobre historie.
-                      <br />
-                      <em>Jeszcze lepsze kolekcje.</em>
-                    </>
-                  ) : (
-                    tab
-                  )}
-                </h1>
-                {tab === "Pulpit" && (
-                  <p>Otwórz drzwi. Zobacz, co dziś czeka na Twoją decyzję.</p>
-                )}
+                <p className="eyebrow">TWÓJ SALON KOLEKCJONERSKI</p>
+                <h1>{tab === "Pulpit" ? "Aktualnie w grze" : tab}</h1>
               </div>
-              <div className="page-side">
-                <span className="badge">{s.difficulty}</span>
-                <span className="save-state">
-                  <Check size={12} />
-                  {game.saved ? "Postęp zapisany" : "Zapisywanie…"}
-                </span>
-              </div>
+              <span className="save-state sr-only" aria-live="off">
+                {game.saved ? "Postęp zapisany" : "Zapisywanie…"}
+              </span>
             </div>
-            {s.clockWarning && (
-              <div className="alert">
-                Wykryto cofnięcie zegara. Gra poczeka na ostatni zapisany czas;
-                rozgrywka lokalna nie jest odporna na zmianę zegara.
-              </div>
-            )}
-            {tab === "Pulpit" && (
-              <NowBoard
-                state={s}
-                go={go}
-                openAuction={setAuctionId}
-                openParcel={setParcelId}
-              />
-            )}
-            {tab === "Pulpit" && (
-              <section className="auctions-section">
-                <div className="section-heading">
-                  <h2>
-                    Kończą się za chwilę{" "}
-                    <span className="live-tag">
-                      <i className="live-dot" />
-                      {active.length} AKTYWNE
-                    </span>
-                  </h2>
-                  {tab === "Pulpit" && (
-                    <button
-                      className="text-button"
-                      onClick={() => go("Aukcje na żywo")}
-                    >
-                      Wejdź do salonu <ArrowUpRight size={16} />
-                    </button>
-                  )}
+            <motion.div
+              key={tab}
+              className="tab-scene"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {s.clockWarning && (
+                <div className="alert">
+                  Wykryto cofnięcie zegara. Gra poczeka na ostatni zapisany
+                  czas; rozgrywka lokalna nie jest odporna na zmianę zegara.
                 </div>
-                <div className="auction-grid">
-                  {active
-                    .slice()
-                    .sort((a, b) => a.end - b.end)
-                    .slice(0, 3)
-                    .map((a) => (
-                      <AuctionCard
-                        key={a.id}
-                        auction={a}
-                        state={s}
-                        onOpen={() => setAuctionId(a.id)}
-                      />
-                    ))}
-                </div>
-                {!active.length && (
-                  <Empty text="Nowe aukcje pojawią się zgodnie z harmonogramem świata. Do tego czasu możesz zająć się własną kolekcją." />
-                )}
-              </section>
-            )}
-            {tab === "Aukcje na żywo" && (
-              <AuctionMarket state={s} onOpen={setAuctionId} />
-            )}
-            {tab === "Pulpit" && (
-              <section className="new-opportunities">
-                <div className="section-heading">
-                  <h2>Nowe okazje</h2>
-                  <span className="muted">
-                    Nowe partie regularnie, zwykle co 1–2 minuty
-                  </span>
-                </div>
-                <div className="auction-grid">
-                  {active
-                    .slice()
-                    .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
-                    .slice(0, 3)
-                    .map((a) => (
-                      <AuctionCard
-                        key={a.id}
-                        auction={a}
-                        state={s}
-                        onOpen={() => setAuctionId(a.id)}
-                      />
-                    ))}
-                </div>
-              </section>
-            )}
-            {tab === "Pulpit" && (
-              <>
-                <section className="shop-preview">
-                  <div>
-                    <p className="eyebrow">TWOJA WŁASNA KOLEKCJA</p>
+              )}
+              {tab === "Pulpit" && (
+                <NowBoard
+                  state={s}
+                  go={go}
+                  openAuction={setAuctionId}
+                  openParcel={setParcelId}
+                />
+              )}
+              {tab === "Pulpit" && (
+                <section className="auctions-section">
+                  <div className="section-heading">
                     <h2>
-                      Każda butelka
-                      <br />
-                      <em>ma swoją historię.</em>
+                      Kończą się za chwilę{" "}
+                      <span className="live-tag">
+                        <i className="live-dot" />
+                        {active.length} AKTYWNE
+                      </span>
                     </h2>
-                    <p>
-                      {s.items.filter((i) => i.status === "listed").length}{" "}
-                      ofert w witrynie ·{" "}
-                      {s.orders.filter((o) => o.status === "packing").length}{" "}
-                      zamówień czeka na wysyłkę
-                    </p>
-                    <button className="outline" onClick={() => go("Mój sklep")}>
-                      Otwórz swój sklep <ArrowUpRight size={16} />
-                    </button>
-                  </div>
-                  <div className="shop-shelf">
-                    {s.items
-                      .filter((i) =>
-                        ["listed", "stock", "inspect"].includes(i.status),
-                      )
-                      .slice(0, 3)
-                      .map((i) => (
-                        <div key={i.id} className="shelf-item">
-                          <ProductGallery product={i.product} compact />
-                          <button
-                            className="text-button"
-                            onClick={() =>
-                              go(
-                                i.status === "listed" ? "Mój sklep" : "Magazyn",
-                              )
-                            }
-                          >
-                            {whisky(i.product).name.replace(
-                              "Johnnie Walker ",
-                              "",
-                            )}
-                          </button>
-                        </div>
-                      ))}
-                    {!s.items.some((i) =>
-                      ["listed", "stock", "inspect"].includes(i.status),
-                    ) && (
-                      <div className="shelf-empty">
-                        <Package size={45} strokeWidth={0.7} />
-                        <p>Miejsce na Twoją pierwszą zdobycz.</p>
-                        <span>
-                          Wygraj aukcję, odbierz przesyłkę i nadaj jej własną
-                          cenę.
-                        </span>
-                      </div>
+                    {tab === "Pulpit" && (
+                      <button
+                        className="text-button"
+                        onClick={() => go("Aukcje na żywo")}
+                      >
+                        Wejdź do salonu <ArrowUpRight size={16} />
+                      </button>
                     )}
                   </div>
+                  <div className="auction-grid">
+                    {active
+                      .slice()
+                      .sort((a, b) => a.end - b.end)
+                      .slice(0, 3)
+                      .map((a) => (
+                        <AuctionCard
+                          key={a.id}
+                          auction={a}
+                          state={s}
+                          onOpen={() => setAuctionId(a.id)}
+                        />
+                      ))}
+                  </div>
+                  {!active.length && (
+                    <Empty text="Nowe aukcje pojawią się zgodnie z harmonogramem świata. Do tego czasu możesz zająć się własną kolekcją." />
+                  )}
                 </section>
-                <section className="journal-section">
+              )}
+              {tab === "Aukcje na żywo" && (
+                <AuctionMarket state={s} onOpen={setAuctionId} />
+              )}
+              {tab === "Pulpit" && (
+                <section className="new-opportunities">
                   <div className="section-heading">
-                    <h2>Dziennik Twojego świata</h2>
-                    <span className="live-tag">
-                      <i className="live-dot" /> ZDARZENIA NA ŻYWO
-                    </span>
+                    <h2>Nowe okazje</h2>
+                    <span className="muted">Najnowsze partie</span>
                   </div>
-                  <Feed state={s} />
+                  <div className="auction-grid">
+                    {active
+                      .slice()
+                      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
+                      .slice(0, 3)
+                      .map((a) => (
+                        <AuctionCard
+                          key={a.id}
+                          auction={a}
+                          state={s}
+                          onOpen={() => setAuctionId(a.id)}
+                        />
+                      ))}
+                  </div>
                 </section>
-              </>
-            )}
-            {tab === "Magazyn" && (
-              <section>
-                <div className="section-heading">
-                  <h2>Twoje butelki i dostawy</h2>
-                  <span className="muted">
-                    Dostawy · skompresowany czas gry, zwykle 5–25 min
-                  </span>
-                </div>
-                <div className="inventory-grid">{s.items.map(itemCard)}</div>
-                {!s.items.length && (
-                  <Empty text="Pierwsza wygrana aukcja zapoczątkuje Twoją kolekcję. Tutaj odbierzesz i otworzysz przesyłkę." />
-                )}
-              </section>
-            )}
-            {tab === "Mój sklep" && (
-              <section>
-                <div className="section-heading">
-                  <h2>Witryna JW Collection Store</h2>
-                  <button className="text-button" onClick={() => go("Magazyn")}>
-                    Wystaw z magazynu <ArrowUpRight size={16} />
-                  </button>
-                </div>
-                <div className="inventory-grid">
-                  {s.items.filter((i) => i.status === "listed").map(itemCard)}
-                </div>
-                {!s.items.some((i) => i.status === "listed") && (
-                  <Empty text="Twoja witryna czeka na pierwszą butelkę. Ustal cenę w magazynie — Ty decydujesz o marży." />
-                )}
-                <details className="catalog-section">
-                  <summary>
-                    Poznaj edycje · katalog {catalog.length} whisky
-                  </summary>
-                  <div className="catalog-grid">
-                    {catalog.map((w) => (
-                      <article key={w.id}>
-                        <ProductGallery product={w.id} compact />
-                        <h3>{w.name}</h3>
-                        <p>{w.description}</p>
-                        <small>
-                          Referencja gry {euro(w.value)} · Rzadkość {w.rarity}
-                          /10
-                        </small>
-                      </article>
-                    ))}
+              )}
+              {tab === "Pulpit" && (
+                <>
+                  <section className="journal-section">
+                    <div className="section-heading">
+                      <h2>Dziennik Twojego świata</h2>
+                      <span className="live-tag">
+                        <i className="live-dot" /> ZDARZENIA NA ŻYWO
+                      </span>
+                    </div>
+                    <Feed state={s} />
+                  </section>
+                </>
+              )}
+              {tab === "Magazyn" && (
+                <section>
+                  <div className="section-heading">
+                    <h2>Twoje butelki i dostawy</h2>
                   </div>
-                </details>
-              </section>
-            )}
-            {tab === "Wiadomości" && (
-              <Messenger state={s} mutate={game.mutate} />
-            )}
-            <BusinessPanels tab={tab} state={s} mutate={game.mutate} />
+                  <div className="inventory-grid">{s.items.map(itemCard)}</div>
+                  {!s.items.length && (
+                    <Empty text="Pierwsza wygrana aukcja zapoczątkuje Twoją kolekcję. Tutaj odbierzesz i otworzysz przesyłkę." />
+                  )}
+                </section>
+              )}
+              {tab === "Mój sklep" && (
+                <section>
+                  <div className="section-heading">
+                    <h2>Witryna JW Collection Store</h2>
+                    <button
+                      className="text-button"
+                      onClick={() => go("Magazyn")}
+                    >
+                      Wystaw z magazynu <ArrowUpRight size={16} />
+                    </button>
+                  </div>
+                  <div className="inventory-grid">
+                    {s.items.filter((i) => i.status === "listed").map(itemCard)}
+                  </div>
+                  {!s.items.some((i) => i.status === "listed") && (
+                    <Empty text="Twoja witryna czeka na pierwszą butelkę. Ustal cenę w magazynie — Ty decydujesz o marży." />
+                  )}
+                </section>
+              )}
+              {tab === "Wiadomości" && (
+                <Messenger state={s} mutate={game.mutate} />
+              )}
+              {tab === "Rozwój sklepu" && (
+                <Development state={s} mutate={game.mutate} />
+              )}
+              <BusinessPanels tab={tab} state={s} mutate={game.mutate} />
+            </motion.div>
             <footer className="game-footer">
-              <span>
-                JW COLLECTION STORE <b>·</b> Niezależna gra kolekcjonerska. Bez
-                powiązania z marką.
-              </span>
               <button className="text-button" onClick={() => setMenu(true)}>
                 <LogOut size={14} /> Menu gry
               </button>
@@ -602,7 +551,7 @@ export default function App() {
               [
                 "Witaj w JW Collection Store. Zbudujesz kolekcję i własny biznes.",
                 "Gotówkę i reputację widzisz u góry. Oferty blokują pełny koszt, razem z opłatami.",
-                "W Aukcjach znajdziesz 10 początkowych partii. Obserwuj je i filtruj według swoich zainteresowań.",
+                "W Aukcjach znajdziesz 16 początkowych partii. Obserwuj je i filtruj według swoich zainteresowań.",
                 "W szczegółach wybierz szybkie przebicie albo wpisz kwotę, sprawdź koszt i zatwierdź. Możesz ustawić limit.",
                 "Po dostawie otwórz paczkę w Magazynie. Sam ustal cenę; możesz ją później zmienić.",
                 "Wiadomości zawierają propozycje prawdziwych postaci symulacji. Nie każda negocjacja zakończy się sprzedażą.",
@@ -662,9 +611,11 @@ export default function App() {
           <h3>Od aukcji do własnego sklepu</h3>
           <p>
             Licytuj whisky, uwzględniając prowizję i transport. Dostawa trwa
-            zwykle 5–25 minut w czasie gry. Otwórz paczkę w magazynie,
-            skontroluj stan i sam ustal cenę. Klienci odwiedzają witrynę w
-            godzinach 8–22 Amsterdam i oceniają ją według swoich preferencji.
+            zwykle 3–8 minut w kraju i 6–15 minut z zagranicy. Są to
+            skompresowane czasy gry, a nie terminy prawdziwych kurierów. Otwórz
+            paczkę w magazynie, skontroluj stan i sam ustal cenę. Klienci
+            odwiedzają witrynę najczęściej między 8 a 22 czasu Amsterdamu i
+            oceniają ją według swoich preferencji.
           </p>
           {s && (
             <label>
@@ -686,6 +637,25 @@ export default function App() {
               </p>
             </label>
           )}
+          <div className="setting-row">
+            <div>
+              <h3>Uproszczone animacje</h3>
+              <p>
+                Bez pulsowania i przesunięć. Preferencje systemowe są
+                respektowane automatycznie.
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-label="Uproszczone animacje"
+              aria-checked={simplifiedMotion}
+              className="setting-switch"
+              onClick={() => setSimplifiedMotion(!simplifiedMotion)}
+            >
+              <span />
+            </button>
+          </div>
           <h3>Czas i zapis</h3>
           <p>
             To lokalna symulacja, bez konta i backendu. Postęp jest
@@ -697,6 +667,10 @@ export default function App() {
             Nie otwieraj jednej rozgrywki w kilku kartach. Nie ma synchronizacji
             urządzeń. Zmiana zegara i edycja zapisu pozwalają manipulować grą.
             Regularnie eksportuj postęp.
+          </p>
+          <p>
+            Niezależna gra kolekcjonerska, bez powiązania z marką Johnnie
+            Walker. Fotografie i znaki producenta należą do ich właścicieli.
           </p>
           <h3>Fotografie</h3>
           <p>
@@ -712,6 +686,6 @@ export default function App() {
           </p>
         </Modal>
       )}
-    </>
+    </MotionConfig>
   );
 }

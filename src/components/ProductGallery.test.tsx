@@ -55,7 +55,7 @@ describe("Galeria produktu — kontrolowane zasoby testowe, nie fotografie do pu
       screen.getByAltText("Johnnie Walker Blue Label — Opakowanie"),
     );
     expect(screen.queryByRole("img")).toBeNull();
-    expect(screen.getByText("Nie udało się wczytać fotografii")).toBeTruthy();
+    expect(screen.getByText("Zdjęcie niedostępne")).toBeTruthy();
     expect(screen.getByText("Blue Label")).toBeTruthy();
   });
   it("zmiana produktu resetuje błąd i nie zachowuje zdjęcia innej whisky", () => {

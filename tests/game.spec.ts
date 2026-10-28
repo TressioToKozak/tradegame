@@ -4,8 +4,8 @@ import { productMedia } from "../src/media";
 
 async function importState(page: any, state: ReturnType<typeof createGame>) {
   await page.goto("./");
-  await page.getByRole("button", { name: /Pomoc i ustawienia/ }).click();
-  await page
+  await page.getByRole("button", { name: "USTAWIENIA", exact: true }).click();
+  await page.getByRole("dialog", {name:"Pomoc i ustawienia"})
     .getByRole("button", { name: "Importuj zapis", exact: true })
     .click();
   await page.locator("input[type=file]").setInputFiles({
@@ -14,7 +14,7 @@ async function importState(page: any, state: ReturnType<typeof createGame>) {
     buffer: Buffer.from(JSON.stringify(state)),
   });
   await expect(
-    page.getByRole("heading", { name: /Dobre historie/ }),
+    page.getByRole("heading", { name: "Aktualnie w grze", exact: true }),
   ).toBeVisible();
 }
 function storeFixture() {
@@ -65,6 +65,7 @@ test("nowa gra, zegar, prawdziwe oferty NPC, własna oferta i zapis", async ({
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("./");
   await page.getByRole("button", { name: "NOWA GRA", exact: true }).click();
+  await page.getByRole("button", { name: "ROZPOCZNIJ GRĘ" }).click();
   await page.getByRole("button", { name: "Pomiń wprowadzenie" }).click();
   await expect(
     page.getByText("5000,00", { exact: false }).first(),
@@ -105,7 +106,7 @@ test("nowa gra, zegar, prawdziwe oferty NPC, własna oferta i zapis", async ({
   ).toBeVisible();
   await dialog.getByRole("button", { name: "Zamknij okno" }).click();
   await page.reload();
-  await page.getByRole("button", { name: "KONTYNUUJ", exact: true }).click();
+  await page.getByRole("button", { name: "KONTYNUUJ GRĘ", exact: true }).click();
   await page
     .getByRole("button", { name: "Wejdź do licytacji" })
     .first()
@@ -126,7 +127,7 @@ test("komunikator odracza decyzję klienta i zachowuje ją po przeładowaniu", a
     page.getByText("Wiadomość wysłana. Klient zapoznaje się z ofertą."),
   ).toBeVisible();
   await page.reload();
-  await page.getByRole("button", { name: "KONTYNUUJ" }).click();
+  await page.getByRole("button", { name: "KONTYNUUJ GRĘ" }).click();
   await page.getByRole("button", { name: /^Wiadomości/ }).click();
   await expect(
     page.getByText("Wiadomość wysłana. Klient zapoznaje się z ofertą."),
@@ -186,6 +187,7 @@ test("zachowuje finanse, dostępność przycisków i układ mobilny", async ({
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("./");
   await page.getByRole("button", { name: "NOWA GRA", exact: true }).click();
+  await page.getByRole("button", { name: "ROZPOCZNIJ GRĘ" }).click();
   await page.getByRole("button", { name: "Pomiń wprowadzenie" }).click();
   expect(
     await page.evaluate(
@@ -205,15 +207,16 @@ test("produkcja działa offline w podfolderze repozytorium", async ({
 }) => {
   await page.goto("./");
   await page.getByRole("button", { name: "NOWA GRA", exact: true }).click();
+  await page.getByRole("button", { name: "ROZPOCZNIJ GRĘ" }).click();
   await page.getByRole("button", { name: "Pomiń wprowadzenie" }).click();
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload();
-  await page.getByRole("button", { name: "KONTYNUUJ" }).click();
+  await page.getByRole("button", { name: "KONTYNUUJ GRĘ" }).click();
   await context.setOffline(true);
   await page.reload();
-  await page.getByRole("button", { name: "KONTYNUUJ" }).click();
+  await page.getByRole("button", { name: "KONTYNUUJ GRĘ" }).click();
   await expect(
-    page.getByRole("heading", { name: /Dobre historie/ }),
+    page.getByRole("heading", { name: "Aktualnie w grze", exact: true }),
   ).toBeVisible();
 });
 test("przypisane fotografie ładują się z /tradegame/ i można je powiększyć", async ({
@@ -348,7 +351,7 @@ test("oryginalny zapis wersji 1 można wyeksportować przed migracją", async ({
   await expect(
     page.getByRole("dialog", { name: "Aktualizacja zapisu" }),
   ).toHaveCount(0);
-  await page.getByRole("button", { name: "KONTYNUUJ" }).click();
+  await page.getByRole("button", { name: "KONTYNUUJ GRĘ" }).click();
   await expect(
     page.getByText("5000,00", { exact: false }).first(),
   ).toBeVisible();
@@ -393,7 +396,7 @@ test("anti-sniping: dwa przedłużenia, odświeżenie i jedno rozliczenie NPC", 
   await expect(room.locator(".extension-banner")).toContainText("+15 SEKUND");
   await expect(page.locator(".save-state")).toContainText("Postęp zapisany");
   await page.reload();
-  await page.getByRole("button", { name: "KONTYNUUJ" }).click();
+  await page.getByRole("button", { name: "KONTYNUUJ GRĘ" }).click();
   await page
     .getByRole("button", { name: "Wejdź do licytacji" })
     .first()

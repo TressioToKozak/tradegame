@@ -43,7 +43,7 @@ export default function BusinessPanels({
             [
               "Zrealizowany zysk",
               euro(fin.profit),
-              "Po kosztach nabycia i realizacji",
+              `Po kosztach nabycia, realizacji i rozwoju (${euro(fin.developmentCost)})`,
             ],
             [
               "Reputacja sklepu",
