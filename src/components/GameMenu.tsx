@@ -1,7 +1,8 @@
-import { ArrowUpRight, ChevronDown, Play } from "lucide-react";
+import { ArrowRight, Play, Settings, Upload } from "lucide-react";
 import { useState } from "react";
-import ProductGallery from "./ProductGallery";
-import { date } from "../ui";
+import { Modal } from "./ProductGallery";
+import Brand from "./Brand";
+import { assetUrl, productMedia } from "../media";
 import { pacing, type Pace } from "../pace";
 import type { State } from "../engine";
 export default function GameMenu({
@@ -12,113 +13,111 @@ export default function GameMenu({
   onHelp,
 }: {
   state: State | null;
-  onStart: (difficulty: string, pace: Pace) => void;
+  onStart: (d: string, p: Pace) => void;
   onContinue: () => void;
   onImport: () => void;
   onHelp: () => void;
 }) {
-  const [difficulty, setDifficulty] = useState("Realistyczna");
-  const [pace, setPace] = useState<Pace>("Dynamiczne");
+  const [newGame, setNewGame] = useState(false),
+    [difficulty, setDifficulty] = useState("Realistyczna"),
+    [pace, setPace] = useState<Pace>("Dynamiczne");
+  const photo = productMedia.collection[0];
   return (
-    <main className="game-menu">
-      <div className="menu-top">
-        <a className="brand" href="#" onClick={(e) => e.preventDefault()}>
-          <span className="brand-seal">JW</span>
-          <span>
-            COLLECTION STORE<small>AMSTERDAM · HOLANDIA</small>
-          </span>
-        </a>
-        <button className="text-button" onClick={onHelp}>
-          Pomoc i ustawienia <ArrowUpRight size={16} />
+    <main className="game-menu menu-v3">
+      <div className="menu-story">
+        <Brand />
+        <p className="menu-wordmark">
+          JOHNNIE WALKER
+          <br />
+          <strong>COLLECTION STORE</strong>
+        </p>
+        <h1>
+          Zbuduj swoje
+          <br />
+          <em>whisky imperium.</em>
+        </h1>
+        <div className="menu-actions">
+          <button className="menu-primary" disabled={!s} onClick={onContinue}>
+            <Play size={20} /> KONTYNUUJ GRĘ
+          </button>
+          <button
+            className={s ? "outline" : "menu-primary"}
+            onClick={() => setNewGame(true)}
+          >
+            NOWA GRA <ArrowRight size={20} />
+          </button>
+          <button className="text-button" onClick={onHelp}>
+            <Settings size={18} /> USTAWIENIA
+          </button>
+        </div>
+        <button className="text-button import-menu" onClick={onImport}>
+          <Upload size={15} /> Importuj zapis
         </button>
       </div>
-      <div className="menu-scene">
-        <div className="menu-story">
-          <p className="eyebrow">
-            TWOJA PASJA. TWOJA KOLEKCJA. TWOJE IMPERIUM.
-          </p>
-          <h1>
-            JW
-            <br />
-            <em>Collection</em>
-            <br />
-            Store<span>.</span>
-          </h1>
-          <p className="menu-tagline">
-            Od pierwszej butelki
-            <br />
-            do kolekcjonerskiego imperium.
-          </p>
-          <div className="menu-actions">
-            <button
-              className="menu-new"
-              onClick={() => onStart(difficulty, pace)}
+      <div className="menu-photography">
+        {photo && (
+          <>
+            <img
+              src={assetUrl(photo.path)}
+              alt="Fotograficzna kolekcja butelek Johnnie Walker"
+            />
+            <div className="menu-photo-credit">
+              <a href={photo.source} target="_blank" rel="noreferrer">
+                {photo.author}
+              </a>{" "}
+              ·{" "}
+              <a href={photo.licenseUrl} target="_blank" rel="noreferrer">
+                {photo.license}
+              </a>
+            </div>
+          </>
+        )}
+      </div>
+      {newGame && (
+        <Modal
+          title="Nowa gra"
+          onClose={() => setNewGame(false)}
+          className="new-game-dialog"
+        >
+          <p className="eyebrow">TWÓJ PIERWSZY SALON</p>
+          <h2>Otwórz własny sklep</h2>
+          <p>5 000 € kapitału. Reszta zależy od Twoich decyzji.</p>
+          <label>
+            Poziom trudności
+            <select
+              aria-label="Poziom trudności"
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value)}
             >
-              NOWA GRA <ArrowUpRight size={19} />
-            </button>
-            {s && (
-              <button className="menu-continue outline" onClick={onContinue}>
-                <Play size={15} />
-                KONTYNUUJ
-              </button>
-            )}
-          </div>
-          <div className="menu-options">
-            <label>
-              Poziom trudności{" "}
-              <select
-                aria-label="Poziom trudności"
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value)}
-              >
-                {["Łatwa", "Normalna", "Realistyczna", "Ekspert"].map((d) => (
-                  <option key={d}>{d}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Tempo
-              <select
-                aria-label="Tempo gry"
-                value={pace}
-                onChange={(e) => setPace(e.target.value as Pace)}
-              >
-                {Object.keys(pacing).map((p) => (
-                  <option key={p}>{p}</option>
-                ))}
-              </select>
-            </label>
-            <details>
-              <summary>
-                Twoje zapisy <ChevronDown size={12} />
-              </summary>
-              {s && <p>Ostatni zapis: {date(s.now)}</p>}
-              <button className="text-button" onClick={onImport}>
-                Importuj rozgrywkę
-              </button>
-            </details>
-          </div>
-        </div>
-        <div className="menu-collection">
-          <span className="scene-arch" />
-          <ProductGallery collection />
-          <div className="collection-caption">
-            <span>SZTUKA KOLEKCJONOWANIA</span>
-            <p>
-              Niektóre historie
-              <br />
-              zaczynają się od jednej butelki.
-            </p>
-            <i>01 / TWOJA KOLEKCJA CZEKA</i>
-          </div>
-        </div>
-      </div>
-      <div className="menu-bottom">
-        <span>
-          KOLEKCJONUJ <b>·</b> LICYTUJ <b>·</b> NEGOCJUJ
-        </span>
-        <span>Niezależna gra ekonomiczna</span>
-      </div>
+              {["Łatwa", "Normalna", "Realistyczna", "Ekspert"].map((d) => (
+                <option key={d}>{d}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Tempo gry
+            <select
+              aria-label="Tempo gry"
+              value={pace}
+              onChange={(e) => setPace(e.target.value as Pace)}
+            >
+              {Object.keys(pacing).map((p) => (
+                <option key={p}>{p}</option>
+              ))}
+            </select>
+          </label>
+          <p className="muted">{pacing[pace]}</p>
+          <button
+            className="full"
+            onClick={() => {
+              onStart(difficulty, pace);
+              setNewGame(false);
+            }}
+          >
+            ROZPOCZNIJ GRĘ <ArrowRight size={18} />
+          </button>
+        </Modal>
+      )}
     </main>
   );
 }

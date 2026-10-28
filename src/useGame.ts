@@ -106,6 +106,11 @@ export function useGame() {
     };
   }, [update, persist]);
   useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(""), 6500);
+    return () => clearTimeout(timer);
+  }, [notice]);
+  useEffect(() => {
     const timer = setInterval(() => mutate(() => {}), 1000);
     return () => clearInterval(timer);
   }, [mutate]);

@@ -20,7 +20,9 @@ import {
   type State,
 } from "../engine";
 import { type Mutate } from "../useGame";
+import { tradeContacts } from "../progression";
 import { countdown, time } from "../ui";
+import Hint from "./Hint";
 import ProductGallery, { Modal } from "./ProductGallery";
 const actor = (s: State, id: string | null) =>
   id === "player"
@@ -70,7 +72,9 @@ export function AuctionCard({
       <div className="auction-info">
         <span className="eyebrow">JOHNNIE WALKER · {a.country}</span>
         <h3>{whisky(a.product).name}</h3>
-        <p className="product-specs">{productSpecs(whisky(a.product))}</p>
+        {(whisky(a.product).volumeMl || whisky(a.product).abv) && (
+          <p className="product-specs">{productSpecs(whisky(a.product))}</p>
+        )}
         <div className="auction-facts">
           <span>
             Butelka / pudełko{" "}
@@ -83,16 +87,10 @@ export function AuctionCard({
             Rzadkość <b>{whisky(a.product).market.rarity}/10</b>
           </span>
           <span>
-            Referencja gry <b>{euro(whisky(a.product).value)}</b>
-          </span>
-          <span>
             Obserwuje <b>{watcherCount(s, a)}</b>
           </span>
         </div>
-        <small>
-          {availabilityLabel[whisky(a.product).market.availability]} dostępność
-          · ceny są parametrami gry
-        </small>
+
         <div className="auction-price">
           <div>
             <small>Aktualna oferta</small>
@@ -113,13 +111,8 @@ export function AuctionCard({
           </small>
         </div>
         <div className="card-total">
-          Pełny koszt przy bieżącej cenie <b>{euro(totalCost(a))}</b>
+          Łącznie z opłatami <b>{euro(totalCost(a))}</b>
         </div>
-        {totalCost(a) < whisky(a.product).value * 0.75 && (
-          <p className="opportunity-hint">
-            Koszt poniżej referencji — zysk nie jest gwarantowany.
-          </p>
-        )}
         {a.leader === "player" ? (
           <span className="bid-status leading">Prowadzisz</span>
         ) : a.bids.some((b) => b.actor === "player") ? (
@@ -233,6 +226,12 @@ export function AuctionRoom({
               Sprzedawca <b>{a.country}</b>
             </span>
           </div>{" "}
+          {a.supplierContact && (
+            <p className="contact-source">
+              Kontakt:{" "}
+              {tradeContacts.find((c) => c.id === a.supplierContact)?.name}
+            </p>
+          )}
           <details className="edition-data">
             <summary>Dane edycji i rynku</summary>
             <p>{productSpecs(whisky(a.product))}</p>
@@ -348,7 +347,17 @@ export function AuctionRoom({
               {euro(a.price)}
             </motion.strong>
             <p>
-              Prowadzi <b>{actor(s, a.leader)}</b>
+              <span className="bidder-avatar" aria-hidden="true">
+                {actor(s, a.leader).slice(0, 2).toUpperCase()}
+              </span>{" "}
+              Prowadzi{" "}
+              <motion.b
+                key={a.leader}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                {actor(s, a.leader)}
+              </motion.b>
             </p>
           </div>
           {a.status === "active" &&
@@ -418,7 +427,7 @@ export function AuctionRoom({
               </div>
               <p className="muted">
                 Krok {euro(bidStep(a.price))} · minimalna oferta{" "}
-                {euro(a.price + bidStep(a.price))} · rejestracja 100–900 ms
+                {euro(a.price + bidStep(a.price))}
               </p>
             </form>
           )}
@@ -481,7 +490,13 @@ export function AuctionRoom({
             </dd>
             <dt>Transport do magazynu</dt>
             <dd>{euro(a.shipping)}</dd>
-            <dt>Całkowity koszt zakupu</dt>
+            <dt>
+              Całkowity koszt zakupu{" "}
+              <Hint label="Jak liczymy pełny koszt?">
+                Cena młotkowa + prowizja aukcyjna + transport do magazynu.
+                Wysyłkę do klienta opłacisz osobno po sprzedaży.
+              </Hint>
+            </dt>
             <dd>
               {euro(
                 totalCost(a, a.status === "active" && valid ? amount : a.price),

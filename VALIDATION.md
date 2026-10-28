@@ -1,18 +1,27 @@
-# Weryfikacja aktualizacji rynku 2.1
+# Weryfikacja kandydata 3.0
 
-## Zaliczone
+## Silnik i zapis
 
-- **50 testów jednostkowych/komponentowych**: dotychczasowe finanse, NPC, zapis i chronologiczne odtwarzanie; siedem edycji i brak duplikatu `rye`; eurocenty, dostępność, częstotliwość, popyt/płynność, opłaty, pełny raport fotografii, anti-sniping i zgodność zapisów 1/2.
-- Anti-sniping w silniku: próg dokładnie 10 sekund, brak przedłużenia przy 11 sekundach, wielokrotne +15 s, odrzucenia, własne podbijanie, oferta w chwili końca, stare `close`, aktualizacja snajperów, wznowienie JSON i jednokrotne rozliczenie.
-- **10 scenariuszy Chromium**, bez pominiętych, na gotowym `dist` pod `/tradegame/`. Dotychczasowe licytacje, komunikator, paczki, finanse, mobile, offline i migracja oraz rzeczywiste zdjęcia i nowy anti-sniping.
-- Scenariusz anti-sniping w przeglądarce korzysta z prawdziwego upływu czasu: koniec za 8 sekund → oferta gracza → +15 sekund → odświeżenie → oferta NPC 5 sekund przed nowym końcem → kolejne +15 sekund → brak zamknięcia przy starym terminie → jedno rozliczenie. Trwa około 39 sekund. Nie zastąpiono go sztucznym odliczaniem.
-- Test zdjęć otwiera wszystkie 12 sfotografowanych produktów i sprawdza `complete`/`naturalWidth`, a następnie dekoduje wszystkie 15 plików, w tym opakowania i kolekcję, przez `Image.decode()` w Chromium. To są fotografie produkcyjne, nie atrapy.
-- Godzinny test rynku: zwykle 8–15 aktywnych, brak pustego rynku. Test 15 aukcji sprawdza wspólne budżety. Trzy dni odtworzone w około 0,4 s w tej maszynie po optymalizacji wag i formatowania czasu; to pomiar środowiska, nie gwarancja czasu na telefonie.
-- `npm run check:images:strict`: 15 istniejących plików i ich metadane. `npm run report:images`: pełna lista 44 braków w 56-pozycyjnym katalogu. Losowanie nie korzysta z manifestu zdjęć.
-- TypeScript i produkcyjny build Vite.
+`npm test`: **64 testy jednostkowe i komponentowe**, bez pominiętych. Zachowane obliczenia aukcji, wspólne budżety NPC, klienci, rezerwacje, zwroty, księga i import. Nowe testy obejmują płatne ulepszenia, blokady gotówki, pojemność w momencie rejestracji, jednokrotne PD, zgodność starszych zapisów, wpływ pakowania na ryzyko, kontakty i pochodzenie partii, przedziały wyceny i brak mnożnika rzadkości.
 
-## Nieukończone lub niezweryfikowane
+Godzinny rynek utrzymuje zwykle 12–20 aukcji, nigdy więcej niż 20; test obciążenia obejmuje 20 partii i wspólne budżety. Trzy dni offline odtwarzają się w około 1 s na tej maszynie; to obserwacja, nie gwarancja wydajności telefonu. Silnik przetwarza ograniczone porcje 50 000 zdarzeń. Test porównuje pełne odtworzenie w takich porcjach z odtwarzaniem co minutę; oba kończą na żądanym czasie i identycznym stanie, także z doświadczeniem.
 
-- Fotografie **44 z 56 produktów** nadal nie są dostępne. Pełna lista: [MISSING_IMAGES.md](MISSING_IMAGES.md). `npm run check:images:all` celowo kończy się błędem kompletności; nie jest opisywany jako zaliczony.
-- Nie potwierdzono aktualnych ofert cenowych w dwóch niezależnych źródłach dla siedmiu produktów. Wskazane strony producenta i sklepów zwracają 403 w tym środowisku. Wartości są parametrami z polecenia, a `lastVerified` pozostaje puste. High Rye nie udaje potwierdzonej ceny holenderskiej.
-- Bezpośrednie otwarcie publicznej strony w Chromium ogranicza konfiguracja certyfikatu proxy. Nie zmieniono zaufania certyfikatów ani nie wyłączono weryfikacji TLS. Publiczny build i fotografie można odrębnie zweryfikować przez HTTPS oraz porównać z przetestowanym lokalnie `dist`; wynik wdrożenia jest podany w końcowym raporcie.
+Anti-sniping: próg 10/11 sekund, wielokrotne +15 s, gracz/NPC, spóźnione/odrzucone/własne oferty, stare zdarzenia zamknięcia, zaktualizowane decyzje snajperów, odświeżenie i jedno rozliczenie.
+
+## Przeglądarka i wygląd
+
+**14 scenariuszy Chromium zaliczonych**, bez pominiętych, na skompilowanym `dist`, serwowanym z rzeczywistego podfolderu `/tradegame/`. Zestaw obejmuje menu i nieinteraktywne zdjęcie kolekcji, focus, monogram, osobną konfigurację nowej gry, licytację, zegary i NPC, klientów i zapis odpowiedzi, rozpakowanie, finanse, mobilny układ, tryb offline, migrację z eksportem oryginału, zdjęcia, filtry, checkbox, obserwowanie, limit, rozwój i koszt/pojemność po odświeżeniu, ustawienie uproszczonych animacji i tooltip zamykany Escape.
+
+Test anti-sniping korzysta z rzeczywistego upływu czasu przez około 39 s: gracz przedłuża aukcję, odświeża stronę, NPC ponownie przedłuża, żaden wcześniejszy termin nie zamyka aukcji, budżet NPC i pamięć zwycięstwa są rozliczone raz.
+
+Zrzuty menu, pulpitu, rozwoju i rynku mobilnego zapisują się w `test-results/`; wybrane są zachowane w `docs/screenshots/`. Obejrzano ekran menu, pulpit, rynek mobilny i rozwój. Po przeglądzie zmniejszono karty bez fotografii, skrócono sekcję nowych okazji i usunięto część mikrotekstu z telefonu. Zrzuty nie ukrywają braku 44 fotografii.
+
+Każdy z 15 przypisanych plików jest dekodowany przez `Image.decode()` w prawdziwym Chromium, a 12 sfotografowanych produktów sprawdza `complete` i `naturalWidth` na kartach. To nie jest test kompletności całego katalogu.
+
+## Build i blokery
+
+- TypeScript, Vite i kontrola istniejących fotografii przechodzą.
+- **`check:images:all` nie przechodzi: 44 braki z 56 produktów.** W tej sesji nie pozyskano nowych plików: wszystkie osiem sprawdzonych źródeł jest zablokowane przez proxy CONNECT 403. Pełna lista w `MISSING_IMAGES.md`.
+- Aktualne detaliczne ceny i zakończone aukcje nie zostały zewnętrznie zweryfikowane. Szacunki są oznaczone jako szacunki, a daty i źródła nie są fabrykowane.
+- Publiczna domena Pages także jest poza aktywną listą dostępu tego środowiska. Nie wykonano końcowego testu nowej wersji na publicznym hostingu.
+- Kandydat pozostaje na gałęzi `jwcs-v3`, bez zastąpienia opublikowanej gry. Publikacja wymaga przejścia kontroli fotografii całego katalogu. Zgodność z podfolderem Pages i tryb offline sprawdzono lokalnie; nie jest to deklaracja wydania 3.0.

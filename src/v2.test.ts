@@ -23,19 +23,19 @@ const drain = (s: State, target: number) => {
   while (s.now < target && attempts++ < 20) advance(s, target);
   expect(s.now).toBe(target);
 };
-describe("Ciągły rynek 2.0", () => {
-  it("startuje z dziesięcioma aukcjami pełnego katalogu i 35 rywalami", () => {
+describe("Ciągły rynek 3.0", () => {
+  it("startuje z szesnastoma aukcjami pełnego katalogu i 35 rywalami", () => {
     const s = createGame(now, 42);
-    expect(s.auctions).toHaveLength(10);
+    expect(s.auctions).toHaveLength(16);
     expect(s.people.filter((p) => p.role === "bidder")).toHaveLength(35);
     for (const a of s.auctions) {
       expect(catalog.some((w) => w.id === a.product)).toBe(true);
       expect(a.end - now).toBeGreaterThanOrEqual(45000);
     }
-    expect(new Set(s.auctions.map((a) => a.end)).size).toBe(10);
+    expect(new Set(s.auctions.map((a) => a.end)).size).toBe(16);
     expect(s.auctions.some((a) => !photosFor(a.product).length)).toBe(true);
   });
-  it("przez godzinę regularnie uzupełnia aukcje, bez pustego rynku i bez przekroczenia 15", () => {
+  it("przez godzinę regularnie uzupełnia aukcje, bez pustego rynku i bez przekroczenia 20", () => {
     const s = createGame(now, 42);
     let samples = 0,
       healthy = 0;
@@ -43,8 +43,8 @@ describe("Ciągły rynek 2.0", () => {
       advance(s, t);
       const active = s.auctions.filter((a) => a.status === "active").length;
       expect(active).toBeGreaterThanOrEqual(6);
-      expect(active).toBeLessThanOrEqual(15);
-      if (active >= 8) healthy++;
+      expect(active).toBeLessThanOrEqual(20);
+      if (active >= 12) healthy++;
       samples++;
     }
     expect(healthy / samples).toBeGreaterThan(0.7);
@@ -83,10 +83,10 @@ describe("Ciągły rynek 2.0", () => {
       held: held(s),
     }).toEqual(snapshot);
   });
-  it("15 aukcji i wielu rywali nie narusza wspólnych budżetów", () => {
+  it("20 aukcji i wielu rywali nie narusza wspólnych budżetów", () => {
     const s = createGame(now, 100);
-    for (let i = 0; i < 5; i++) makeAuction(s, i, now + (i + 3) * MINUTE);
-    expect(s.auctions.filter((a) => a.status === "active")).toHaveLength(15);
+    for (let i = 0; i < 4; i++) makeAuction(s, i, now + (i + 3) * MINUTE);
+    expect(s.auctions.filter((a) => a.status === "active")).toHaveLength(20);
     advance(s, now + 20 * MINUTE);
     for (const p of s.people) {
       expect(p.budget).toBeGreaterThanOrEqual(0);

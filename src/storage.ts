@@ -65,6 +65,25 @@ function validate(s: State) {
     s.ledger,
   ])
     if (!unique(xs)) fail();
+  if (s.progression) {
+    const p = s.progression;
+    if (
+      !money(p.xp) ||
+      !Array.isArray(p.awarded) ||
+      p.awarded.some((k) => typeof k !== "string") ||
+      new Set(p.awarded).size !== p.awarded.length ||
+      !Array.isArray(p.achievements) ||
+      p.achievements.some((k) => typeof k !== "string") ||
+      !p.upgrades ||
+      ["warehouse", "packing", "website", "marketing", "contacts"].some(
+        (k) =>
+          !Number.isInteger(p.upgrades[k as keyof typeof p.upgrades]) ||
+          p.upgrades[k as keyof typeof p.upgrades] < 0 ||
+          p.upgrades[k as keyof typeof p.upgrades] > 3,
+      )
+    )
+      fail();
+  }
   const person = (id: string) => s.people.some((p) => p.id === id),
     item = (id: string) => s.items.some((i) => i.id === id);
   for (const p of s.people)

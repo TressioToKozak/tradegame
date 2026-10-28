@@ -43,7 +43,8 @@ describe("Trwały, deterministyczny świat", () => {
   it("odtwarza te same decyzje jedną porcją i po restarcie", () => {
     const a = createGame(noon, 99),
       b = createGame(noon, 99);
-    advance(a, noon + 2 * DAY);
+    for(let attempts=0;a.now<noon+2*DAY && attempts<20;attempts++) advance(a, noon + 2 * DAY);
+    expect(a.now).toBe(noon+2*DAY);
     for (let t = noon + MINUTE; t <= noon + 2 * DAY; t += MINUTE) advance(b, t);
     expect(a).toEqual(b);
     expect(a.people.some((p) => p.memory.some((m) => m.kind === "bid"))).toBe(

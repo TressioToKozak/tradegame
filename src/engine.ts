@@ -1,3 +1,12 @@
+import {
+  progress,
+  earn,
+  checkAchievements,
+  capacity,
+  unlockedContacts,
+  type Progression,
+} from "./progression";
+import { auctionRange, estimatedHammerValue } from "./market";
 import initialProducts from "./initial-products.json" with { type: "json" };
 import { catalog, whisky, type MarketData } from "./catalog";
 import { EventQueue } from "./scheduler";
@@ -44,6 +53,7 @@ export interface Auction {
   shipping: number;
   condition: number;
   country: string;
+  supplierContact?: string;
   limits: Record<string, number>;
   bids: { at: number; actor: string; amount: number }[];
   watchers?: string[];
@@ -116,6 +126,7 @@ export interface State {
   version: 2;
   pace: Pace;
   tutorialDone?: boolean;
+  progression?: Progression;
   seed: number;
   serial: number;
   now: number;
@@ -279,7 +290,20 @@ export function createGame(
 }
 export function makeAuction(s: State, index: number, end: number) {
   const w = catalog[index];
-  const country = ["Holandia", "Belgia", "Niemcy"][Math.floor(random(s) * 3)];
+  const range = auctionRange(w);
+  const contacts = unlockedContacts(s).filter(
+    (c) =>
+      c.id === "noor" ||
+      (c.id === "luc" && ["travel", "vintage"].includes(w.category)) ||
+      (c.id === "marta" && ["blue", "vintage"].includes(w.category)),
+  );
+  const supplier =
+    contacts.length && random(s) < 0.25
+      ? contacts[Math.floor(random(s) * contacts.length)]
+      : undefined;
+  const country =
+    supplier?.country ??
+    ["Holandia", "Belgia", "Niemcy"][Math.floor(random(s) * 3)];
   const bottleCondition = random(s) < 0.9 ? 100 : 95;
   const boxCondition = [75, 85, 95, 100, 100, 100, 100][
     Math.floor(random(s) * 7)
@@ -299,8 +323,13 @@ export function makeAuction(s: State, index: number, end: number) {
     boxCondition,
     price: Math.max(
       500,
-      Math.round((w.value * (0.45 + random(s) * 0.2) * condition) / 100 / 100) *
-        100,
+      Math.round(
+        ((range.min + random(s) * (range.max - range.min) * 0.35) *
+          (0.82 + random(s) * 0.1) *
+          (bottleCondition / 100) *
+          (0.8 + boxCondition / 500)) /
+          100,
+      ) * 100,
     ),
     leader: null,
     status: "active",
@@ -308,6 +337,7 @@ export function makeAuction(s: State, index: number, end: number) {
     shipping,
     condition,
     country,
+    ...(supplier ? { supplierContact: supplier.id } : {}),
     limits: {},
     bids: [],
   };
@@ -341,7 +371,12 @@ export function makeAuction(s: State, index: number, end: number) {
           ? 0.9
           : 1.4;
     const allIn =
-      (w.value *
+      (estimatedHammerValue(
+        w,
+        a.bottleCondition ?? a.condition,
+        a.boxCondition ?? a.condition,
+      ) *
+        (1 + a.fee) *
         interest *
         duplicate *
         Math.min(ceiling, modeled) *
@@ -379,6 +414,15 @@ export function bid(
   )
     return "Oferta przekracza Twój zapisany limit licytacji.";
   if (a.leader === actor) return "Już prowadzisz w tej aukcji.";
+  if (
+    actor === "player" &&
+    s.items.filter((i) => i.status !== "sold").length +
+      s.auctions.filter(
+        (x) => x.status === "active" && x.leader === "player" && x.id !== a.id,
+      ).length >=
+      capacity(s)
+  )
+    return "Magazyn pełny. Rozbuduj go przed zakupem.";
   const p = s.people.find((p) => p.id === actor);
   const cost = totalCost(a, amount);
   if (
@@ -405,6 +449,15 @@ export function bid(
   return "Oferta zaakceptowana.";
 }
 export function submitBid(s: State, auctionId: string, amount: number) {
+  const auction = s.auctions.find((a) => a.id === auctionId);
+  const occupied =
+    s.items.filter((i) => i.status !== "sold").length +
+    s.auctions.filter(
+      (a) =>
+        a.status === "active" && a.leader === "player" && a.id !== auctionId,
+    ).length;
+  if (auction?.leader !== "player" && occupied >= capacity(s))
+    return "Magazyn pełny. Sprzedaj towar lub zwiększ pojemność.";
   schedule(
     s,
     s.now + 100 + Math.floor(random(s) * 801),
@@ -457,6 +510,7 @@ function close(s: State, a: Auction) {
       expectedCondition: a.condition,
     };
     s.items.push(item);
+    earn(s, "win:" + a.id, 25);
     const domestic = a.country === "Holandia";
     item.due = s.now + deliveryDuration(s, domestic);
     schedule(s, item.due, "arrival", item.id);
@@ -465,7 +519,7 @@ function close(s: State, a: Auction) {
     s,
     `Aukcja ${a.id} zakończona. ${a.leader === "player" ? "Wygrywasz" : winner ? `Wygrywa ${winner.name}` : "Brak ofert"}${a.leader ? ` za ${(a.price / 100).toFixed(2)} €` : ""}.`,
   );
-  if (s.auctions.filter((a) => a.status === "active").length < 9) {
+  if (s.auctions.filter((a) => a.status === "active").length < 14) {
     const pending = s.events.find((e) => !e.done && e.type === "market");
     if (pending && pending.at > s.now + 12000) {
       pending.done = true;
@@ -505,7 +559,12 @@ function visit(s: State, p: Person) {
       if (
         !rejected &&
         i.price <= max * 1.2 &&
-        random(s) < (w.market.demand * w.market.liquidity) / 10000
+        random(s) <
+          Math.min(
+            0.95,
+            ((w.market.demand * w.market.liquidity) / 10000) *
+              (1 + progress(s).upgrades.website * 0.12),
+          )
       ) {
         i.interested.push(p.id);
         const offer = Math.min(
@@ -536,10 +595,14 @@ function visit(s: State, p: Person) {
   }
   p.nextVisit =
     s.now +
-    (2 + (1 - p.patience) * 6 + random(s) * 3) * MINUTE * paceFactor(s.pace);
+    ((0.75 + (1 - p.patience) * 1.5 + random(s)) *
+      MINUTE *
+      paceFactor(s.pace)) /
+      (1 + progress(s).upgrades.marketing * 0.2);
   schedule(s, p.nextVisit, "visit", p.id);
 }
 export function advance(s: State, target: number) {
+  progress(s);
   if (target < s.now) {
     s.clockWarning = true;
     return s;
@@ -680,6 +743,7 @@ export function advance(s: State, target: number) {
           100,
           Math.max(0, s.reputation + (o.status === "complaint" ? -4 : 2)),
         );
+        earn(s, "delivery:" + o.id, o.status === "delivered" ? 50 : 10);
         remember(s, c, o.status, o.id, `Jakość przesyłki: ${o.quality}`);
         log(
           s,
@@ -688,10 +752,10 @@ export function advance(s: State, target: number) {
       }
     } else if (e.type === "market") {
       const active = s.auctions.filter((a) => a.status === "active").length;
-      if (active < 15) {
+      if (active < 20) {
         const index = chooseMarketProduct(s);
         makeAuction(s, index, s.now + auctionDuration(s, index));
-        log(s, "Nowa aukcja na rynku kolekcjonerskim.");
+        log(s, `Nowa aukcja: ${catalog[index].name}.`);
       }
       // Top up gradually; no instantaneous wall of identical auctions.
       schedule(s, s.now + marketInterval(s), "market", "world");
@@ -707,7 +771,9 @@ export function advance(s: State, target: number) {
       );
       s.auctions = s.auctions.filter((a) => !remove.has(a.id));
     }
+    checkAchievements(s);
   }
+  s.feed = s.feed.slice(0, 200);
   queues.delete(s);
   s.events = s.events.filter((e) => !e.done);
 
@@ -717,6 +783,7 @@ export function inspect(s: State, itemId: string) {
   const i = s.items.find((i) => i.id === itemId);
   if (i?.status === "inspect") {
     i.status = "stock";
+    earn(s, "inspect:" + i.id, 10);
     log(s, "Towar sprawdzony i przyjęty do magazynu.");
   }
 }
@@ -871,6 +938,7 @@ export function respond(
     from: c.name,
     text: `Zgadzam się na ${(amount / 100).toFixed(2)} € z dostawą. Proszę przygotować zamówienie.`,
   });
+  earn(s, "sale:" + oid, 35);
   log(s, `Nowe zamówienie ${oid} od ${c.name}.`);
   return "Sprzedaż potwierdzona. Zapakuj i nadaj zamówienie.";
 }
@@ -884,7 +952,15 @@ export function ship(s: State, orderId: string) {
     return "Zamówienie nie oczekuje na nadanie.";
   if (cash(s) - held(s) < 950) return "Brak wolnej gotówki na etykietę.";
   post(s, o.id + "shipping", -950, "Wysyłka do klienta", o.id);
-  o.quality -= o.packed ? 0 : 25;
+  const improvements = progress(s).upgrades;
+  o.quality -= o.packed
+    ? random(s) <
+      0.09 *
+        (1 - improvements.packing * 0.22) *
+        (1 - improvements.warehouse * 0.12)
+      ? 15
+      : 0
+    : 25;
   o.status = "shipping";
   o.due = s.now + deliveryDuration(s, true);
   schedule(s, o.due, "delivery", o.id);
@@ -918,6 +994,9 @@ export function refund(s: State, orderId: string, amount: number) {
   return "Zwrot zaksięgowany. Częściowa ugoda nie usuwa prawa odstąpienia.";
 }
 export function financials(s: State) {
+  const developmentCost = -s.ledger
+    .filter((l) => l.type === "Ulepszenie sklepu")
+    .reduce((n, l) => n + l.amount, 0);
   const completed = s.orders.filter((o) =>
     ["delivered", "complaint", "returned"].includes(o.status),
   );
@@ -931,18 +1010,20 @@ export function financials(s: State) {
     liabilities: s.orders
       .filter((o) => ["packing", "shipping"].includes(o.status))
       .reduce((n, o) => n + o.total - o.refund, 0),
-    profit: completed.reduce(
-      (n, o) =>
-        n +
-        o.total -
-        o.refund -
-        Math.round(o.total * 0.025) -
-        950 -
-        (o.status === "returned"
-          ? 0
-          : s.items.find((i) => i.id === o.item)!.cost),
-      0,
-    ),
+    developmentCost,
+    profit:
+      completed.reduce(
+        (n, o) =>
+          n +
+          o.total -
+          o.refund -
+          Math.round(o.total * 0.025) -
+          950 -
+          (o.status === "returned"
+            ? 0
+            : s.items.find((i) => i.id === o.item)!.cost),
+        0,
+      ) - developmentCost,
   };
 }
 
@@ -1003,10 +1084,10 @@ export function sendResponse(
   }
   const seconds =
     style === "fast"
-      ? 20 + random(s) * 40
+      ? 15 + random(s) * 30
       : style === "slow"
         ? 300 + random(s) * 600
-        : 60 + random(s) * 180;
+        : 45 + random(s) * 75;
   const delay = Math.round(seconds * 1000 * paceFactor(s.pace));
   t.pendingReply = { intent, price, at: s.now + delay };
   schedule(s, t.pendingReply.at, "reply", t.id);
@@ -1035,24 +1116,24 @@ export function auctionDuration(
   index = Math.floor(random(s) * catalog.length),
 ) {
   const rarity = catalog[index].rarity;
-  const [min, max] = rarity >= 8 ? [8, 12] : rarity >= 5 ? [5, 10] : [3, 7];
+  const [min, max] = rarity >= 8 ? [6, 10] : rarity >= 5 ? [4, 6] : [2, 4];
   return Math.round((min + random(s) * (max - min)) * MINUTE);
 }
 function marketInterval(s: State) {
   const active = s.auctions.filter((a) => a.status === "active").length;
   const factor = paceFactor(s.pace);
   return Math.round(
-    (active < 6
-      ? 5 + random(s) * 7
-      : active < 9
-        ? 15 + random(s) * 15
-        : 60 + random(s) * 60) *
+    (active < 12
+      ? 4 + random(s) * 4
+      : active < 16
+        ? 10 + random(s) * 6
+        : 30 + random(s) * 30) *
       1000 *
       factor,
   );
 }
 export function deliveryDuration(s: State, domestic: boolean) {
-  const base = domestic ? 5 + random(s) * 7 : 10 + random(s) * 15;
+  const base = domestic ? 3 + random(s) * 5 : 6 + random(s) * 9;
   const delay = random(s) < 0.08 ? 5 + random(s) * 10 : 0;
   return Math.round((base + delay) * MINUTE * paceFactor(s.pace));
 }
@@ -1219,9 +1300,12 @@ export function chooseMarketProduct(
   }
   const weights = catalog.map((w) => {
     if (availability && w.market.availability !== availability) return 0;
-    const base = { common: 8, moderate: 5, limited: 3, scarce: 1.3 }[
-      w.market.availability
-    ];
+    const base = {
+      common: 8,
+      moderate: 5,
+      limited: 3,
+      scarce: 1.3 * (1 + progress(s).upgrades.contacts * 0.25),
+    }[w.market.availability];
     const duplicates = ids.get(w.id) ?? 0;
     const categoryLoad = categories.get(w.category) ?? 0;
     const regional =
@@ -1229,7 +1313,16 @@ export function chooseMarketProduct(
         ? 0.45
         : 1;
     return (
-      ((base * regional) / (1 + duplicates * 4)) * (categoryLoad >= 5 ? 0.3 : 1)
+      ((base *
+        regional *
+        (progress(s).upgrades.contacts >= 2 && w.category === "travel"
+          ? 1.2
+          : 1) *
+        (progress(s).upgrades.contacts >= 3 && w.category === "blue"
+          ? 1.15
+          : 1)) /
+        (1 + duplicates * 4)) *
+      (categoryLoad >= 5 ? 0.3 : 1)
     );
   });
   let draw = random(s) * weights.reduce((n, v) => n + v, 0);

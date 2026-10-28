@@ -11,6 +11,8 @@ function offline(): Plugin {
       const collection = media.collection as { path: string }[];
       const files = [
         "./",
+        "favicon.svg",
+        "brand/jwcs.svg",
         ...Object.keys(bundle),
         ...[...photos, ...collection].map((photo) => photo.path),
       ];
