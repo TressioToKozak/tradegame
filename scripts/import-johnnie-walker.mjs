@@ -512,19 +512,8 @@ export async function importJohnnieWalker({
       resolve(targetRoot, path),
       JSON.stringify(value, null, 2) + "\n",
     );
-  // Keep the original baseline counts stable for a same-source idempotence check; return current-run counts separately.
-  const oldReport = await json(resolve(dataDir, "import-report.json"), null);
-  await writeFile(
-    resolve(dataDir, "import-report.json"),
-    JSON.stringify(
-      oldReport?.sourceCommit === commit &&
-        JSON.stringify(oldReport.brands) === JSON.stringify(allowed)
-        ? { ...report, added: oldReport.added, updated: oldReport.updated }
-        : report,
-      null,
-      2,
-    ) + "\n",
-  );
+  // Persist totals relative to the preserved legacy catalog; returned counts describe this sync only.
+  await writeFile(resolve(dataDir,"import-report.json"),JSON.stringify({...report,added:report.addedSinceBaseline,updated:report.updatedLegacy},null,2)+"\n");
   return report;
 }
 if (
