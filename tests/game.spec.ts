@@ -126,14 +126,19 @@ test("komunikator odracza decyzję klienta i zachowuje ją po przeładowaniu", a
 }) => {
   await importState(page, storeFixture());
   await page.getByRole("navigation", { name: "Nawigacja gry" }).getByRole("button", { name: /^Wiadomości/ }).click();
+  const correspondent = await page.locator(".conversation-preview.selected strong").evaluate((el: HTMLElement) => el.firstChild?.textContent?.trim() ?? "");
+  expect(correspondent).not.toBe("");
   await page.getByText("Wybierz konkretne działanie").click();
   await page.getByRole("button", { name: /^Akceptuj/ }).click();
   await expect(
     page.getByText("Wiadomość wysłana. Klient zapoznaje się z ofertą."),
   ).toBeVisible();
+  await expect(page.locator(".save-state")).toContainText("Postęp zapisany");
   await page.reload();
   await page.getByRole("button", { name: "KONTYNUUJ GRĘ" }).click();
   await page.getByRole("navigation", { name: "Nawigacja gry" }).getByRole("button", { name: /^Wiadomości/ }).click();
+  // Other customers may write while the page reloads; reopen the same conversation.
+  await page.locator(".conversation-preview").filter({hasText: correspondent}).click();
   await expect(
     page.getByText("Wiadomość wysłana. Klient zapoznaje się z ofertą."),
   ).toBeVisible();
