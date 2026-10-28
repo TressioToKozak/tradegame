@@ -4,10 +4,10 @@ async function load(page: Page, state: State) {
   await page.goto("./");
   await page.getByRole("button", { name: "Importuj zapis", exact: true }).click();
   await page.locator("input[type=file]").setInputFiles({ name: "salon.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(state)) });
-  await expect(page.getByRole("heading", { name: "Twój salon whisky", exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Interaktywny salon whisky", exact: true })).toBeVisible();
 }
-for (const width of [1440, 768, 390]) test(`salon ${width}px: obraz, pozycje, klawiatura i pięć przejść`, async ({ page }) => {
-  await page.setViewportSize({ width, height: 1000 });
+for (const [width, height] of [[1920,1080], [1440,900], [1366,768], [768,1000], [390,844]]) test(`salon ${width}×${height}: obraz, pozycje, klawiatura i pięć przejść`, async ({ page }) => {
+  await page.setViewportSize({ width, height });
   const s = createGame(Date.now(), 42);
   s.events = [];
   s.auctions[0].watched = true;
@@ -23,7 +23,7 @@ for (const width of [1440, 768, 390]) test(`salon ${width}px: obraz, pozycje, kl
     const img = el.querySelector(".salon-art")!.getBoundingClientRect();
     return [...el.querySelectorAll<HTMLButtonElement>(".salon-zone")].map(button => {
       const r = button.getBoundingClientRect();
-      return { id: button.dataset.zone, x: ((button.dataset.zone === "messages" ? r.right : (r.left+r.right)/2)-img.left)/img.width*100, y: ((r.top+r.bottom)/2-img.top)/img.height*100, below: r.top >= img.bottom, left: r.left, right: r.right };
+      return { id: button.dataset.zone, x: ((button.dataset.zone === "messages" ? r.right : (r.left+r.right)/2)-img.left)/img.width*100, y: ((button.dataset.zone === "auctions" && innerWidth > 700 ? r.bottom + 20 : (r.top+r.bottom)/2)-img.top)/img.height*100, below: r.top >= img.bottom, left: r.left, right: r.right };
     });
   });
   const points: Record<string, number[]> = { auctions: [50,48], inventory:[27,38], shop:[70,30], messages:[98,31], deliveries:[84,63] };
@@ -34,14 +34,26 @@ for (const width of [1440, 768, 390]) test(`salon ${width}px: obraz, pozycje, kl
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(salon).toHaveCSS("opacity", "1");
   await expect(page.locator(".tab-scene")).toHaveCSS("opacity", "1");
-  await page.screenshot({ animations: "disabled", path:`test-results/salon-${width}.png`, fullPage:true });
+  await page.screenshot({ animations: "disabled", path:`test-results/salon41-${width}.png`, fullPage:true });
   for(const [id,heading] of [["auctions","Aukcje"],["inventory","Magazyn"],["shop","Mój sklep"],["messages","Wiadomości"],["deliveries","Zamówienia"]]) {
     const button = page.locator(`.salon-zone[data-zone="${id}"]`);
     await button.focus(); await expect(button).toBeFocused(); await page.keyboard.press("Enter");
     await expect(page.getByRole("heading",{name:heading,exact:true}).first()).toBeVisible();
     await page.getByRole("button",{name:"Pulpit",exact:true}).click();
   }
-  await expect(salon.locator(".salon-events > ol > li")).toHaveCount(Math.min(3,s.feed.length));
+  await expect(page.getByRole("heading", {name:"Twój salon whisky",exact:true})).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
+  await page.getByRole("button",{name:"W salonie — wydarzenia",exact:true}).click();
+  const events=page.getByRole("dialog",{name:"W salonie",exact:true});
+  await expect(events.locator(".salon-events > ol > li")).toHaveCount(s.feed.length);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button",{name:"W salonie — wydarzenia",exact:true})).toBeFocused();
+  await page.getByRole("button",{name:"Cele dnia",exact:true}).click();
+  await expect(page.getByRole("dialog",{name:"Cele dnia",exact:true})).toBeVisible();
+  await expect(page.locator(".daily-board")).toBeVisible();
+  await page.screenshot({animations:"disabled",path:`test-results/salon41-tasks-${width}.png`});
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("region",{name:"Interaktywny salon whisky",exact:true})).toBeVisible();
 });
 test("salon: rzeczywiste liczniki, odczyt rozmowy i zachowanie po odświeżeniu", async ({ page }) => {
   const s=createGame(Date.now(),42), customer=s.people.find(p=>p.role==="customer")!;

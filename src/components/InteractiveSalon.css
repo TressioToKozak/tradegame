@@ -46,3 +46,62 @@
 @media (prefers-reduced-motion: reduce) { .interactive-salon, .salon-zone-active { animation: none; } .salon-zone, .salon-zone-status { transition: none; } }
 :root[data-reduced-motion="true"] .interactive-salon, :root[data-reduced-motion="true"] .salon-zone-active { animation: none; }
 :root[data-reduced-motion="true"] .salon-zone, :root[data-reduced-motion="true"] .salon-zone-status { transition: none; }
+
+/* The salon owns the viewport; the remaining screens keep their normal layout. */
+.salon-viewport { height: 100dvh; min-height: 0; display: grid; grid-template-rows: var(--store-header-height) auto minmax(0, 1fr); overflow: hidden; }
+.salon-viewport > .store-header, .salon-viewport > .store-nav { position: relative; top: auto; }
+.game-content.salon-content { width: 100%; max-width: none; margin: 0; padding: 0; min-height: 0; overflow: hidden; }
+.salon-content > .tab-scene { height: 100%; min-height: 0; }
+.salon-content .alert { position: absolute; top: 64px; left: 16px; right: 16px; z-index: 5; }
+.interactive-salon { height: 100%; width: 100%; position: relative; display: grid; place-items: center; container-type: size; background: #18140f; overflow: hidden; }
+.salon-scene { width: min(100cqw, calc(100cqh * 1672 / 941)); border: 0; border-radius: 0; box-shadow: none; }
+.salon-art { border: 0; border-radius: 0; }
+.salon-zone { padding: 13px 17px; min-height: 58px; animation: salon-marker-in .45s ease-out both; }
+.salon-zone-heading { font-size: clamp(13px, 1vw, 16px); gap: 9px; }
+.salon-zone-heading svg { width: 21px; height: 21px; }
+.salon-zone-status { font-size: 12px; }
+.salon-zone-active { animation: salon-marker-in .45s ease-out both, salon-light 3s .45s ease-in-out infinite; }
+.salon-hud { position: absolute; left: 20px; bottom: 20px; display: flex; gap: 10px; z-index: 4; }
+.salon-hud button { min-height: 46px; padding: 11px 14px; gap: 8px; background: #21170ee8; color: #f7e4c6; border: 1px solid #cfa66d88; border-radius: 10px; backdrop-filter: blur(8px); box-shadow: 0 4px 18px #0005; }
+.salon-hud button:focus-visible { outline: 3px solid #ffe0a1; outline-offset: 3px; }
+.modal-backdrop:has(.salon-drawer) { align-items: flex-start; justify-content: flex-end; padding: 16px; background: #0004; backdrop-filter: none; }
+.modal.salon-drawer { width: min(440px,100%); max-width: 440px; max-height: calc(100dvh - 32px); margin: 0; padding: 54px 24px 24px; overflow-y: auto; overscroll-behavior: contain; border-radius: 14px; background: #24231fee; backdrop-filter: blur(16px); animation: salon-drawer-in .24s ease-out; }
+.salon-drawer .salon-events { border: 0; background: none; padding: 0; margin: 0; }
+.salon-drawer .salon-events h2 { font-size: 24px; margin: 0 0 18px; }
+.salon-drawer .salon-events li { flex-direction: column; gap: 3px; }
+.salon-drawer .salon-events time { flex: auto; }
+.salon-drawer .daily-board { margin: 0; padding: 0; border: 0; background: none; }
+.salon-drawer .daily-board .section-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
+.salon-drawer .daily-goals { grid-template-columns: 1fr; }
+.salon-drawer .daily-goal { min-width: 0; }
+@keyframes salon-marker-in { from { opacity: 0; scale: .95; } to { opacity: 1; scale: 1; } }
+@keyframes salon-drawer-in { from { opacity: 0; translate: 20px 0; } to { opacity: 1; translate: 0 0; } }
+@media (min-width: 701px) and (max-width: 1000px) {
+  .salon-zone { padding: 10px 12px; }
+  .salon-zone-heading { font-size: 13px; }
+  .salon-zone-status { font-size: 10px; }
+}
+@media (max-width: 700px) {
+  .interactive-salon { display: flex; flex-direction: column; justify-content: center; padding: 58px 12px 12px; overflow-y: auto; }
+  .salon-scene { width: 100%; flex-shrink: 0; }
+  .salon-art { border-radius: 10px; }
+  .salon-zones { gap: 8px; margin-top: 10px; }
+  .salon-zone, .salon-zone[data-zone="messages"] { min-height: 66px; padding: 10px 12px; }
+  .salon-zone-heading { font-size: 13px; }
+  .salon-zone-status { font-size: 10px; }
+  .salon-hud { top: 10px; bottom: auto; left: 12px; right: 12px; justify-content: flex-end; }
+  .salon-hud button { min-height: 40px; padding: 9px 12px; }
+  .modal-backdrop:has(.salon-drawer) { padding: 8px; }
+  .modal.salon-drawer { max-height: calc(100dvh - 16px); padding: 52px 18px 20px; }
+}
+@media (max-width: 600px) {
+  .salon-viewport { grid-template-rows: var(--store-header-height) minmax(0, 1fr); padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  .salon-viewport > .store-nav { position: fixed; top: auto; bottom: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .salon-zone, .salon-zone-active, .modal.salon-drawer { animation: none; } }
+:root[data-reduced-motion="true"] .salon-zone, :root[data-reduced-motion="true"] .salon-zone-active, :root[data-reduced-motion="true"] .modal.salon-drawer { animation: none; }
+
+@media (min-width: 701px) {
+  .salon-zone[data-zone="auctions"], .salon-zone[data-zone="auctions"]:hover:not(:disabled) { transform: translate(-50%, calc(-100% - 20px)); }
+  .salon-zone[data-zone="auctions"]::after { content: ""; position: absolute; left: 50%; top: 100%; height: 20px; border-left: 1px solid #edc484; pointer-events: none; }
+}

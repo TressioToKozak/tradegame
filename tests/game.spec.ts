@@ -15,7 +15,7 @@ async function importState(page: any, state: ReturnType<typeof createGame>) {
     buffer: Buffer.from(JSON.stringify(state)),
   });
   await expect(
-    page.getByRole("heading", { name: "Twój salon whisky", exact: true }),
+    page.getByRole("region", { name: "Interaktywny salon whisky", exact: true }),
   ).toBeVisible();
 }
 function storeFixture() {
@@ -221,7 +221,7 @@ test("produkcja działa offline w podfolderze repozytorium", async ({
   await page.reload();
   await page.getByRole("button", { name: "KONTYNUUJ GRĘ" }).click();
   await expect(
-    page.getByRole("heading", { name: "Twój salon whisky", exact: true }),
+    page.getByRole("region", { name: "Interaktywny salon whisky", exact: true }),
   ).toBeVisible();
 });
 test("przypisane fotografie ładują się z /tradegame/ i można je powiększyć", async ({

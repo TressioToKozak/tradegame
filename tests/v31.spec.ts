@@ -42,7 +42,7 @@ async function openGame(page: any, s: State) {
     buffer: Buffer.from(JSON.stringify(s)),
   });
   await expect(
-    page.getByRole("heading", { name: "Twój salon whisky", exact: true }),
+    page.getByRole("region", { name: "Interaktywny salon whisky", exact: true }),
   ).toBeVisible();
 }
 async function openRoom(page: any) {
@@ -238,7 +238,7 @@ test("cel dnia jest nagradzany po rzeczywistej kontroli paczki i zapisuje odbió
     .click();
   await parcel.getByRole("button", { name: "Przyjmij do magazynu" }).click();
   await page.getByRole("button", { name: "Pulpit", exact: true }).click();
-  await page.locator(".salon-daily > summary").click();
+  await page.getByRole("button", { name: "Cele dnia", exact: true }).click();
   await page
     .getByRole("button", { name: "Odbierz 15 PD", exact: true })
     .click();
@@ -247,6 +247,7 @@ test("cel dnia jest nagradzany po rzeczywistej kontroli paczki i zapisuje odbió
   await expect(page.locator(".save-state")).toContainText("Postęp zapisany");
   await page.reload();
   await page.getByRole("button", { name: "KONTYNUUJ GRĘ" }).click();
+  await page.getByRole("button", { name: "Cele dnia", exact: true }).click();
   await expect(page.locator(".daily-board")).toContainText("1/3 odebrane");
 });
 for (const width of [320, 390, 768, 1440])

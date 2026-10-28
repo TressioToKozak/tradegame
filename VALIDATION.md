@@ -1,9 +1,9 @@
-# Weryfikacja pełnego importu i wersji 4.0 — etap 1
+# Weryfikacja pełnego importu i wersji 4.1
 
 - **101 testów jednostkowych, komponentowych i integracyjnych:** finanse, NPC, anty-sniping, replay, zapis/migracja, rozwój, pełny import, dopasowania i ceny. Testy importera działają na odizolowanych katalogach tymczasowych; sprawdzają powtórzenie identyczne bajtowo, brak innych marek, warianty pojemności, dry-run, brak pliku, złe ścieżki, kolizje i duplikaty. Grafiki testowe nie trafiają do gry.
 - Wszystkie 253 importowane edycje przechodzą w silniku złożenie oferty, zakończenie aukcji, pełne rozliczenie kosztów, dostawę i kontrolę magazynową. Istniejące testy obejmują dalszą sprzedaż, negocjacje, wysyłkę, doręczenie i reklamację; żadna edycja nie wymaga osobnego kodu biznesowego.
 - Źródłowy katalog i mapa obejmują dokładnie 232 Johnnie Walker + 21 John Walker & Sons. Wszystkie 56 starych ID pozostało; zapis zachowuje pieniądze, koszty zapasu, cenę oferty, prowizję, transport i terminy trwających aukcji.
-- **42 scenariusze Chromium na produkcyjnym `dist` pod `/tradegame/`:** dotychczasowa gra i 13 partii maks. 20 aukcji, pokazujących wszystkie 253 importowane fotografie jako rzeczywiste karty aplikacji. Testy sprawdzają widoczność, właściwe powiązanie produktu/ścieżki, `Image.decode()`, `naturalWidth` i `naturalHeight` każdego obrazu.
+- **44 scenariusze Chromium na produkcyjnym `dist` pod `/tradegame/`:** dotychczasowa gra i 13 partii maks. 20 aukcji, pokazujących wszystkie 253 importowane fotografie jako rzeczywiste karty aplikacji. Testy sprawdzają widoczność, właściwe powiązanie produktu/ścieżki, `Image.decode()`, `naturalWidth` i `naturalHeight` każdego obrazu.
 - Przeglądarka potwierdza, że samo otwarcie menu nie pobiera importowanej biblioteki; osobny cache jest zapełniany na żądanie i ograniczony do 80 fotografii. Tryb offline shell oraz zapis nadal działają.
 - Anty-sniping w Chromium używa rzeczywistego upływu około 39 s: oferta gracza, +15 s, odświeżenie, oferta NPC, kolejne +15 s, brak wcześniejszego zamknięcia i jedno rozliczenie.
 - Godzinny rynek i obciążenie 20 aukcji zachowują budżety; kilkudniowe odtworzenie jest porcjowane i ma identyczny wynik jak przebieg co minutę.
@@ -15,3 +15,5 @@ W `docs/screenshots/` są zrzuty prawdziwego Chromium, odświeżone po imporcie.
 Wersja 3.1 dodaje testy automatu (aktywacja, zmiany i anulowanie, wspólne środki, limity, remis według kolejności rejestracji, anty-sniping, replay i jednokrotne rozliczenie), celów dziennych oraz odporności wycen NPC na skrajny wynik. Chromium sprawdza potwierdzanie automatu i odświeżenie, zamknięte aukcje wygrane/przegrane/niesprzedane, ukrycie wewnętrznych wycen i podpisów zdjęć, cele oraz szerokości 320/390/768/1440 px.
 
 Pulpit 4.0 i jego testy opisuje [V4_SALON.md](V4_SALON.md). Wcześniejsze karty pulpitu zastępuje interaktywna ilustracja; galerie aukcyjne, zdjęcia i logika gospodarcza pozostają bez zmian. Smoke Pages weryfikuje hash oryginalnego PNG, dekodowanie i pięć przycisków sceny.
+
+Wersja 4.1 sprawdza dodatkowo pełny viewport bez przewijania dokumentu, brak nagłówka pulpitu i pozycje znaczników na 1920×1080, 1440×900, 1366×768, 768×1000 oraz 390×844. Testuje otwieranie paneli wydarzeń i celów, zamykanie Escape i przywrócenie fokusu; test odbioru nagrody otwiera teraz panel HUD.

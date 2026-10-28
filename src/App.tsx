@@ -32,7 +32,6 @@ import { date, Empty, labels, PriceInput } from "./ui";
 import { useGame } from "./useGame";
 import ProductGallery, { Modal } from "./components/ProductGallery";
 import InteractiveSalon from "./components/InteractiveSalon";
-import DailyBoard from "./components/DailyBoard";
 import PhotoCredits from "./components/PhotoCredits";
 import Brand from "./components/Brand";
 import Development from "./components/Development";
@@ -187,7 +186,7 @@ export default function App() {
           onHelp={() => setHelp(true)}
         />
       ) : (
-        <div className="game-shell">
+        <div className={`game-shell ${tab === "Pulpit" ? "salon-viewport" : ""}`}>
           <header className="store-header">
             <button
               className="brand brand-button"
@@ -277,22 +276,18 @@ export default function App() {
               </button>
             ))}
           </nav>
-          <main className="game-content">
-            <div className="page-title">
+          <main className={`game-content ${tab === "Pulpit" ? "salon-content" : ""}`}>
+            {tab !== "Pulpit" && <div className="page-title">
               <div>
                 <p className="eyebrow">TWÓJ SALON KOLEKCJONERSKI</p>
                 <h1>
-                  {tab === "Pulpit"
-                    ? "Twój salon whisky"
-                    : tab === "Aukcje na żywo"
-                      ? "Aukcje"
-                      : tab}
+                  {tab === "Aukcje na żywo" ? "Aukcje" : tab}
                 </h1>
               </div>
-              <span className="save-state" hidden aria-hidden="true">
-                {game.saved ? "Postęp zapisany" : "Zapisywanie…"}
-              </span>
-            </div>
+            </div>}
+            <span className="save-state" hidden aria-hidden="true">
+              {game.saved ? "Postęp zapisany" : "Zapisywanie…"}
+            </span>
             <motion.div
               key={tab}
               className="tab-scene"
@@ -306,13 +301,7 @@ export default function App() {
                 </div>
               )}
               {tab === "Pulpit" && (
-                <>
-                  <InteractiveSalon state={s} go={go} />
-                  <details className="salon-daily">
-                    <summary>Cele dnia</summary>
-                    <DailyBoard state={s} mutate={game.mutate} go={go} />
-                  </details>
-                </>
+                <InteractiveSalon state={s} go={go} mutate={game.mutate} />
               )}
               {tab === "Aukcje na żywo" && (
                 <AuctionMarket state={s} onOpen={setAuctionId} />

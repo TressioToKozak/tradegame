@@ -1,4 +1,8 @@
-import { Gavel, Package, Store, MessageCircle, Truck } from "lucide-react";
+import { useState } from "react";
+import DailyBoard from "./DailyBoard";
+import { Modal } from "./ProductGallery";
+import type { Mutate } from "../useGame";
+import { Gavel, Package, Store, MessageCircle, Truck, Target, Activity } from "lucide-react";
 import { unreadCount, type State } from "../engine";
 import { date } from "../ui";
 import "./InteractiveSalon.css";
@@ -26,8 +30,9 @@ export function salonActivity(s: State) {
   };
 }
 
-export default function InteractiveSalon({ state, go }: { state: State; go: (tab: string) => void }) {
+export default function InteractiveSalon({ state, go, mutate }: { state: State; go: (tab: string) => void; mutate: Mutate }) {
   const activity = salonActivity(state);
+  const [panel, setPanel] = useState<"events" | "tasks" | null>(null);
   return <section className="interactive-salon" aria-label="Interaktywny salon whisky">
     <div className="salon-scene">
       <img className="salon-art" src={`${import.meta.env.BASE_URL}game-art/whisky-salon.png`} width="1672" height="941" alt="Salon whisky: gabloty po lewej, biurko z laptopem pośrodku, lada i telefon po prawej oraz stół pakowania w prawym dolnym rogu." fetchPriority="high" />
@@ -41,10 +46,15 @@ export default function InteractiveSalon({ state, go }: { state: State; go: (tab
         })}
       </div>
     </div>
-    {state.feed.length > 0 && <section className="salon-events" aria-label="Ostatnie wydarzenia">
-      <div className="salon-events-heading"><h2>W salonie</h2></div>
-      <ol>{state.feed.slice(0, 3).map((event, i) => <li key={`${event.at}-${i}`}><time dateTime={new Date(event.at).toISOString()}>{date(event.at)}</time><span>{event.text}</span></li>)}</ol>
-      {state.feed.length > 3 && <details className="salon-history"><summary>Historia zdarzeń</summary><ol>{state.feed.slice(3).map((event, i) => <li key={`${event.at}-${i}`}><time dateTime={new Date(event.at).toISOString()}>{date(event.at)}</time><span>{event.text}</span></li>)}</ol></details>}
-    </section>}
+    <div className="salon-hud" role="group" aria-label="Panele salonu">
+      <button type="button" onClick={() => setPanel("events")} aria-label="W salonie — wydarzenia" aria-haspopup="dialog"><Activity size={20} /><span>Wydarzenia</span></button>
+      <button type="button" onClick={() => setPanel("tasks")} aria-label="Cele dnia" aria-haspopup="dialog"><Target size={20} /><span>Cele dnia</span></button>
+    </div>
+    {panel && <Modal title={panel === "events" ? "W salonie" : "Cele dnia"} className="salon-drawer" onClose={() => setPanel(null)}>
+      {panel === "tasks" ? <DailyBoard state={state} mutate={mutate} go={go} /> : <section className="salon-events" aria-label="Ostatnie wydarzenia">
+        <h2>W salonie</h2>
+        {state.feed.length ? <ol>{state.feed.map((event, i) => <li key={`${event.at}-${i}`}><time dateTime={new Date(event.at).toISOString()}>{date(event.at)}</time><span>{event.text}</span></li>)}</ol> : <p>Na razie w salonie jest spokojnie.</p>}
+      </section>}
+    </Modal>}
   </section>;
 }
