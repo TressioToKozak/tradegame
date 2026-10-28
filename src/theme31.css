@@ -97,12 +97,15 @@ summary:focus-visible {
   font-size: 12px;
   color: var(--muted);
 }
+.game-shell {
+  --store-header-height: 84px;
+}
 .store-header {
   position: sticky;
   top: 0;
   z-index: 30;
   background: #292a27f2;
-  height: 84px;
+  height: var(--store-header-height);
   border-color: var(--line);
   backdrop-filter: blur(18px);
   padding-inline: max(24px, calc((100vw - 1380px) / 2));
@@ -160,6 +163,7 @@ summary:focus-visible {
   min-height: 42px;
 }
 .store-nav {
+  top: var(--store-header-height);
   background: #2b2c29;
   border-color: var(--line);
   padding-inline: max(24px, calc((100vw - 1380px) / 2));
@@ -1568,8 +1572,11 @@ details[open] > *:not(summary) {
   }
 }
 @media (max-width: 600px) {
+  .game-shell {
+    --store-header-height: 73px;
+  }
   .store-header {
-    height: 73px;
+    height: var(--store-header-height);
     padding: 11px 16px;
     gap: 12px;
   }
@@ -1611,6 +1618,7 @@ details[open] > *:not(summary) {
   }
   .store-nav {
     position: fixed;
+    top: auto;
     bottom: 0;
     left: 0;
     right: 0;

@@ -265,6 +265,19 @@ for (const width of [320, 390, 768, 1440])
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
+    await page.evaluate(() => window.scrollTo(0, 500));
+    await expect.poll(async () => page.locator(".store-header").evaluate(
+      (el) => Math.round(el.getBoundingClientRect().top),
+    )).toBe(0);
+    const geometry = await page.evaluate(() => ({
+      headerBottom: document.querySelector(".store-header")!.getBoundingClientRect().bottom,
+      navTop: document.querySelector(".store-nav")!.getBoundingClientRect().top,
+      navBottom: document.querySelector(".store-nav")!.getBoundingClientRect().bottom,
+      height: innerHeight,
+    }));
+    if (width > 600) expect(Math.abs(geometry.navTop - geometry.headerBottom)).toBeLessThanOrEqual(1);
+    else expect(Math.abs(geometry.navBottom - geometry.height)).toBeLessThanOrEqual(1);
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
       path: `test-results/v31-dashboard-${width}.png`,
       fullPage: true,
