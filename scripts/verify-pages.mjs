@@ -123,6 +123,13 @@ try {
     path: "test-results/live-market.png",
     fullPage: true,
   });
+  await page.getByRole("button", {name:"Wejdź do licytacji",exact:true}).first().click();
+  const room = page.locator(".auction-room42");
+  await expect(room).toBeVisible();
+  await expect(room.locator(".room-center .room-price")).toBeVisible();
+  await expect(room.getByLabel("Automatyczna licytacja — maksymalna oferta (€)")).toBeVisible();
+  await expect.poll(() => room.locator(".photo-stage img").first().evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
+  await page.screenshot({path:"test-results/live-auction42.png",fullPage:true});
   if (errors.length) throw Error(errors.join("\n"));
   console.log(
     `Pages: zgodne SHA-256 ${verified} plików; ${decoded} zdjęć zdekodowanych; menu, salon, 16 aukcji i fotografie w kartach działają.`,

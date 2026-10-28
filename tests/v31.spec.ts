@@ -148,7 +148,7 @@ for (const outcome of ["won", "lost", "unsold"] as const)
     ).toHaveCount(0);
     await expect(room.locator(".auction-result")).toContainText(
       outcome === "won"
-        ? "WYGRAŁEŚ!"
+        ? "WYGRAŁEŚ AUKCJĘ!"
         : outcome === "lost"
           ? "AUKCJA ZAKOŃCZONA"
           : "AUKCJA ZAKOŃCZONA BEZ SPRZEDAŻY",
@@ -167,9 +167,10 @@ for (const outcome of ["won", "lost", "unsold"] as const)
       fullPage: true,
     });
     await room
-      .getByRole("button", { name: "Wróć do aktywnych aukcji" })
+      .getByRole("button", { name: outcome === "won" ? "Przejdź do magazynu" : "Wróć do aktywnych aukcji" })
       .click();
     await expect(room).toHaveCount(0);
+    if (outcome === "won") await expect(page.getByRole("heading", {name:"Magazyn",exact:true})).toBeVisible();
   });
 test("stary limit pozostaje wyłączony, a dane edycji nie zdradzają wyceny", async ({
   page,
@@ -278,7 +279,8 @@ for (const width of [320, 390, 768, 1440])
       navBottom: document.querySelector(".store-nav")!.getBoundingClientRect().bottom,
       height: innerHeight,
     }));
-    if (width > 600) expect(Math.abs(geometry.navTop - geometry.headerBottom)).toBeLessThanOrEqual(1);
+    if (width >= 1250) expect(Math.abs(geometry.navTop)).toBeLessThanOrEqual(1);
+    else if (width > 600) expect(Math.abs(geometry.navTop - geometry.headerBottom)).toBeLessThanOrEqual(1);
     else expect(Math.abs(geometry.navBottom - geometry.height)).toBeLessThanOrEqual(1);
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({

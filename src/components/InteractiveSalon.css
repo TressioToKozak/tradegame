@@ -105,3 +105,17 @@
   .salon-zone[data-zone="auctions"], .salon-zone[data-zone="auctions"]:hover:not(:disabled) { transform: translate(-50%, calc(-100% - 20px)); }
   .salon-zone[data-zone="auctions"]::after { content: ""; position: absolute; left: 50%; top: 100%; height: 20px; border-left: 1px solid #edc484; pointer-events: none; }
 }
+.interactive-salon::before { content: ""; position: absolute; inset: -35px; background-image: var(--salon-art-url); background-size: cover; background-position: center; filter: blur(28px) brightness(.38); pointer-events: none; }
+.salon-scene { z-index: 1; }
+.salon-lights { position: absolute; inset: 0; pointer-events: none; }
+.salon-light { position: absolute; width: 100px; height: 80px; border-radius: 50%; translate: -50% -50%; background: radial-gradient(ellipse,#ffd99555,transparent 70%); opacity: 0; transition: opacity .3s; mix-blend-mode: screen; }
+.salon-light.lit { animation: salon-object-light 3s ease-in-out infinite; }
+.salon-scene:has([data-zone="auctions"]:is(:hover,:focus-visible)) [data-light="auctions"],
+.salon-scene:has([data-zone="inventory"]:is(:hover,:focus-visible)) [data-light="inventory"],
+.salon-scene:has([data-zone="shop"]:is(:hover,:focus-visible)) [data-light="shop"],
+.salon-scene:has([data-zone="messages"]:is(:hover,:focus-visible)) [data-light="messages"],
+.salon-scene:has([data-zone="deliveries"]:is(:hover,:focus-visible)) [data-light="deliveries"] { opacity: 1; }
+@keyframes salon-object-light { 0%,100% { opacity:.2; } 50% { opacity:.7; } }
+@media (max-width:700px) { .salon-lights { height: auto; aspect-ratio: 1672/941; } }
+@media (prefers-reduced-motion:reduce) { .salon-light.lit { animation:none; opacity:.4; } }
+:root[data-reduced-motion="true"] .salon-light.lit { animation:none; opacity:.4; }

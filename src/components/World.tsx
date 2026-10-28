@@ -194,10 +194,12 @@ export function WinScreen({
   auction: a,
   item,
   onClose,
+  onWarehouse,
 }: {
   auction: Auction;
   item?: Item;
   onClose: () => void;
+  onWarehouse?: () => void;
 }) {
   return (
     <Modal title="Wygrana aukcja" onClose={onClose} className="win-screen">
@@ -229,7 +231,8 @@ export function WinScreen({
       <p>
         +25 PD · {item ? labels[item.status] : "Sprawdź dostawę w magazynie"}
       </p>
-      <button onClick={onClose}>
+      {onWarehouse && <button onClick={onWarehouse}><Package size={17} />Przejdź do magazynu</button>}
+      <button className="outline" onClick={onClose}>
         Wspaniale. Wracam do sklepu <ArrowUpRight size={17} />
       </button>
     </Modal>

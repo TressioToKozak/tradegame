@@ -25,9 +25,12 @@ import {
   type State,
 } from "../engine";
 import type { Mutate } from "../useGame";
-import { countdown, time, labels } from "../ui";
+import { countdown, time, date, labels } from "../ui";
 import ProductGallery, { Modal } from "./ProductGallery";
 import Hint from "./Hint";
+import AuctionRivals from "./AuctionRivals";
+import { SoundToggle, unlockAudio, useAuctionAudio } from "../auctionAudio";
+import "./AuctionRoom42.css";
 const actor = (s: State, id: string | null) =>
   id === "player"
     ? "Ty"
@@ -46,7 +49,6 @@ export function AuctionCard({
     recent = last && s.now - last.at < 6000;
   return (
     <motion.article
-      layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       className={`auction-card ${urgent ? "urgent" : ""} ${a.leader === "player" ? "player-leading" : ""} ${a.special ? "special-lot" : ""}`}
@@ -148,6 +150,7 @@ export function AuctionRoom({
   onClose,
   onNavigate,
   onBackToMarket,
+  onWarehouse,
 }: {
   auction: Auction;
   state: State;
@@ -155,7 +158,10 @@ export function AuctionRoom({
   onClose: () => void;
   onNavigate?: (direction: number) => void;
   onBackToMarket?: () => void;
+  onWarehouse?: () => void;
 }) {
+  useAuctionAudio(a, s.now);
+  const [historyOpen, setHistoryOpen] = useState(() => window.innerWidth > 700);
   const [limit, setLimit] = useState(
     a.playerLimit === undefined ? "" : String(a.playerLimit / 100),
   );
@@ -210,7 +216,7 @@ export function AuctionRoom({
     <Modal
       title={`Aukcja ${a.id}`}
       onClose={onClose}
-      className={`auction-room ${urgent ? "urgent" : ""} ${!active ? "finished-room" : ""}`}
+      className={`auction-room auction-room42 ${a.leader === "player" ? "room-player-leading" : ""} ${active && a.end-s.now<=10000 ? "room-final-seconds" : ""} ${urgent ? "urgent" : ""} ${!active ? "finished-room" : ""}`}
     >
       <div className="room-heading">
         <p className="eyebrow">
@@ -223,6 +229,7 @@ export function AuctionRoom({
         </p>
         <h2>{w.name}</h2>
         <div className="room-actions">
+          <SoundToggle />
           {active && (
             <button
               className="outline"
@@ -246,6 +253,7 @@ export function AuctionRoom({
           )}
         </div>
       </div>
+      {active && <div className="room-mobile-status" aria-label="Skrót licytacji"><strong>{euro(a.price)}</strong><span>{countdown(a.end,s.now)}</span><button type="button" onClick={() => document.getElementById("bid-amount")?.focus()}>Do ofert</button></div>}
       <div className="room-columns">
         <div>
           <ProductGallery product={a.product} />
@@ -309,9 +317,8 @@ export function AuctionRoom({
             </dl>
           </details>
         </div>
-        <div className="bid-desk">
-          {active ? (
-            <>
+        <div className="room-center">
+          {active && <section className="room-pulse" aria-label="Licytacja na żywo">
               <div className="room-live-label">
                 <span className="live-dot" />
                 Licytacja trwa <span>{watcherCount(s, a)} obserwujących</span>
@@ -331,7 +338,7 @@ export function AuctionRoom({
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                   >
-                    +15 s
+                    <span className="sr-only">+15 s</span>+15 SEKUND
                   </motion.b>
                 )}
               </motion.div>
@@ -361,13 +368,38 @@ export function AuctionRoom({
                   role="status"
                 >
                   {a.leader === "player"
-                    ? "Twoja oferta prowadzi"
-                    : "Zostałeś przebity"}
+                    ? "PROWADZISZ"
+                    : "Zostałeś przebity!"}
                 </p>
               )}
+
+          </section>}
+      <details className="live-history" open={historyOpen} onToggle={e => setHistoryOpen(e.currentTarget.open)}>
+        <summary>Przebieg aukcji</summary>
+        <AnimatePresence initial={false}>
+          {timeline.map((t) => (
+            <motion.div
+              key={t.key}
+              initial={{ opacity: 0, x: -12, backgroundColor: "#b8803540" }}
+              animate={{ opacity: 1, x: 0, backgroundColor: "#b8803500" }}
+            >
+              <time>{time(t.at)}</time>
+              <span>{t.text}</span>
+              {t.amount > 0 && <b>{euro(t.amount)}</b>}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        {!timeline.length && <p className="muted">Nie złożono ofert.</p>}
+      </details>
+        </div>
+        <div className="bid-desk">
+          {active ? (
+            <>
+              <AuctionRivals auction={a} state={s} />
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
+                  unlockAudio();
                   if (valid && !pending) {
                     mutate((g) => submitBid(g, a.id, amount));
                     setTouched(false);
@@ -479,6 +511,7 @@ export function AuctionRoom({
                     <div className="actions">
                       <button
                         onClick={() => {
+                          unlockAudio();
                           mutate((g) => activateProxy(g, a.id, max));
                           setConfirmProxy(false);
                         }}
@@ -503,7 +536,7 @@ export function AuctionRoom({
               </div>
               <p className="eyebrow">
                 {won
-                  ? "WYGRAŁEŚ!"
+                  ? "WYGRAŁEŚ AUKCJĘ!"
                   : unsold
                     ? "AUKCJA ZAKOŃCZONA BEZ SPRZEDAŻY"
                     : "AUKCJA ZAKOŃCZONA"}
@@ -528,8 +561,10 @@ export function AuctionRoom({
                 <p className="delivery-status">
                   <Package size={18} />
                   {item ? labels[item.status] : "Dostawa zapisana w magazynie"}
+                  {item?.due && item.status === "incoming" && <small>Dostawa w czasie gry: {date(item.due)}</small>}
                 </p>
               )}
+              {won && onWarehouse && <button className="full" onClick={onWarehouse}><Package size={18} />Przejdź do magazynu</button>}
               <button
                 className="outline full"
                 onClick={onBackToMarket ?? onClose}
@@ -561,23 +596,7 @@ export function AuctionRoom({
           )}
         </div>
       </div>
-      <div className="live-history">
-        <h3>Przebieg aukcji</h3>
-        <AnimatePresence initial={false}>
-          {timeline.map((t) => (
-            <motion.div
-              key={t.key}
-              initial={{ opacity: 0, x: -12, backgroundColor: "#b8803540" }}
-              animate={{ opacity: 1, x: 0, backgroundColor: "#b8803500" }}
-            >
-              <time>{time(t.at)}</time>
-              <span>{t.text}</span>
-              {t.amount > 0 && <b>{euro(t.amount)}</b>}
-            </motion.div>
-          ))}
-        </AnimatePresence>
-        {!timeline.length && <p className="muted">Nie złożono ofert.</p>}
-      </div>
+
     </Modal>
   );
 }

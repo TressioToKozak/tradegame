@@ -37,6 +37,7 @@ import Brand from "./components/Brand";
 import Development from "./components/Development";
 import { shopLevel, progress, levelStart } from "./progression";
 import GameMenu from "./components/GameMenu";
+import { SoundToggle, unlockAudio } from "./auctionAudio";
 import { AuctionRoom } from "./components/Auctions";
 import { Unboxing, WinScreen } from "./components/World";
 import Messenger from "./components/Messenger";
@@ -54,6 +55,12 @@ const tabs = [
   ["Uczestnicy", Users],
 ] as const;
 export default function App() {
+  useEffect(() => {
+    document.addEventListener("pointerdown", unlockAudio, { passive: true });
+    const key = (event: KeyboardEvent) => { if (event.key === "Enter" || event.key === " ") unlockAudio(); };
+    document.addEventListener("keydown", key);
+    return () => { document.removeEventListener("pointerdown", unlockAudio); document.removeEventListener("keydown", key); };
+  }, []);
   const [simplifiedMotion, setSimplifiedMotion] = useState(() => {
     try {
       return localStorage.getItem("jw-reduced-motion") === "true";
@@ -186,7 +193,7 @@ export default function App() {
           onHelp={() => setHelp(true)}
         />
       ) : (
-        <div className={`game-shell ${tab === "Pulpit" ? "salon-viewport" : ""}`}>
+        <div className={`game-shell compact-hud ${tab === "Pulpit" ? "salon-viewport" : ""}`}>
           <header className="store-header">
             <button
               className="brand brand-button"
@@ -387,6 +394,7 @@ export default function App() {
                 active[(index + direction + active.length) % active.length].id,
               );
           }}
+          onWarehouse={() => { if (won?.id === selectedAuction.id) game.dismissWin(); setAuctionId(null); go("Magazyn"); }}
           onBackToMarket={() => {
             setAuctionId(null);
             go("Aukcje na żywo");
@@ -405,6 +413,7 @@ export default function App() {
         <WinScreen
           auction={won}
           item={s?.items.find((i) => i.auctionId === won.id)}
+          onWarehouse={() => { game.dismissWin(); go("Magazyn"); }}
           onClose={game.dismissWin}
         />
       )}
@@ -598,6 +607,9 @@ export default function App() {
               <span />
             </button>
           </div>
+          <h3>Dźwięki gry</h3>
+          <SoundToggle />
+          <p className="muted">Krótkie sygnały ofert i zakończenia aukcji. Bez muzyki.</p>
           <h3>Czas i zapis</h3>
           <p>
             To lokalna symulacja, bez konta i backendu. Postęp jest
