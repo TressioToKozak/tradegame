@@ -43,3 +43,7 @@ Dodano właściwe fotografie **Red Rye Finish** i **White Walker**, obie CC BY-S
 **44 produkty nadal nie mają zdjęć.** Pełna, wygenerowana lista: [MISSING_IMAGES.md](MISSING_IMAGES.md). Obejmuje m.in. Ghost & Rare, Black Label Origin, Lunar New Year oraz pięć z siedmiu wskazanych edycji poza Red Label i Red Rye. Nie podstawiono innych butelek ani grafik AI.
 
 `npm run report:images` aktualizuje listę dla całego katalogu. `check:images:strict` sprawdza wszystkie przypisane pliki i metadane. `check:images:all` wymaga kompletności całych 56 pozycji i obecnie zgłasza 44 braki. Nie traktujemy zwykłego builda jako dowodu kompletności zdjęć.
+
+### Ustawienie publikacji Pages
+
+Workflow publikuje skompilowany katalog `dist`. W ustawieniach repozytorium **Settings → Pages → Build and deployment → Source** należy wybrać **GitHub Actions**, aby równoległa publikacja z gałęzi nie nadpisywała aplikacji surowymi plikami źródłowymi. Token workflow ma uprawnienie publikowania Pages, ale API odrzuca zmianę tego ustawienia (`Resource not accessible by integration`); dlatego wdrożenie nie próbuje zmieniać konfiguracji administracyjnej.
