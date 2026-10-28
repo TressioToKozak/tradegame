@@ -288,7 +288,7 @@ export default function App() {
               <div>
                 <p className="eyebrow">TWÓJ SALON KOLEKCJONERSKI</p>
                 <h1>
-                  {tab === "Aukcje na żywo" ? "Aukcje" : tab}
+                  {tab === "Aukcje na żywo" ? "Rynek aukcyjny" : tab}
                 </h1>
               </div>
             </div>}

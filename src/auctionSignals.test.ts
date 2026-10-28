@@ -1,0 +1,5 @@
+import { expect, it } from "vitest";
+import { createGame } from "./engine";
+import { auctionSignals } from "./auctionSignals";
+it("gorąca partia wymaga kilku rzeczywistych ofert różnych uczestników",()=>{const s=createGame(1700000000000,42),a=s.auctions[0];a.bids=[];expect(auctionSignals(a,s.now)).not.toContain("Gorąca");a.bids=[0,1,2].map(n=>({at:s.now-n*1000,actor:"p0",amount:10000+n*1000}));expect(auctionSignals(a,s.now)).not.toContain("Gorąca");a.bids[1].actor="p1";expect(auctionSignals(a,s.now)).toContain("Gorąca");s.now+=61000;expect(auctionSignals(a,s.now)).not.toContain("Gorąca");});
+it("oznaczenia czasu nie udają nowości i finału dla przyszłych lub zamkniętych partii",()=>{const s=createGame(1700000000000,42),a=s.auctions[0];a.createdAt=s.now+1000;a.end=s.now+45000;expect(auctionSignals(a,s.now)).toContain("Kończy się");expect(auctionSignals(a,s.now)).not.toContain("Nowa");a.createdAt=s.now;expect(auctionSignals(a,s.now)).toContain("Nowa");a.watched=true;expect(auctionSignals(a,s.now)).toContain("Obserwowana");a.status="closed";expect(auctionSignals(a,s.now)).toEqual([]);});

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowUpRight,
@@ -16,6 +16,8 @@ import { euro, whisky, productSpecs, availabilityLabel } from "../catalog";
 import {
   submitBid,
   totalCost,
+  cash,
+  held,
   bidStep,
   watchAuction,
   activateProxy,
@@ -31,6 +33,10 @@ import Hint from "./Hint";
 import AuctionRivals from "./AuctionRivals";
 import { SoundToggle, unlockAudio, useAuctionAudio } from "../auctionAudio";
 import "./AuctionRoom42.css";
+import "./AuctionRoom43.css";
+import Brand from "./Brand";
+import { auctionSignals } from "../auctionSignals";
+import { shopLevel } from "../progression";
 const actor = (s: State, id: string | null) =>
   id === "player"
     ? "Ty"
@@ -77,6 +83,7 @@ export function AuctionCard({
         </span>
       </div>
       <div className="auction-info">
+        {a.status === "active" && <div className="lot-badges">{auctionSignals(a,s.now).map(label => <span key={label} className={label === "Kończy się" ? "ending" : ""}>{label}</span>)}</div>}
         <h3>{whisky(a.product).name}</h3>
         {(whisky(a.product).volumeMl || whisky(a.product).abv) && (
           <p className="product-specs">{productSpecs(whisky(a.product))}</p>
@@ -216,8 +223,10 @@ export function AuctionRoom({
     <Modal
       title={`Aukcja ${a.id}`}
       onClose={onClose}
-      className={`auction-room auction-room42 ${a.leader === "player" ? "room-player-leading" : ""} ${active && a.end-s.now<=10000 ? "room-final-seconds" : ""} ${urgent ? "urgent" : ""} ${!active ? "finished-room" : ""}`}
+      className={`auction-room auction-room42 auction-room43 ${a.leader === "player" ? "room-player-leading" : ""} ${active && a.end-s.now<=10000 ? "room-final-seconds" : ""} ${urgent ? "urgent" : ""} ${!active ? "finished-room" : ""}`}
     >
+      <div className="auction-scenery" aria-hidden="true" style={{"--room-scene": `url("${new URL(`${import.meta.env.BASE_URL}game-art/auction-room.png`, document.baseURI).href}")`} as CSSProperties}><img src={`${import.meta.env.BASE_URL}game-art/auction-room.png`} alt="" width="1672" height="941" fetchPriority="high" /></div>
+      <div className="room-session"><Brand small /><span>DOM AUKCYJNY<small>Sala pojedynczej aukcji</small></span><div><span>Wolna gotówka <b>{euro(cash(s)-held(s))}</b></span><span>Reputacja <b>{s.reputation}/100</b></span><span>Poziom <b>{shopLevel(s)}</b></span></div></div>
       <div className="room-heading">
         <p className="eyebrow">
           {active
@@ -227,8 +236,8 @@ export function AuctionRoom({
               : "WYNIK LICYTACJI"}
           {a.special ? " · AUKCJA SPECJALNA" : ""}
         </p>
-        <h2>{w.name}</h2>
         <div className="room-actions">
+          <button className="outline" onClick={onBackToMarket ?? onClose}><ChevronLeft size={16} />Powrót do rynku</button>
           <SoundToggle />
           {active && (
             <button
@@ -255,7 +264,8 @@ export function AuctionRoom({
       </div>
       {active && <div className="room-mobile-status" aria-label="Skrót licytacji"><strong>{euro(a.price)}</strong><span>{countdown(a.end,s.now)}</span><button type="button" onClick={() => document.getElementById("bid-amount")?.focus()}>Do ofert</button></div>}
       <div className="room-columns">
-        <div>
+        <div className="auction-object">
+          <span className="object-label">Licytowany egzemplarz</span>
           <ProductGallery product={a.product} />
           <p className="product-description">{w.description}</p>
           <div className="condition-strip">
@@ -318,6 +328,7 @@ export function AuctionRoom({
           </details>
         </div>
         <div className="room-center">
+          <div className="lot-summary"><h2>{w.name}</h2><p>{productSpecs(w)}</p><span>Butelka {a.bottleCondition ?? a.condition}/100 · Pudełko {a.boxCondition ?? a.condition}/100</span></div>
           {active && <section className="room-pulse" aria-label="Licytacja na żywo">
               <div className="room-live-label">
                 <span className="live-dot" />
@@ -342,6 +353,7 @@ export function AuctionRoom({
                   </motion.b>
                 )}
               </motion.div>
+              {(a.watched || a.proxyActive) && <div className="room-flags">{a.watched && <span>★ Obserwujesz</span>}{a.proxyActive && <span>ϟ Automat aktywny</span>}</div>}
               <div className="room-price">
                 <small>Aktualna oferta</small>
                 <motion.strong
@@ -374,28 +386,9 @@ export function AuctionRoom({
               )}
 
           </section>}
-      <details className="live-history" open={historyOpen} onToggle={e => setHistoryOpen(e.currentTarget.open)}>
-        <summary>Przebieg aukcji</summary>
-        <AnimatePresence initial={false}>
-          {timeline.map((t) => (
-            <motion.div
-              key={t.key}
-              initial={{ opacity: 0, x: -12, backgroundColor: "#b8803540" }}
-              animate={{ opacity: 1, x: 0, backgroundColor: "#b8803500" }}
-            >
-              <time>{time(t.at)}</time>
-              <span>{t.text}</span>
-              {t.amount > 0 && <b>{euro(t.amount)}</b>}
-            </motion.div>
-          ))}
-        </AnimatePresence>
-        {!timeline.length && <p className="muted">Nie złożono ofert.</p>}
-      </details>
-        </div>
         <div className="bid-desk">
           {active ? (
             <>
-              <AuctionRivals auction={a} state={s} />
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -446,6 +439,7 @@ export function AuctionRoom({
                         : "LICYTUJ"}
                   </button>
                 </div>
+                <p className="offer-total">Łącznie z prowizją i transportem: <b>{euro(totalCost(a, valid ? amount : a.price))}</b></p>
                 <small className="bid-step">
                   Krok licytacji {euro(bidStep(a.price))}
                 </small>
@@ -557,6 +551,7 @@ export function AuctionRoom({
                   </b>
                 </p>
               )}
+              {!won && !unsold && <p className="settlement-note">Nie pobrano Twoich środków za tę aukcję.</p>}
               {won && (
                 <p className="delivery-status">
                   <Package size={18} />
@@ -595,6 +590,27 @@ export function AuctionRoom({
             </dl>
           )}
         </div>
+        </div>
+        <aside className="room-audience">
+          {active && <AuctionRivals auction={a} state={s} />}
+      <details className="live-history" open={historyOpen} onToggle={e => setHistoryOpen(e.currentTarget.open)}>
+        <summary>Przebieg aukcji</summary>
+        <AnimatePresence initial={false}>
+          {timeline.map((t) => (
+            <motion.div
+              key={t.key}
+              initial={{ opacity: 0, x: -12, backgroundColor: "#b8803540" }}
+              animate={{ opacity: 1, x: 0, backgroundColor: "#b8803500" }}
+            >
+              <time>{time(t.at)}</time>
+              <span>{t.text}</span>
+              {t.amount > 0 && <b>{euro(t.amount)}</b>}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+        {!timeline.length && <p className="muted">Nie złożono ofert.</p>}
+      </details>
+        </aside>
       </div>
 
     </Modal>

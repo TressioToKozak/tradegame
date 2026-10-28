@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { categoryLabel, whisky } from "../catalog";
+import { categoryLabel, whisky, euro } from "../catalog";
 import type { State } from "../engine";
 import { AuctionCard } from "./Auctions";
+import { auctionSignals } from "../auctionSignals";
+import { countdown } from "../ui";
+import { Clock, Flame, Star } from "lucide-react";
 import { Empty } from "../ui";
 export default function AuctionMarket({
   state: s,
@@ -45,7 +48,12 @@ export default function AuctionMarket({
               : a.end - b.end,
     );
   return (
-    <section>
+    <section className="market43">
+      <p className="market-intro">Przeglądaj partie, obserwuj okazje i dołącz do konkretnej sali licytacyjnej.</p>
+      {quick === "Wszystkie" && category === "Wszystkie" && !watched && active.length > 0 && <section className="market-spotlights" aria-label="Wyróżnione aukcje"><h2>Na parkiecie <span>{active.length} aktywnych partii</span></h2><div>{active.slice().sort((a,b) => a.end-b.end).slice(0,3).map(a => {
+        const signals=auctionSignals(a,s.now), tag=signals.includes("Kończy się") ? "Kończy się" : signals.includes("Gorąca") ? "Gorąca aukcja" : signals.includes("Rzadka") ? "Rzadka okazja" : "Najbliższy finał", Icon=signals.includes("Gorąca") ? Flame : signals.includes("Rzadka") ? Star : Clock;
+        return <button key={a.id} onClick={() => onOpen(a.id)}><Icon size={18}/><span><small>{tag}</small><strong>{whisky(a.product).name}</strong><em>{euro(a.price)} · {countdown(a.end,s.now)}</em></span></button>;
+      })}</div></section>}
       <div className="market-chips" aria-label="Szybkie filtry">
         {[
           "Wszystkie",

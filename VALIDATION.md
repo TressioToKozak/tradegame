@@ -1,9 +1,9 @@
-# Weryfikacja pełnego importu i wersji 4.2
+# Weryfikacja pełnego importu i wersji 4.3
 
-- **106 testów jednostkowych, komponentowych i integracyjnych:** finanse, NPC, anty-sniping, replay, zapis/migracja, rozwój, pełny import, dopasowania i ceny. Testy importera działają na odizolowanych katalogach tymczasowych; sprawdzają powtórzenie identyczne bajtowo, brak innych marek, warianty pojemności, dry-run, brak pliku, złe ścieżki, kolizje i duplikaty. Grafiki testowe nie trafiają do gry.
+- **108 testów jednostkowych, komponentowych i integracyjnych:** finanse, NPC, anty-sniping, replay, zapis/migracja, rozwój, pełny import, dopasowania i ceny. Testy importera działają na odizolowanych katalogach tymczasowych; sprawdzają powtórzenie identyczne bajtowo, brak innych marek, warianty pojemności, dry-run, brak pliku, złe ścieżki, kolizje i duplikaty. Grafiki testowe nie trafiają do gry.
 - Wszystkie 253 importowane edycje przechodzą w silniku złożenie oferty, zakończenie aukcji, pełne rozliczenie kosztów, dostawę i kontrolę magazynową. Istniejące testy obejmują dalszą sprzedaż, negocjacje, wysyłkę, doręczenie i reklamację; żadna edycja nie wymaga osobnego kodu biznesowego.
 - Źródłowy katalog i mapa obejmują dokładnie 232 Johnnie Walker + 21 John Walker & Sons. Wszystkie 56 starych ID pozostało; zapis zachowuje pieniądze, koszty zapasu, cenę oferty, prowizję, transport i terminy trwających aukcji.
-- **48 scenariuszy Chromium na produkcyjnym `dist` pod `/tradegame/`:** dotychczasowa gra i 13 partii maks. 20 aukcji, pokazujących wszystkie 253 importowane fotografie jako rzeczywiste karty aplikacji. Testy sprawdzają widoczność, właściwe powiązanie produktu/ścieżki, `Image.decode()`, `naturalWidth` i `naturalHeight` każdego obrazu.
+- **51 scenariuszy Chromium na produkcyjnym `dist` pod `/tradegame/`:** dotychczasowa gra i 13 partii maks. 20 aukcji, pokazujących wszystkie 253 importowane fotografie jako rzeczywiste karty aplikacji. Testy sprawdzają widoczność, właściwe powiązanie produktu/ścieżki, `Image.decode()`, `naturalWidth` i `naturalHeight` każdego obrazu.
 - Przeglądarka potwierdza, że samo otwarcie menu nie pobiera importowanej biblioteki; osobny cache jest zapełniany na żądanie i ograniczony do 80 fotografii. Tryb offline shell oraz zapis nadal działają.
 - Anty-sniping w Chromium używa rzeczywistego upływu około 39 s: oferta gracza, +15 s, odświeżenie, oferta NPC, kolejne +15 s, brak wcześniejszego zamknięcia i jedno rozliczenie.
 - Godzinny rynek i obciążenie 20 aukcji zachowują budżety; kilkudniowe odtworzenie jest porcjowane i ma identyczny wynik jak przebieg co minutę.
@@ -19,3 +19,5 @@ Pulpit 4.0 i jego testy opisuje [V4_SALON.md](V4_SALON.md). Wcześniejsze karty 
 Wersja 4.1 sprawdza dodatkowo pełny viewport bez przewijania dokumentu, brak nagłówka pulpitu i pozycje znaczników na 1920×1080, 1440×900, 1366×768, 768×1000 oraz 390×844. Testuje otwieranie paneli wydarzeń i celów, zamykanie Escape i przywrócenie fokusu; test odbioru nagrody otwiera teraz panel HUD.
 
 Weryfikacja 4.2: [V42_AUCTIONS.md](V42_AUCTIONS.md). Panel rywali nie ujawnia prywatnych danych. Testy sprawdzają stałość awatarów, prawdziwe wycofanie, wyciszenie dźwięku i globalny przełącznik. Smoke Pages otwiera również salę aukcyjną po publikacji.
+
+Wersja 4.3: [V43_AUCTION_ROOM.md](V43_AUCTION_ROOM.md). Testy sprawdzają prawdziwą scenę i fotografię, adresy warstw CSS, brak żądań referencji oraz ponowne otwarcie sali offline. Wyróżnienia rynku wynikają z terminów i rzeczywistych ofert; nie modyfikują ekonomii. Publiczny smoke obejmuje hash `auction-room.png` i jego dekodowanie.

@@ -40,6 +40,7 @@ const paths = [
   "favicon.svg",
   "brand/jwcs.svg",
   "game-art/whisky-salon.png",
+  "game-art/auction-room.png",
   ...new Set(photos.map((p) => p.path)),
 ];
 const digest = (data) => createHash("sha256").update(data).digest("hex");
@@ -126,7 +127,8 @@ try {
   await page.getByRole("button", {name:"Wejdź do licytacji",exact:true}).first().click();
   const room = page.locator(".auction-room42");
   await expect(room).toBeVisible();
-  await expect(room.locator(".room-center .room-price")).toBeVisible();
+  await expect.poll(() => room.locator(".auction-scenery img").evaluate(img => img.complete && img.naturalWidth === 1672)).toBe(true);
+  await expect(room.locator(".room-center .room-price > strong")).toBeVisible();
   await expect(room.getByLabel("Automatyczna licytacja — maksymalna oferta (€)")).toBeVisible();
   await expect.poll(() => room.locator(".photo-stage img").first().evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
   await page.screenshot({path:"test-results/live-auction42.png",fullPage:true});

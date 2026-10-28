@@ -33,7 +33,7 @@ export function salonActivity(s: State) {
 export default function InteractiveSalon({ state, go, mutate }: { state: State; go: (tab: string) => void; mutate: Mutate }) {
   const activity = salonActivity(state);
   const [panel, setPanel] = useState<"events" | "tasks" | null>(null);
-  return <section className="interactive-salon" aria-label="Interaktywny salon whisky" style={{"--salon-art-url": `url("${import.meta.env.BASE_URL}game-art/whisky-salon.png")`} as CSSProperties}>
+  return <section className="interactive-salon" aria-label="Interaktywny salon whisky" style={{"--salon-art-url": `url("${new URL(`${import.meta.env.BASE_URL}game-art/whisky-salon.png`, document.baseURI).href}")`} as CSSProperties}>
     <div className="salon-scene">
       <img className="salon-art" src={`${import.meta.env.BASE_URL}game-art/whisky-salon.png`} width="1672" height="941" alt="Salon whisky: gabloty po lewej, biurko z laptopem pośrodku, lada i telefon po prawej oraz stół pakowania w prawym dolnym rogu." fetchPriority="high" />
       <div className="salon-lights" aria-hidden="true">{salonZones.map(zone => <span key={zone.id} data-light={zone.id} className={`salon-light ${activity[zone.id].active || (zone.id === "auctions" && state.auctions.some(a => a.status === "active" && a.createdAt !== undefined && a.createdAt <= state.now && state.now-a.createdAt < 15000)) ? "lit" : ""}`} style={{left:`${zone.x}%`,top:`${zone.y}%`}} />)}</div>

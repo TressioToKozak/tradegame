@@ -35,7 +35,7 @@ for (const [width, height] of [[1920,1080], [1440,900], [1366,768], [768,1000], 
   await expect(salon).toHaveCSS("opacity", "1");
   await expect(page.locator(".tab-scene")).toHaveCSS("opacity", "1");
   await page.screenshot({ animations: "disabled", path:`test-results/salon41-${width}.png`, fullPage:true });
-  for(const [id,heading] of [["auctions","Aukcje"],["inventory","Magazyn"],["shop","Mój sklep"],["messages","Wiadomości"],["deliveries","Zamówienia"]]) {
+  for(const [id,heading] of [["auctions","Rynek aukcyjny"],["inventory","Magazyn"],["shop","Mój sklep"],["messages","Wiadomości"],["deliveries","Zamówienia"]]) {
     const button = page.locator(`.salon-zone[data-zone="${id}"]`);
     await button.focus(); await expect(button).toBeFocused(); await page.keyboard.press("Enter");
     await expect(page.getByRole("heading",{name:heading,exact:true}).first()).toBeVisible();
