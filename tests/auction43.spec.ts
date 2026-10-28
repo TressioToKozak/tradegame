@@ -18,10 +18,11 @@ for(const [width,height] of [[1440,900],[390,844]])test(`4.3 ${width}: prawdziwa
   await expect(page.getByRole("region",{name:"Wyróżnione aukcje"})).toBeVisible();
   if(width===1440)await page.screenshot({path:"test-results/market43-1440.png",fullPage:false,animations:"disabled"});
   await page.getByRole("button",{name:"Wejdź do licytacji",exact:true}).first().click();
-  const room=page.locator(".auction-room43"),art=room.locator(".auction-scenery img");
+  const room=page.locator(".auction-location"),art=room.locator(".auction-scenery img");
   await expect.poll(()=>art.evaluate((i:HTMLImageElement)=>i.complete&&i.naturalWidth===1672)).toBe(true);
   await expect(room.locator(".room-audience .rival-leading")).toContainText("Collector1978");
   await expect(room.locator(".room-center #bid-amount")).toBeVisible();
+  await room.getByRole("tab", {name:/Automat/}).click();
   await expect(room.locator(".room-center .proxy-panel")).toContainText("Automatyczna licytacja");
   await expect.poll(()=>room.locator(".photo-stage img").first().evaluate((i:HTMLImageElement)=>i.complete&&i.naturalWidth>0)).toBe(true);
   const darkPixels = await room.locator(".photo-stage img").first().evaluate(async (img: HTMLImageElement) => {
@@ -32,8 +33,8 @@ for(const [width,height] of [[1440,900],[390,844]])test(`4.3 ${width}: prawdziwa
     return Array.from({length:900},(_,i)=>colors[i*4]<150&&colors[i*4+1]<150&&colors[i*4+2]<150).filter(Boolean).length;
   });
   expect(darkPixels).toBeGreaterThan(40);
-  const css=await room.locator(".auction-scenery").evaluate(el=>getComputedStyle(el,"::before").backgroundImage);
-  expect(css).toContain("/tradegame/game-art/auction-room.png");expect(css).not.toContain("/assets/");
+  expect(await art.getAttribute("src")).toContain("game-art/auction-room.png");
+  await room.getByRole("tab",{name:"Szybka oferta"}).click();
   expect(await room.evaluate((el:HTMLElement)=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
   await room.evaluate((el:HTMLElement)=>{el.scrollTop=0;});
   await page.screenshot({path:`test-results/auction43-${width}.png`,animations:"disabled"});

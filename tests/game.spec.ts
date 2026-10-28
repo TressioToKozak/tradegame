@@ -317,6 +317,7 @@ test("fotografie, filtry i limit działają na partii 12 aukcji", async ({
   await expect(
     page.getByRole("button", { name: "Obserwowana", exact: true }),
   ).toBeVisible();
+  await page.getByRole("tab", {name:/Automat/}).click();
   await page
     .getByLabel("Automatyczna licytacja — maksymalna oferta (€)")
     .fill("40");

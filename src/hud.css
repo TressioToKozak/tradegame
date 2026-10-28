@@ -1,0 +1,12 @@
+@media (min-width:1250px) {
+  .game-shell.compact-hud { --store-header-height:76px; }
+  .compact-hud > .store-header { height:76px; padding-inline:20px; gap:14px; }
+  .compact-hud .store-status { gap:14px; }
+  .compact-hud .store-header .brand > span { font-size:10px; letter-spacing:1px; }
+  .compact-hud .store-header .brand-mark { width:32px; }
+  .compact-hud .live-shortcut { display:none !important; }
+  .compact-hud .header-cash b { font-size:21px; }
+  .compact-hud > .store-nav { height:76px; min-height:76px; top:0; margin-top:-76px; margin-left:210px; width:calc(100% - 700px); padding:0; gap:0; border:0; background:transparent; align-items:stretch; }
+  .compact-hud > .store-nav button { padding:12px 11px; font-size:11px; gap:6px; }
+}
+.sound-toggle { min-height:40px; }

@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowUpRight,
@@ -11,6 +11,8 @@ import {
   Trophy,
   Package,
   ShieldCheck,
+  X,
+  Info,
 } from "lucide-react";
 import { euro, whisky, productSpecs, availabilityLabel } from "../catalog";
 import {
@@ -32,9 +34,8 @@ import ProductGallery, { Modal } from "./ProductGallery";
 import Hint from "./Hint";
 import AuctionRivals from "./AuctionRivals";
 import { SoundToggle, unlockAudio, useAuctionAudio } from "../auctionAudio";
-import "./AuctionRoom42.css";
-import "./AuctionRoom43.css";
-import Brand from "./Brand";
+import "./AuctionLocation.css";
+import AuctionScreen from "./AuctionScreen";
 import { auctionSignals } from "../auctionSignals";
 import { shopLevel } from "../progression";
 const actor = (s: State, id: string | null) =>
@@ -168,6 +169,8 @@ export function AuctionRoom({
   onWarehouse?: () => void;
 }) {
   useAuctionAudio(a, s.now);
+  const [offerTab,setOfferTab]=useState<"manual"|"auto">("manual");
+  const [infoOpen,setInfoOpen]=useState(false);
   const [historyOpen, setHistoryOpen] = useState(() => window.innerWidth > 700);
   const [limit, setLimit] = useState(
     a.playerLimit === undefined ? "" : String(a.playerLimit / 100),
@@ -219,177 +222,41 @@ export function AuctionRoom({
     .sort((x, y) => y.at - x.at)
     .slice(0, 80);
   const w = whisky(a.product);
-  return (
-    <Modal
-      title={`Aukcja ${a.id}`}
-      onClose={onClose}
-      className={`auction-room auction-room42 auction-room43 ${a.leader === "player" ? "room-player-leading" : ""} ${active && a.end-s.now<=10000 ? "room-final-seconds" : ""} ${urgent ? "urgent" : ""} ${!active ? "finished-room" : ""}`}
-    >
-      <div className="auction-scenery" aria-hidden="true" style={{"--room-scene": `url("${new URL(`${import.meta.env.BASE_URL}game-art/auction-room.png`, document.baseURI).href}")`} as CSSProperties}><img src={`${import.meta.env.BASE_URL}game-art/auction-room.png`} alt="" width="1672" height="941" fetchPriority="high" /></div>
-      <div className="room-session"><Brand small /><span>DOM AUKCYJNY<small>Sala pojedynczej aukcji</small></span><div><span>Wolna gotówka <b>{euro(cash(s)-held(s))}</b></span><span>Reputacja <b>{s.reputation}/100</b></span><span>Poziom <b>{shopLevel(s)}</b></span></div></div>
-      <div className="room-heading">
-        <p className="eyebrow">
-          {active
-            ? "SALON AUKCYJNY"
-            : won
-              ? "TWOJA NOWA ZDOBYCZ"
-              : "WYNIK LICYTACJI"}
-          {a.special ? " · AUKCJA SPECJALNA" : ""}
-        </p>
-        <div className="room-actions">
-          <button className="outline" onClick={onBackToMarket ?? onClose}><ChevronLeft size={16} />Powrót do rynku</button>
-          <SoundToggle />
-          {active && (
-            <button
-              className="outline"
-              onClick={() => mutate((g) => watchAuction(g, a.id))}
-            >
-              <Star size={16} fill={a.watched ? "currentColor" : "none"} />
-              {a.watched ? "Obserwowana" : "Obserwuj"}
-            </button>
-          )}
-          {onNavigate && active && (
-            <>
-              <button className="outline" onClick={() => onNavigate(-1)}>
-                <ChevronLeft size={16} />
-                Poprzednia
-              </button>
-              <button className="outline" onClick={() => onNavigate(1)}>
-                Następna
-                <ChevronRight size={16} />
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-      {active && <div className="room-mobile-status" aria-label="Skrót licytacji"><strong>{euro(a.price)}</strong><span>{countdown(a.end,s.now)}</span><button type="button" onClick={() => document.getElementById("bid-amount")?.focus()}>Do ofert</button></div>}
-      <div className="room-columns">
-        <div className="auction-object">
-          <span className="object-label">Licytowany egzemplarz</span>
-          <ProductGallery product={a.product} />
-          <p className="product-description">{w.description}</p>
-          <div className="condition-strip">
-            <span>
-              Butelka <b>{a.bottleCondition ?? a.condition}/100</b>
-            </span>
-            <span>
-              Pudełko <b>{a.boxCondition ?? a.condition}/100</b>
-            </span>
-          </div>
-          <details className="edition-data">
-            <summary>Poznaj ten egzemplarz</summary>
-            <p>{productSpecs(w)}</p>
-            <dl>
-              <dt>Edycja / seria</dt>
-              <dd>{w.series ?? w.name}</dd>
-              <dt>Wiek</dt>
-              <dd>
-                {w.ageStatement
-                  ? `${w.ageStatement} lat`
-                  : w.ageStatus === "nas"
-                    ? "Bez deklaracji wieku"
-                    : "Nieznany"}
-              </dd>
-              <dt>Wprowadzenie</dt>
-              <dd>{w.releaseYear ?? "Niepotwierdzone"}</dd>
-              <dt>Produkcja</dt>
-              <dd>
-                {
-                  {
-                    current: "W produkcji",
-                    discontinued: "Wycofana",
-                    unknown: "Niepotwierdzona",
-                  }[w.market.productionStatus]
-                }
-              </dd>
-              <dt>Dostępność</dt>
-              <dd>{availabilityLabel[w.market.availability]}</dd>
-              <dt>Rzadkość</dt>
-              <dd>{w.rarity}/10</dd>
-              <dt>Region wydania</dt>
-              <dd>
-                {w.salesMarket ??
-                  w.market.regions
-                    .map(
-                      (r) =>
-                        ({
-                          NL: "Holandia",
-                          EU: "Europa",
-                          US: "USA",
-                          Global: "Globalny",
-                          "Travel Retail": "Rynek podróżny",
-                        })[r] ?? r,
-                    )
-                    .join(", ")}
-              </dd>
-              <dt>Sprzedawca</dt>
-              <dd>{a.country}</dd>
-            </dl>
-          </details>
-        </div>
-        <div className="room-center">
-          <div className="lot-summary"><h2>{w.name}</h2><p>{productSpecs(w)}</p><span>Butelka {a.bottleCondition ?? a.condition}/100 · Pudełko {a.boxCondition ?? a.condition}/100</span></div>
-          {active && <section className="room-pulse" aria-label="Licytacja na żywo">
-              <div className="room-live-label">
-                <span className="live-dot" />
-                Licytacja trwa <span>{watcherCount(s, a)} obserwujących</span>
-              </div>
-              <motion.div
-                key={a.end}
-                initial={a.extensions?.length ? { scale: 1.04 } : false}
-                animate={{ scale: 1 }}
-                className="room-timer"
-              >
-                <Clock size={21} />
-                <span>{countdown(a.end, s.now)}</span>
-                {recent && (
-                  <motion.b
-                    className="extension-banner"
-                    role="status"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <span className="sr-only">+15 s</span>+15 SEKUND
-                  </motion.b>
-                )}
-              </motion.div>
-              {(a.watched || a.proxyActive) && <div className="room-flags">{a.watched && <span>★ Obserwujesz</span>}{a.proxyActive && <span>ϟ Automat aktywny</span>}</div>}
-              <div className="room-price">
-                <small>Aktualna oferta</small>
-                <motion.strong
-                  key={a.price}
-                  initial={{ color: "#f5b65f", scale: 1.04 }}
-                  animate={{ color: "#fff0d4", scale: 1 }}
-                >
-                  {euro(a.price)}
-                </motion.strong>
-                <p>
-                  <span className="bidder-avatar" aria-hidden="true">
-                    {a.leader
-                      ? actor(s, a.leader).slice(0, 2).toUpperCase()
-                      : "—"}
-                  </span>
-                  {a.leader
-                    ? `Prowadzi ${actor(s, a.leader)}`
-                    : "Otwórz licytację"}
-                </p>
-              </div>
-              {a.bids.some((b) => b.actor === "player") && (
-                <p
-                  className={`bid-status ${a.leader === "player" ? "leading" : "outbid"}`}
-                  role="status"
-                >
-                  {a.leader === "player"
-                    ? "PROWADZISZ"
-                    : "Zostałeś przebity!"}
-                </p>
-              )}
-
-          </section>}
-        <div className="bid-desk">
-          {active ? (
-            <>
-              <form
+  return <AuctionScreen title={`Aukcja ${a.id}`} onClose={onClose} className={`${a.leader === "player" ? "room-player-leading" : ""} ${active && a.end-s.now<=10000 ? "room-final-seconds" : ""} ${urgent ? "urgent" : ""} ${!active ? "finished-room" : ""}`}>
+    <div className="auction-scenery" aria-hidden="true"><img src={`${import.meta.env.BASE_URL}game-art/auction-room.png`} alt="" width="1672" height="941" fetchPriority="high" /></div>
+    <header className="auction-hud">
+      <button className="outline" onClick={onBackToMarket ?? onClose}><ChevronLeft size={17}/>Powrót do rynku</button>
+      <div className="auction-switcher"><button className="outline" aria-label="Poprzednia" disabled={!onNavigate || !active} onClick={()=>onNavigate?.(-1)}><ChevronLeft size={18}/></button><button className="outline" aria-label="Następna" disabled={!onNavigate || !active} onClick={()=>onNavigate?.(1)}><ChevronRight size={18}/></button></div>
+      {active && <button className="outline watch-control" onClick={()=>mutate(g=>watchAuction(g,a.id))}><Star size={17} fill={a.watched?"currentColor":"none"}/>{a.watched?"Obserwowana":"Obserwuj"}</button>}
+      <SoundToggle/>
+      <div className="auction-wallet"><span>Wolna gotówka<b>{euro(cash(s)-held(s))}</b></span><span>Reputacja<b>{s.reputation}/100</b></span><span>Poziom<b>{shopLevel(s)}</b></span></div>
+      <button className="outline location-close" aria-label="Zamknij okno" onClick={onClose}><X size={21}/></button>
+    </header>
+    {active && <div className="room-mobile-status"><strong>{euro(a.price)}</strong><span>{countdown(a.end,s.now)}</span><button onClick={()=>{setOfferTab("manual");requestAnimationFrame(()=>document.getElementById("bid-amount")?.focus());}}>Do ofert</button></div>}
+    <main className="auction-stage">
+      <section className="auction-exhibit" aria-label="Licytowany egzemplarz">
+        <div className="exhibit-caption"><span>PARTIA {a.id}</span><b>{productSpecs(w)}</b></div>
+        <div className="exhibit-photo"><ProductGallery product={a.product}/></div>
+        <div className="exhibit-condition"><span>Butelka <b>{a.bottleCondition ?? a.condition}/100</b></span><span>Pudełko <b>{a.boxCondition ?? a.condition}/100</b></span></div>
+        <button className="outline exhibit-info" onClick={()=>setInfoOpen(true)}><Info size={16}/>Informacje o egzemplarzu</button>
+      </section>
+      <section className="auction-console room-center" aria-label="Licytacja">
+        <div className="lot-summary"><p className="eyebrow">{active ? "LICYTACJA NA ŻYWO" : "WYNIK AUKCJI"}</p><h2>{w.name}</h2></div>
+        {active ? <>
+          <section className="room-pulse" aria-label="Licytacja na żywo">
+            <div className="auction-numbers"><div className="room-price"><small>Aktualna oferta</small><motion.strong key={a.price} initial={{opacity:.5,y:6}} animate={{opacity:1,y:0}}>{euro(a.price)}</motion.strong></div>
+              <div className="room-timer"><small>Do końca</small><span>{countdown(a.end,s.now)}</span>{recent && <motion.b key={a.end} className="extension-banner" role="status" initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}}><span className="sr-only">+15 s</span>+15 SEKUND</motion.b>}</div>
+            </div>
+            <motion.div key={a.leader} initial={{opacity:.5}} animate={{opacity:1}} className="room-leader"><span className="bidder-avatar">{a.leader?actor(s,a.leader).slice(0,2).toUpperCase():"—"}</span><span>{a.leader?`Prowadzi ${actor(s,a.leader)}`:"Otwórz licytację"}</span></motion.div>
+            <div className="auction-player-status" role="status">{a.leader==="player"?<b className="leading">PROWADZISZ</b>:a.bids.some(b=>b.actor==="player")?<b className="outbid">Zostałeś przebity!</b>:<span>{watcherCount(s,a)} obserwujących</span>}{a.proxyActive&&<span className="auto-chip">ϟ Automat aktywny</span>}</div>
+          </section>
+          <div className="offer-tabs" role="tablist" aria-label="Sposób licytowania" onKeyDown={event=>{
+            if (!["ArrowLeft","ArrowRight","Home","End"].includes(event.key)) return;
+            event.preventDefault();const tab=event.key==="Home"?"manual":event.key==="End"?"auto":offerTab==="manual"?"auto":"manual";
+            setOfferTab(tab);document.getElementById(tab==="manual"?"manual-tab":"auto-tab")?.focus();
+          }}><button id="manual-tab" role="tab" tabIndex={offerTab==="manual"?0:-1} aria-selected={offerTab==="manual"} aria-controls="manual-offer" onClick={()=>setOfferTab("manual")}>Szybka oferta</button><button id="auto-tab" role="tab" tabIndex={offerTab==="auto"?0:-1} aria-selected={offerTab==="auto"} aria-controls="auto-offer" onClick={()=>setOfferTab("auto")}>Automat {a.proxyActive&&"●"}</button></div>
+          <div className="bid-desk">
+            {offerTab==="manual"?<div id="manual-offer" role="tabpanel" aria-labelledby="manual-tab">              <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   unlockAudio();
@@ -412,7 +279,7 @@ export function AuctionRoom({
                         );
                       }}
                     >
-                      +{euro(bidStep(a.price) * n)}
+                      <strong>{euro(a.price + bidStep(a.price) * n)}</strong><small>+{euro(bidStep(a.price) * n)}</small>
                       {n === 1 && (
                         <span className="sr-only">Minimalne przebicie</span>
                       )}
@@ -439,13 +306,12 @@ export function AuctionRoom({
                         : "LICYTUJ"}
                   </button>
                 </div>
-                <p className="offer-total">Łącznie z prowizją i transportem: <b>{euro(totalCost(a, valid ? amount : a.price))}</b></p>
+                <p className="offer-total">Łącznie z prowizją i transportem: <b>{euro(totalCost(a, valid ? amount : a.price))}</b> <Hint label="Jak liczymy pełny koszt?">Cena młotkowa + prowizja + transport. Wysyłkę do klienta opłacisz osobno.</Hint></p>
                 <small className="bid-step">
                   Krok licytacji {euro(bidStep(a.price))}
                 </small>
-              </form>
-              <section
-                className={`proxy-panel ${a.proxyActive ? "enabled" : ""}`}
+              </form></div>:<div id="auto-offer" role="tabpanel" aria-labelledby="auto-tab">              <section
+                className={`proxy-panel ${a.proxyActive ? "enabled" : ""} ${confirmProxy ? "confirming" : ""}`}
                 aria-label="Automatyczna licytacja"
               >
                 <div className="proxy-heading">
@@ -521,10 +387,9 @@ export function AuctionRoom({
                     </div>
                   </div>
                 )}
-              </section>
-            </>
-          ) : (
-            <section className={`auction-result ${won ? "won" : ""}`}>
+              </section></div>}
+          </div>
+        </>:<div className="location-result">            <section className={`auction-result ${won ? "won" : ""}`}>
               <div className="result-emblem">
                 {won ? <Trophy size={34} /> : <Gavel size={30} />}
               </div>
@@ -567,10 +432,7 @@ export function AuctionRoom({
                 Wróć do aktywnych aukcji
                 <ArrowUpRight size={16} />
               </button>
-            </section>
-          )}
-          {(active || won) && (
-            <dl className="cost-breakdown">
+            </section>{won&&            <dl className="cost-breakdown">
               <dt>{active ? "Twoja proponowana oferta" : "Cena młotkowa"}</dt>
               <dd>{euro(active && valid ? amount : a.price)}</dd>
               <dt>Prowizja · {Math.round(a.fee * 100)}%</dt>
@@ -587,13 +449,9 @@ export function AuctionRoom({
                 </Hint>
               </dt>
               <dd>{euro(totalCost(a, active && valid ? amount : a.price))}</dd>
-            </dl>
-          )}
-        </div>
-        </div>
-        <aside className="room-audience">
-          {active && <AuctionRivals auction={a} state={s} />}
-      <details className="live-history" open={historyOpen} onToggle={e => setHistoryOpen(e.currentTarget.open)}>
+            </dl>}</div>}
+      </section>
+      <aside className="auction-audience room-audience" aria-label="Uczestnicy i ostatnie oferty">{active&&<AuctionRivals auction={a} state={s}/>}      <details className="live-history" open={historyOpen} onToggle={e => setHistoryOpen(e.currentTarget.open)}>
         <summary>Przebieg aukcji</summary>
         <AnimatePresence initial={false}>
           {timeline.map((t) => (
@@ -609,10 +467,57 @@ export function AuctionRoom({
           ))}
         </AnimatePresence>
         {!timeline.length && <p className="muted">Nie złożono ofert.</p>}
-      </details>
-        </aside>
-      </div>
-
-    </Modal>
-  );
+      </details></aside>
+    </main>
+    {infoOpen && <Modal title="Informacje o egzemplarzu" onClose={()=>setInfoOpen(false)} className="edition-information"><h2>{w.name}</h2><p>{w.description}</p>          <div className="edition-data">
+            <h3>Dane egzemplarza</h3>
+            <p>{productSpecs(w)}</p>
+            <dl>
+              <dt>Edycja / seria</dt>
+              <dd>{w.series ?? w.name}</dd>
+              <dt>Wiek</dt>
+              <dd>
+                {w.ageStatement
+                  ? `${w.ageStatement} lat`
+                  : w.ageStatus === "nas"
+                    ? "Bez deklaracji wieku"
+                    : "Nieznany"}
+              </dd>
+              <dt>Wprowadzenie</dt>
+              <dd>{w.releaseYear ?? "Niepotwierdzone"}</dd>
+              <dt>Produkcja</dt>
+              <dd>
+                {
+                  {
+                    current: "W produkcji",
+                    discontinued: "Wycofana",
+                    unknown: "Niepotwierdzona",
+                  }[w.market.productionStatus]
+                }
+              </dd>
+              <dt>Dostępność</dt>
+              <dd>{availabilityLabel[w.market.availability]}</dd>
+              <dt>Rzadkość</dt>
+              <dd>{w.rarity}/10</dd>
+              <dt>Region wydania</dt>
+              <dd>
+                {w.salesMarket ??
+                  w.market.regions
+                    .map(
+                      (r) =>
+                        ({
+                          NL: "Holandia",
+                          EU: "Europa",
+                          US: "USA",
+                          Global: "Globalny",
+                          "Travel Retail": "Rynek podróżny",
+                        })[r] ?? r,
+                    )
+                    .join(", ")}
+              </dd>
+              <dt>Sprzedawca</dt>
+              <dd>{a.country}</dd>
+            </dl>
+          </div></Modal>}
+  </AuctionScreen>;
 }

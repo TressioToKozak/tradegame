@@ -80,6 +80,7 @@ test("proxy wymaga potwierdzenia, przebija minimalnie, przetrwa restart i zatrzy
   );
   await openGame(page, s);
   let room = await openRoom(page);
+  await room.getByRole("tab",{name:/Automat/}).click();
   await room
     .getByLabel("Automatyczna licytacja — maksymalna oferta (€)")
     .fill("200");
@@ -93,6 +94,7 @@ test("proxy wymaga potwierdzenia, przebija minimalnie, przetrwa restart i zatrzy
   await page.reload();
   await page.getByRole("button", { name: "KONTYNUUJ GRĘ" }).click();
   room = await openRoom(page);
+  await room.getByRole("tab",{name:/Automat/}).click();
   await expect(room.locator(".room-price>strong")).toContainText("200,00", {
     timeout: 12000,
   });
@@ -180,11 +182,12 @@ test("stary limit pozostaje wyłączony, a dane edycji nie zdradzają wyceny", a
   delete a.proxyActive;
   await openGame(page, s);
   const room = await openRoom(page);
+  await room.getByRole("tab",{name:/Automat/}).click();
   await expect(room.locator(".proxy-heading")).toContainText("WYŁĄCZONA");
   await expect(room.locator(".live-history")).toContainText(
     "Nie złożono ofert",
   );
-  await room.getByText("Poznaj ten egzemplarz", { exact: true }).click();
+  await room.getByRole("button",{name:"Informacje o egzemplarzu",exact:true}).click();
   for (const forbidden of [
     "Popyt",
     "płynność",
@@ -199,7 +202,8 @@ test("stary limit pozostaje wyłączony, a dane edycji nie zdradzają wyceny", a
     "Prawa zastrzeżone",
     "Referencja",
   ])
-    await expect(room).not.toContainText(forbidden);
+    await expect(page.getByRole("dialog",{name:"Informacje o egzemplarzu",exact:true})).not.toContainText(forbidden);
+  await page.getByRole("dialog",{name:"Informacje o egzemplarzu",exact:true}).getByRole("button",{name:"Zamknij okno"}).click();
   await expect(room.locator(".photo-stage img")).toBeVisible();
   await room.getByRole("button", { name: "Zamknij okno" }).click();
   await page.getByRole("button", { name: "Więcej", exact: true }).click();
@@ -292,6 +296,7 @@ for (const width of [320, 390, 768, 1440])
     await page.getByLabel("Tylko obserwowane").check();
     await page.getByLabel("Tylko obserwowane").uncheck();
     const room = await openRoom(page);
+    await room.getByRole("tab",{name:/Automat/}).click();
     await room
       .getByLabel("Automatyczna licytacja — maksymalna oferta (€)")
       .fill("200");

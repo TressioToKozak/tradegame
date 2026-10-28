@@ -1,3 +1,4 @@
+import "./AuctionMarket.css";
 import { useState } from "react";
 import { categoryLabel, whisky, euro } from "../catalog";
 import type { State } from "../engine";

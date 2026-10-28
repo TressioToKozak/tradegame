@@ -1,0 +1,19 @@
+.market-intro { color:var(--muted); font-size:13px; line-height:1.6; margin:0 0 20px; }
+.market-spotlights { margin-bottom:24px; }
+.market-spotlights h2 { display:flex; gap:16px; align-items:baseline; font-size:21px; margin:0 0 12px; }
+.market-spotlights h2 > span { font:11px system-ui; color:var(--muted); }
+.market-spotlights > div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.market-spotlights button { display:flex; align-items:flex-start; text-align:left; padding:14px; gap:10px; border:1px solid #b9985b55; border-radius:9px; background:#c4995010; color:#eee0c5; min-width:0; }
+.market-spotlights button > svg { flex-shrink:0; color:#e9bd77; margin-top:4px; }
+.market-spotlights button > span { min-width:0; }
+.market-spotlights small { font-size:10px; color:#d3ae70; display:block; margin-bottom:6px; }
+.market-spotlights strong { display:block; font:16px/1.35 Georgia,serif; overflow-wrap:anywhere; }
+.market-spotlights em { display:block; font:11px system-ui; color:#c7baa5; margin-top:8px; }
+.market43 .filter-toggle { padding:8px 12px; border-color:transparent; background:transparent; color:#dac7a6; min-height:40px; font-size:11px; }
+.market43 .market-chips { gap:7px; }
+.market43 .market-chips button { padding:10px 14px; }
+.lot-badges { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
+.lot-badges:empty { display:none; }
+.lot-badges > span { font-size:9px; padding:4px 6px; color:#e5c995; border:1px solid #c2a16b44; border-radius:4px; background:#c19a5812; }
+.lot-badges > .ending { color:#ffc193; border-color:#dc995a77; background:#9b4e221c; }
+@media (max-width:700px) { .market-spotlights > div { grid-template-columns:1fr;gap:8px; } .market-spotlights button {padding:12px;} .market-spotlights strong {font-size:15px;} .market43 .market-chips button {min-height:44px;} }

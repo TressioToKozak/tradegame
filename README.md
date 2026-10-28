@@ -1,4 +1,4 @@
-# JW Collection Store 4.3 — dom aukcyjny
+# JW Collection Store 4.3.1 — pełnoekranowa sala aukcyjna
 
 Polski symulator sklepu z kolekcjonerskimi whisky Johnnie Walker. React, TypeScript, Vite, Tailwind, Dexie/IndexedDB. Statyczna aplikacja bez serwera aplikacji, kont, API i kluczy. Kapitał początkowy: 5 000 €. Kwoty w eurocentach. Wyceny są datowanymi referencjami z repozytorium źródłowego lub jawnym szacunkiem; nie gwarantują zysku.
 
@@ -109,3 +109,7 @@ Duży przedmiot, cena i zegar, widoczni konkurenci oraz osobny panel ofert i aut
 ## Sala na gotowej scenie 4.3
 
 Nowa sala korzysta z `auction-room.png`; referencja wizualna nie jest wyświetlana. Duży przedmiot, środkowy panel licytacji oraz prawa lista rywali i ofert tworzą osobną lokację. Rynek zachowuje praktyczne filtrowanie i otrzymuje wyróżnione partie oraz oznaczenia rzeczywistej aktywności. [Opis, testy i zrzuty](V43_AUCTION_ROOM.md).
+
+## Pełnoekranowa lokacja 4.3.1
+
+Sala nie używa już układu modala. Eksponat ma ciemną oprawę, cena i zegar dominują, a szybka oferta i automat są osobnymi panelami. Podstawowe działania mieszczą się w pierwszym widoku desktopowym; długie dane są w informacjach o egzemplarzu. [Układ, weryfikacja i zrzuty](V431_AUCTION_LOCATION.md).

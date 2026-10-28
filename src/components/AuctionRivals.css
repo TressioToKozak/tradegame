@@ -1,0 +1,12 @@
+.auction-rivals { margin-bottom: 20px; }
+.auction-rivals summary > span { padding: 3px 7px; border: 1px solid #a8895955; border-radius: 20px; margin-left: 8px; font-size: 10px; }
+.rival-list { display: grid; gap: 8px; max-height: 220px; overflow-y: auto; margin-top: 6px; }
+.rival { display: flex; gap: 10px; align-items: center; padding: 8px; border: 1px solid #c8a96a22; border-radius: 8px; background: #14110dbb; }
+.rival-avatar { display: inline-flex; flex-shrink: 0; width: 42px; height: 42px; border-radius: 50%; overflow: hidden; border: 1px solid #c5a77766; }
+.rival-avatar svg { width: 100%; height: 100%; }
+.rival > div { min-width: 0; }
+.rival strong { font-size: 12px; overflow-wrap: anywhere; }
+.rival small { display: block; font-size: 10px; color: #bcac94; margin-top: 4px; }
+.rival-leading { border-color: #ecc178; box-shadow: inset 0 0 25px #bc8a2e1f; }
+.rival-leading small { color: #f3ca82; }
+.rival-withdrawn { opacity: .65; }

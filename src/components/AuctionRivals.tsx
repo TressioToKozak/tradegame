@@ -1,3 +1,4 @@
+import "./AuctionRivals.css";
 import { useState } from "react";
 import { motion } from "motion/react";
 import type { Auction, State } from "../engine";

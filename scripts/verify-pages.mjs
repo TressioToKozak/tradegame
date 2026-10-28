@@ -125,13 +125,18 @@ try {
     fullPage: true,
   });
   await page.getByRole("button", {name:"Wejdź do licytacji",exact:true}).first().click();
-  const room = page.locator(".auction-room42");
+  const room = page.locator(".auction-location");
   await expect(room).toBeVisible();
   await expect.poll(() => room.locator(".auction-scenery img").evaluate(img => img.complete && img.naturalWidth === 1672)).toBe(true);
   await expect(room.locator(".room-center .room-price > strong")).toBeVisible();
+  await room.getByRole("tab",{name:/Automat/}).click();
   await expect(room.getByLabel("Automatyczna licytacja — maksymalna oferta (€)")).toBeVisible();
   await expect.poll(() => room.locator(".photo-stage img").first().evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
-  await page.screenshot({path:"test-results/live-auction42.png",fullPage:true});
+  await expect(page.locator(".modal-backdrop")).toHaveCount(0);
+  await expect.poll(() => room.boundingBox()).toEqual({x:0,y:0,width:1440,height:1000});
+  await room.locator(".photo-stage img").first().evaluate(img => img.decode());
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await page.screenshot({path:"test-results/live-auction-location.png",fullPage:false});
   if (errors.length) throw Error(errors.join("\n"));
   console.log(
     `Pages: zgodne SHA-256 ${verified} plików; ${decoded} zdjęć zdekodowanych; menu, salon, 16 aukcji i fotografie w kartach działają.`,
